@@ -5,6 +5,12 @@ and versions follow [Semantic Versioning](https://semver.org).
 
 ## [Unreleased]
 
+### Changed
+
+- The dashboard keeps running while the Mac sleeps: built files are served as cacheable forever,
+  the photo tile rotates through photos it has already loaded when the server can't be reached,
+  and the daily 3 a.m. reload waits until the server answers.
+
 ## [0.1.0] - 2026-10-14
 
 The static dashboard: no API integrations.

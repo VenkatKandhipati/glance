@@ -45,6 +45,19 @@ One screen, no navigation, no API calls.
 memory growing, chores survive a reload, and the frame returns to the dashboard on its own after a
 power cut (while the Mac is serving).
 
+## Phase 1.5 — No Mac needed
+
+The frame only needs the Mac when the page loads; a frame that starts up while the Mac sleeps
+shows an error until it wakes. Bundling the dashboard into the kiosk app removes the Mac entirely.
+
+- [ ] Fork the kiosk app from wesbos/photo-frame-dashboard into `kiosk/` (moved up from Phase 3):
+      Glance's own name and icon
+- [ ] Build the dashboard into the app and serve it to the WebView from inside the app
+      (`shouldInterceptRequest` on a fixed `https://glance.local/` origin), so it works with no
+      network at all
+- [ ] `npm run frame` on the Mac: build, package and install over ADB in one command
+- [ ] Build the APK in CI
+
 ## Phase 2 — First live data, via the Mac
 
 - [ ] Weather and AQI from Open-Meteo (no key) through a Vite server middleware at `/api/weather`
@@ -57,8 +70,6 @@ power cut (while the Mac is serving).
 - [ ] Implement `docs/api.md` on the home server; the kiosk loads `http://<server-ip>:<port>/`
 - [ ] News (RSS, thumbnails resized server-side), Spotify recently played, next fixture,
       chores synced across devices
-- [ ] Fork the kiosk app from wesbos/photo-frame-dashboard into `kiosk/`: Glance's own name,
-      icon and default URL; build the APK in CI
 - [ ] Bring back the full [design target](design.md#target): news, weather, music, football, AQI
 
 ## Phase 4 — Living with it

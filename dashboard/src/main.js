@@ -14,6 +14,17 @@ const updateChores = mountChores($('chores'));
 const updateNight = mountNight($('night'));
 const bootedAt = Date.now();
 let lastDay = '';
+let reloadDue = false, lastServerCheck = 0;
+
+// Is the server (the Mac) answering? A reload while it's asleep would swap a working dashboard
+// for the kiosk's "Can't reach the dashboard" screen, so the daily reload waits until it answers.
+function serverUp() {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 8000);
+  return fetch(location.pathname, { cache: 'no-store', signal: ctrl.signal })
+    .then((r) => r.ok, () => false)
+    .finally(() => clearTimeout(timer));
+}
 
 // Once a minute: the clock text always; the calendar and chores only when the day changes.
 function tick() {
@@ -26,8 +37,13 @@ function tick() {
     renderCalendar($('cal'), now);
   }
   updateChores(now);
-  // Daily reload at 3 a.m. clears slow leaks and picks up new content and photos.
-  if (now.getHours() === 3 && now.getMinutes() === 0 && Date.now() - bootedAt > 3600e3) location.reload();
+  // Daily reload from 3 a.m. clears slow leaks and picks up new content and photos. If the server
+  // is asleep it keeps the page running and checks again every 10 minutes.
+  if (now.getHours() === 3 && now.getMinutes() === 0 && Date.now() - bootedAt > 3600e3) reloadDue = true;
+  if (reloadDue && Date.now() - lastServerCheck > 600e3) {
+    lastServerCheck = Date.now();
+    serverUp().then((up) => { if (up) location.reload(); });
+  }
 }
 
 // Align ticks to the start of each minute so the clock never lags.

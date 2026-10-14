@@ -32,8 +32,6 @@ Add new ideas at the bottom of the right section, with a source when there is on
 - **Burn-in protection:** small periodic shifts of static elements.
 - **Custom boot splash** replacing the vendor logo (writes /system, needs backups). *(mado)*
 - **Light theme by day**, switching at sunrise/sunset. *(kitchen-frame)*
-- **Serve from the frame itself** so it works when the Mac is asleep: push the static build to the
-  frame and serve it locally (needs an HTTP server on-device, since module scripts don't load from `file://`).
 
 ## Offline tiles (no API needed) — considered for the MVP, not picked yet
 - **Sun & moon:** sunrise, sunset, day length, moon phase, calculated from coordinates and date.

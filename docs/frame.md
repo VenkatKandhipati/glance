@@ -81,8 +81,12 @@ cd dashboard && npm run build && npm run preview          # port 4173
 adb shell am start -n com.wesbos.homehq/.MainActivity --es url http://<mac-lan-ip>:4173/
 ```
 
-Give the Mac a DHCP reservation so its IP doesn't change. When the Mac sleeps, the kiosk shows
-"Can't reach the dashboard" and keeps retrying, so the frame recovers when the Mac wakes.
+Give the Mac a DHCP reservation so its IP doesn't change.
+
+**With the Mac asleep:** a dashboard that's already loaded keeps running. Hashed files (JS, CSS,
+fonts, photos) are served as cacheable forever, so the photo tile rotates through photos it has
+already shown; the daily 3 a.m. reload waits until the server answers. Only a frame that *starts
+up* while the Mac sleeps shows the kiosk's "Can't reach the dashboard" screen, until the Mac wakes.
 
 ## Changes made to this frame
 

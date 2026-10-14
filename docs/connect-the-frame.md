@@ -235,6 +235,20 @@ baseline for later changes.
 Now the frame should load Glance from the Mac over Wi-Fi, with no cable, and come back to it after a
 power cut.
 
+> **When does the Mac need to be awake?** Only when the page **loads**: when the frame starts up,
+> when the kiosk restarts, and for the daily refresh. Once the dashboard is on screen it runs on
+> the frame by itself, so you can put the Mac to sleep:
+>
+> - The clock, calendar, chores and night clock keep working as normal.
+> - The photo tile keeps rotating through the photos it has already shown. New photos appear
+>   again once the Mac wakes.
+> - The daily 3 a.m. refresh waits until the Mac is awake, so the frame never swaps a working
+>   dashboard for an error screen.
+>
+> The one case the Mac matters: if the frame **starts up** while the Mac is asleep (after a power
+> cut), it shows "Can't reach the dashboard" until the Mac wakes. Removing that is on the
+> [roadmap](roadmap.md#phase-15--no-mac-needed) (Phase 1.5).
+
 **5.1 Build and serve the production version** (leave it running):
 
 ```sh
@@ -271,15 +285,19 @@ adb shell am start -n com.wesbos.homehq/.MainActivity --es url http://192.168.1.
 "Default Home app" section should mention `com.wesbos.homehq`. If it doesn't, stop here and
 send me the report: making it the Home app is a frame change we'll do deliberately.
 
-**5.5 Power-cut test.** Unplug the USB cable, then pull the frame's power, wait 10 s, and plug it
-back in.
+**5.5 Power-cut test** (Mac awake). Unplug the USB cable, then pull the frame's power, wait 10 s,
+and plug it back in.
 
 ✅ Within a couple of minutes it shows the Glance dashboard on its own. While Wi-Fi is still
 connecting you may briefly see the kiosk's "Connect to Wi-Fi?" or "Can't reach the dashboard"
 screen; it retries every 5 s and clears itself.
 
-**5.6 Mac asleep test.** Put the Mac to sleep: the frame shows "Can't reach the dashboard". Wake
-it: the dashboard comes back by itself within a few seconds.
+**5.6 Mac asleep test.** With the dashboard showing, put the Mac to sleep (Apple menu → Sleep) and
+leave it 10 minutes.
+
+✅ The dashboard stays up: the clock keeps time, chores still tick, and the photo tile keeps
+changing (between photos it has already shown). Wake the Mac; nothing on the frame should flicker
+or reload.
 
 When 5.5 and 5.6 pass, Phase 1 is done. 🎉
 
@@ -341,7 +359,8 @@ export ANDROID_SERIAL=<the frame's serial>
 
 ### Frame can't reach the Mac over Wi-Fi (Part 5)
 
-- `npm run preview` stopped, or the Mac is asleep.
+- `npm run preview` stopped, or the Mac was asleep when the frame started up. Wake it; the kiosk
+  retries every 5 s and the dashboard appears by itself.
 - The Mac's address changed: `ipconfig getifaddr en0`, then redo 5.3.
 - macOS firewall: **System Settings → Network → Firewall → Options**, allow incoming connections
   for `node`.
