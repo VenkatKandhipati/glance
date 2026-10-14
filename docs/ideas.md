@@ -31,7 +31,6 @@ Add new ideas at the bottom of the right section, with a source when there is on
 - **PIR motion sensor** (exists on BIUFRAME-class boards as a GPIO) to wake the screen when someone walks by.
 - **Burn-in protection:** small periodic shifts of static elements.
 - **Custom boot splash** replacing the vendor logo (writes /system, needs backups). *(mado)*
-- **Fork the kiosk APK** as `glance` with its own package name and default URL.
 - **Light theme by day**, switching at sunrise/sunset. *(kitchen-frame)*
 - **Serve from the frame itself** so it works when the Mac is asleep: push the static build to the
   frame and serve it locally (needs an HTTP server on-device, since module scripts don't load from `file://`).

@@ -6,8 +6,9 @@
   the video [Taking over Android photo frames](https://youtu.be/ZLycoUMltNI) and the repository
   [wesbos/photo-frame-dashboard](https://github.com/wesbos/photo-frame-dashboard). Its device
   guides, kiosk app and notes on what the frame's WebView can't do made this project possible.
-  That repository has no license, so no code from it is included here; Glance follows its
-  approach (a fullscreen kiosk WebView showing a static, mock-data-first web page).
+  Wes gave permission to reuse code from that repository in this project; anything taken from it
+  is marked in the file where it's used. Glance follows its approach: a fullscreen kiosk WebView
+  showing a static, mock-data-first web page.
 - **[huntsyea/kitchen-frame](https://github.com/huntsyea/kitchen-frame)**: a frontend plus a single
   origin that keeps tokens off the frame, and the rule that every pixel has to be cheap for a weak
   GPU.

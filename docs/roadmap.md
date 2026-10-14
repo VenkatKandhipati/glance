@@ -13,7 +13,8 @@ Read-only checks, recorded in [frame.md](frame.md).
 
 - [ ] `brew install android-platform-tools`; `adb devices -l` lists the frame
 - [ ] Record `ro.build.fingerprint`, `wm size`, `wm density` (must be 160), WebView version
-- [ ] Confirm the kiosk package, its saved URL, and that it's the Home app
+- [ ] Confirm the kiosk package, its saved URL, and that it's the Home app. If it can't be
+      pointed at our URL (`--es url`), bring in the kiosk app now instead of in Phase 3
 - [ ] Note what was already changed on the frame (vendor apps, zRAM) and how to undo it
 
 ## Phase 1 — Static dashboard (MVP) · v0.1
@@ -56,6 +57,8 @@ power cut (while the Mac is serving).
 - [ ] Implement `docs/api.md` on the home server; the kiosk loads `http://<server-ip>:<port>/`
 - [ ] News (RSS, thumbnails resized server-side), Spotify recently played, next fixture,
       chores synced across devices
+- [ ] Fork the kiosk app from wesbos/photo-frame-dashboard into `kiosk/`: Glance's own name,
+      icon and default URL; build the APK in CI
 - [ ] Bring back the full [design target](design.md#target): news, weather, music, football, AQI
 
 ## Phase 4 — Living with it
