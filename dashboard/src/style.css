@@ -1,0 +1,288 @@
+/* Target: Android WebView 107 on a Mali-400. No nesting, :has(), color-mix(), oklch(), dvh,
+   4/8-digit hex, backdrop-filter, blur or shadows. Colours are #rrggbb or rgba(). */
+@import '@fontsource/instrument-serif/400.css';
+@import '@fontsource/instrument-serif/400-italic.css';
+@import '@fontsource-variable/plus-jakarta-sans';
+
+:root {
+  /* ground + surfaces (taken from the mockup) */
+  --ground: #0c0f14;
+  --tile: #11151c;
+  --tile-blue: #131925;
+  --tile-line: rgba(255, 255, 255, 0.07);
+  --chip: rgba(255, 255, 255, 0.04);
+  --chip-line: rgba(255, 255, 255, 0.09);
+
+  /* ink */
+  --ink: #f3f0e9;
+  --ink-2: #c9ccd3;
+  --mute: #858a95;
+  --faint: #4a4f5a;
+
+  /* accents */
+  --gold: #cbb47c;
+  --gold-fill: #d4b54e;
+  --violet: #b4a6ff;
+  --violet-bg: rgba(140, 120, 255, 0.16);
+  --night: #8f2418;
+
+  /* type */
+  --serif: 'Instrument Serif', Georgia, serif;
+  --sans: 'Plus Jakarta Sans Variable', 'Plus Jakarta Sans', Roboto, sans-serif;
+
+  /* shape + space */
+  --r: 30px;
+  --r-chip: 14px;
+  --pad: 26px;
+  --gap: 16px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  width: 1280px;
+  height: 800px;
+  overflow: hidden;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  user-select: none;
+}
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+.serif { font-family: var(--serif); font-weight: 400; letter-spacing: -0.01em; }
+
+/* ------------------------------------------------------------------ board */
+.board {
+  display: grid;
+  grid-template-columns: 509px 1fr;
+  grid-template-rows: 330px 1fr 111px;
+  grid-template-areas: 'clock photo' 'cal photo' 'chores chores';
+  gap: var(--gap);
+  width: 1280px;
+  height: 800px;
+  padding: 20px;
+}
+.tile {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--r);
+  border: 1px solid var(--tile-line);
+  background: var(--tile);
+}
+
+/* pill used for the date, labels and chores */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 40px;
+  padding: 0 16px 0 7px;
+  border-radius: var(--r-chip);
+  background: var(--chip);
+  border: 1px solid var(--chip-line);
+  font-size: 17px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.chip-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--violet-bg);
+  color: var(--violet);
+}
+
+/* ------------------------------------------------------------------ clock */
+.clock {
+  grid-area: clock;
+  padding: var(--pad);
+  /* stands in for the mockup's photo; a pre-darkened image can replace it later */
+  background: radial-gradient(ellipse at 85% 20%, #1f2838 0%, #10141b 55%, #0b0d12 100%);
+}
+.clock-time {
+  display: flex;
+  align-items: baseline;
+  margin-top: 16px;
+  font-size: 132px;
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+}
+.clock-ampm {
+  margin-left: 10px;
+  font-size: 46px;
+  font-style: italic;
+  color: var(--gold);
+}
+.clock-greet {
+  position: absolute;
+  left: var(--pad);
+  bottom: 22px;
+  font-size: 44px;
+  line-height: 1;
+}
+.clock-greet b { display: block; font-weight: 400; color: var(--gold); }
+
+/* ------------------------------------------------------------------ calendar */
+.cal {
+  grid-area: cal;
+  display: flex;
+  gap: 18px;
+  padding: 22px var(--pad);
+  background: var(--tile-blue);
+}
+.cal-side {
+  display: flex;
+  flex-direction: column;
+  width: 160px;
+  flex: none;
+}
+.cal-month { font-size: 40px; line-height: 1; }
+.cal-month i { color: var(--gold); }
+.cal-year { margin-top: 4px; font-size: 15px; font-weight: 600; color: var(--mute); }
+.cal-next { margin-top: auto; }
+.cal-next-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+.cal-next-title { margin-top: 6px; font-size: 19px; font-weight: 650; line-height: 1.2; }
+.cal-next-when { margin-top: 4px; font-size: 15px; font-weight: 500; color: var(--gold); }
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-auto-rows: 31px;
+  flex: 1;
+  align-content: start;
+  text-align: center;
+}
+.cal-dow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 24px;
+  color: var(--mute);
+}
+.cal-day {
+  position: relative;
+  justify-self: center;
+  width: 31px;
+  height: 31px;
+  border-radius: 50%;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 31px;
+  color: var(--ink-2);
+}
+.cal-day.is-out { color: var(--faint); }
+.cal-day.is-today { background: var(--gold-fill); color: #15171c; }
+.cal-day.is-marked::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 1px;
+  width: 4px;
+  height: 4px;
+  margin-left: -2px;
+  border-radius: 50%;
+  background: var(--gold);
+}
+.cal-day.is-today.is-marked::after { background: #15171c; }
+
+/* ------------------------------------------------------------------ photo */
+.photo { grid-area: photo; background: #0a0c10; }
+.photo-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 1.2s ease;
+}
+.photo-img.is-on { opacity: 1; }
+.photo-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 64px;
+  background: radial-gradient(ellipse at 30% 30%, #1a2130 0%, #0d1016 70%);
+}
+.photo-empty h2 { font-size: 48px; line-height: 1.05; }
+.photo-empty h2 i { color: var(--gold); }
+.photo-empty p { margin-top: 16px; font-size: 17px; line-height: 1.5; color: var(--mute); }
+.photo-empty code {
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: var(--chip);
+  border: 1px solid var(--chip-line);
+  color: var(--ink-2);
+  font-size: 15px;
+}
+
+/* ------------------------------------------------------------------ chores */
+.chores {
+  grid-area: chores;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  padding: 0 var(--pad) 0 30px;
+}
+.chores-title { flex: none; width: 170px; font-size: 26px; font-weight: 650; line-height: 1.05; }
+.chores-title b { display: block; font-weight: 650; color: var(--gold); }
+.chores-list { display: flex; gap: 10px; flex-wrap: nowrap; overflow: hidden; }
+.chore { height: 46px; padding: 0 18px 0 12px; font-size: 17px; }
+.chore-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--gold-fill);
+  color: #15171c;
+}
+.chore.is-done .chore-box { background: var(--gold-fill); }
+.chore.is-done .chore-name { color: var(--mute); text-decoration: line-through; }
+
+/* ------------------------------------------------------------------ night clock */
+.night {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 1280px;
+  height: 800px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000000;
+  color: var(--night);
+}
+.night[hidden] { display: none; }
+.night-inner { text-align: center; transition: transform 2s ease; }
+.night-time { font-size: 260px; line-height: 1; letter-spacing: -0.03em; }
+.night-time i { font-size: 72px; margin-left: 12px; }
+.night-date { margin-top: 8px; font-size: 26px; font-weight: 600; opacity: 0.75; }
+
+/* ------------------------------------------------------------------ ?diag */
+.diag {
+  position: fixed;
+  right: 8px;
+  bottom: 8px;
+  z-index: 10;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #7cff9b;
+  font: 12px/1.4 monospace;
+  white-space: pre;
+  pointer-events: none;
+}

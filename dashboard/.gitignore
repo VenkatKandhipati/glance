@@ -1,0 +1,6 @@
+node_modules/
+dist/
+# Personal photos: originals and resized copies never go into git.
+photos/*
+!photos/README.md
+.photos-resized/

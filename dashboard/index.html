@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=1280, initial-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#0c0f14">
+  <title>Glance</title>
+</head>
+<body>
+  <main class="board" id="board">
+    <section class="tile clock" id="clock"></section>
+    <section class="tile cal" id="cal"></section>
+    <section class="tile photo" id="photo"></section>
+    <section class="tile chores" id="chores"></section>
+  </main>
+  <div class="night" id="night" hidden></div>
+
+  <script>
+    // Wall-display self-healing: if the bundle hasn't started within 10 s (stale page after a
+    // rebuild, network blip at boot), reload until it does.
+    setTimeout(function () { if (!window.__glance) location.reload(); }, 10000);
+  </script>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
