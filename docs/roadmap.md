@@ -9,7 +9,7 @@ Ideas that aren't scheduled yet live in [ideas.md](ideas.md).
 
 ## Phase 0 — Frame readiness
 
-Read-only checks, recorded in [frame.md](frame.md).
+Read-only checks, recorded in [frame.md](frame.md). Step by step: [connect-the-frame.md](connect-the-frame.md).
 
 - [ ] `brew install android-platform-tools`; `adb devices -l` lists the frame
 - [ ] Record `ro.build.fingerprint`, `wm size`, `wm density` (must be 160), WebView version

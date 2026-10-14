@@ -85,26 +85,30 @@ adb shell am start -n com.wesbos.homehq/.MainActivity --es url http://<your-mac-
 This assumes a frame that already has ADB and a kiosk app. Getting there (unlocking, rooting,
 installing the kiosk) is device-specific; Wes Bos's
 [photo-frame-dashboard](https://github.com/wesbos/photo-frame-dashboard) has guides for many
-models. Details for this frame are in [docs/frame.md](docs/frame.md).
+models. For this frame, [docs/connect-the-frame.md](docs/connect-the-frame.md) walks through
+connecting it to a Mac and getting the dashboard on it.
 
 ## Project layout
 
 ```
-dashboard/            the web app
+dashboard/              the web app
   src/
-    main.js           minute tick, daily reload, wiring
-    content.js        the file you edit: dates, chores, timings
-    tiles/            clock, calendar, photo, chores
-    night.js          night clock
-    diag.js           ?diag performance overlay
-    style.css         design tokens and all styles
-  scripts/            photo resizer, frame-compatibility check
-  test/               unit tests (node --test)
+    main.js             minute tick, daily reload, wiring
+    content.js          the file you edit: dates, chores, timings
+    tiles/              clock, calendar, photo, chores
+    night.js            night clock
+    diag.js             ?diag performance overlay
+    style.css           design tokens and all styles
+  scripts/              photo resizer, frame-compatibility check
+  test/                 unit tests (node --test)
+scripts/
+  frame-check.sh        read-only report of the frame over ADB
 docs/
-  roadmap.md          phases, from static dashboard to home server
-  design.md           design language: layout, tokens, type
-  frame.md            the hardware, its browser's limits, serving and setup
-  ideas.md            ideas not yet scheduled
+  roadmap.md            phases, from static dashboard to home server
+  design.md             design language: layout, tokens, type
+  frame.md              the hardware, its browser's limits, serving and setup
+  connect-the-frame.md  step-by-step: Mac setup, USB connection, checks, first run
+  ideas.md              ideas not yet scheduled
 ```
 
 ## Development
