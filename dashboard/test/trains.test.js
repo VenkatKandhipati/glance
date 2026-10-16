@@ -34,22 +34,23 @@ test('keeps passenger trains with a time, soonest first, with readable names', (
   ]);
 });
 
-test('banner shows the next train per direction and the ones after it', () => {
+test('banner shows up to three times per direction, with no destinations or units', () => {
   const now = 1e12;
   const html = trainsHtml(metro, { data: normalize(wmata, now), lastOk: now }, now);
   assert.match(html, /Ballston,/);
-  assert.match(html, /To DC.*Downtown Largo.*Boarding.*line-OR is-small"><\/span>2/);
-  assert.match(html, /To Vienna.*Vienna.*Arriving.*line-SV is-small"><\/span>8/);
+  assert.match(html, /To DC.*line-SV"><\/span><i>Now<\/i>.*line-OR"><\/span>2<\/span>/);
+  assert.match(html, /To Vienna.*line-OR"><\/span><i>Now<\/i>.*line-SV"><\/span>8<\/span>/);
+  assert.doesNotMatch(html, /Downtown Largo|Ashburn|min</);
 });
 
 test('old times are hidden rather than shown wrong', () => {
   const now = 1e12;
   const html = trainsHtml(metro, { data: normalize(wmata, 0), lastOk: now - STALE_MS - 60000 }, now);
   assert.match(html, /Times from 4 min ago/);
-  assert.doesNotMatch(html, /Boarding/);
+  assert.doesNotMatch(html, /Now/);
 });
 
 test('an empty platform says so', () => {
   const html = trainsHtml(metro, { data: { trains: [] }, lastOk: 5 }, 5);
-  assert.equal((html.match(/No trains listed/g) || []).length, 2);
+  assert.equal((html.match(/No trains/g) || []).length, 2);
 });

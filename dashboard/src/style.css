@@ -229,7 +229,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 }
 
 /* ------------------------------------------------------------------ metro */
-/* WMATA line colours; text on the bullets is dark for contrast, as on Silver and Yellow signs. */
+/* WMATA line colours as small dots before each time. */
 .trains {
   grid-area: trains;
   display: flex;
@@ -249,57 +249,27 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 }
 .trains-title { flex: none; width: 170px; font-size: 26px; font-weight: 650; line-height: 1.05; }
 .trains-title b { display: block; font-weight: 650; color: var(--gold); }
-.trains-title .is-stale { color: var(--mute); font-size: 17px; }
-.trains-dirs { flex: 1; display: flex; min-width: 0; height: 100%; }
+.trains-title .is-quiet { color: var(--mute); font-size: 17px; }
 .trains-dir {
   flex: 1;
   min-width: 0;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 0 24px;
+  align-items: center;
+  gap: 28px;
+  height: 100%;
+  padding-left: 32px;
   border-left: 1px solid var(--tile-line);
 }
-.trains-label {
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--mute);
-}
-.trains-row { display: flex; align-items: center; gap: 18px; height: 50px; }
-.train-main { display: flex; align-items: center; gap: 12px; min-width: 0; }
-.train-dest {
-  font-size: 19px;
-  font-weight: 650;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.train-min { flex: none; font-size: 42px; line-height: 1; }
-.train-min i { margin-left: 4px; font-size: 20px; color: var(--gold); }
-.train-now { flex: none; font-size: 15px; font-weight: 750; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gold); }
-.train-next { flex: none; display: flex; align-items: center; gap: 7px; font-size: 18px; font-weight: 650; color: var(--ink-2); }
-.train-empty, .trains-off { font-size: 17px; font-weight: 600; color: var(--mute); }
-.trains-off { display: flex; align-items: center; padding-left: 24px; border-left: 1px solid var(--tile-line); }
-.line {
-  flex: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  color: #0c0f14;
-  background: var(--mute);
-}
-.line.is-small { width: 14px; height: 14px; }
+.trains-label { flex: none; width: 118px; font-size: 20px; font-weight: 650; }
+.trains-times { display: flex; align-items: center; gap: 30px; font-size: 44px; line-height: 1; }
+.train { display: flex; align-items: center; gap: 10px; color: var(--mute); }
+.train:first-child { color: var(--ink); }
+.train i { font-style: italic; color: var(--gold); }
+.trains-note { font-size: 17px; font-weight: 600; color: var(--mute); }
+.line { flex: none; width: 12px; height: 12px; border-radius: 50%; background: var(--mute); }
 .line-OR { background: #ed8b00; }
 .line-SV { background: #919d9d; }
-.line-RD { background: #bf0d3e; color: #ffffff; }
+.line-RD { background: #bf0d3e; }
 .line-BL { background: #009cde; }
 .line-YL { background: #ffd100; }
 .line-GR { background: #00b140; }

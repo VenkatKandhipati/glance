@@ -57,8 +57,9 @@ All in [`dashboard/src/style.css`](../dashboard/src/style.css) as custom propert
 - **Pills** for metadata and actions, with an optional 28 px tinted icon chip at the start.
 - **Done state:** filled gold circle with a dark tick, muted strikethrough label.
 - **Metro banner:** a 6 px stripe in the station's line colours down the left edge; per direction,
-  the next train large (line bullet, destination, serif minutes with a gold italic *min*) and the
-  two after it as small coloured dots. WMATA line colours: Orange `#ed8b00`, Silver `#919d9d`, Red
-  `#bf0d3e`, Blue `#009cde`, Yellow `#ffd100`, Green `#00b140`; bullets use dark text.
+  just its name ("To DC") and the next three times in the serif, each after a 12 px dot in its
+  line's colour. The next train is ink, the two after it muted; arriving or boarding reads *Now*
+  in gold italic. No destinations or units. WMATA line colours: Orange `#ed8b00`, Silver
+  `#919d9d`, Red `#bf0d3e`, Blue `#009cde`, Yellow `#ffd100`, Green `#00b140`.
 - **No** shadows, blur, gradients that animate, or motion other than photo crossfades and the
   night clock's drift.

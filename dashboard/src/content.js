@@ -23,7 +23,7 @@ export const metro = {
   name: 'Ballston',
   directions: [
     { group: '1', label: 'To DC' },
-    { group: '2', label: 'To Vienna · Ashburn' },
+    { group: '2', label: 'To Vienna' },
   ],
 };
 
