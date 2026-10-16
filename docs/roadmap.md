@@ -74,6 +74,17 @@ shows an error until it wakes. Bundling the dashboard into the kiosk app removes
 - [ ] News (RSS, thumbnails resized server-side), Spotify recently played, next fixture,
       chores synced across devices
 - [ ] Bring back the full [design target](design.md#target): news, weather, music, football, AQI
+- [ ] Photo pipeline on the server, replacing `npm run photos` (which needs macOS `sips`). Runs
+      on Linux, with no macOS-only tools:
+  - Smart crop: detect faces, or the main subject when there are none, and crop the original to
+    the tile's exact shape (715 × 633), keeping every face and zooming in when people are small.
+    On the first 40 photos, the current centre crop cut a face in 4 group shots and left people
+    small in about half. Candidates: libvips/`sharp` (its `attention` crop) plus a small face
+    detector (e.g. OpenCV's YuNet); the choice still needs measuring.
+  - Output at exactly the tile's size: about 0.45 MP instead of 1.2 MP per photo, so the frame
+    decodes less at each change (each one currently adds a few long frames).
+  - A per-photo override (skip, or a fixed focus point) for when detection picks the wrong
+    subject; rerun the crops whenever the tile's size changes.
 
 ## Phase 4 — Living with it
 
