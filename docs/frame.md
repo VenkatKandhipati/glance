@@ -91,7 +91,12 @@ renderer. The kiosk window is up 1.5 s after launch.
   `api.wmata.com` directly with the key baked in at build time, so the Metro banner works with
   the Mac off. Anyone who can reach the frame can read that key (any app can get root), which is
   acceptable for a free, rate-limited key that can be regenerated. Move it to the home server
-  when there is one. No other service, and no other key, goes on the frame.
+  when there is one.
+- **Second exception, same decision: Google Calendar.** The frame build carries the secret iCal
+  addresses of three calendars (`CAL_*` in `.env.local`). Google sends no CORS headers, so the
+  kiosk fetches them (`/ics?url=`, `calendar.google.com` over HTTPS only) and the page parses them.
+  Anyone who reaches the frame can read those addresses, so the events too: if one leaks, Reset
+  it in Google Calendar and run `npm run frame`. No other service goes on the frame.
 - Trust store: the 2025 firmware ships a store from about 2023 (205 roots, newest March 2023),
   despite the 2020 security patch. It has ISRG Root X1 and X2, Sectigo R46 (WMATA's root), GTS,
   Amazon and DigiCert G2, but no roots from 2024 on, such as the ISRG Root YR that Open-Meteo
@@ -142,3 +147,4 @@ Record every change with its undo, newest last. All `su 0` commands run through 
 | 2026-10-16 | Disabled Frameo: `su 0 pm disable-user --user 0 net.frameo.frame`. ADB stays on (`adb_enabled=1`); its switch is now in Developer options | `su 0 pm default-state --user 0 net.frameo.frame` |
 | 2026-10-16 | Turned on Glance navigation (floating Back / Dashboard outside the kiosk): `settings put secure enabled_accessibility_services app.glance.kiosk/app.glance.kiosk.NavigationService`, `settings put secure accessibility_enabled 1` (both were unset/0) | `settings delete secure enabled_accessibility_services`, `settings put secure accessibility_enabled 0` |
 | 2026-10-16 | Kiosk 0.2 with the dashboard built in (`npm run frame`): app updated (`adb install -r`), 40 resized photos (13 MB) pushed to `/sdcard/Android/data/app.glance.kiosk/files/photos/`, saved URL → `https://glance.local/`. The app now holds the WMATA API key (owner-approved). After `adb reboot` with no server running on the Mac, it came up on the dashboard with photos and live trains | Saved URL back to the Mac (`--es url http://<mac-lan-ip>:4173/`); `adb install -r` an older build; photos go with `adb uninstall app.glance.kiosk`. Regenerate the WMATA key if it leaks |
+| 2026-10-16 | Kiosk with live Google Calendar (`npm run frame`): the app now holds three calendar secret addresses and fetches them every 10 minutes | Reinstall without `CAL_*` in `.env.local`; Reset the addresses in Google Calendar if they leak |

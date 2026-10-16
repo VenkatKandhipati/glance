@@ -14,8 +14,9 @@ keep running for weeks with nobody touching it.
 
 - **Clock and greeting.** A large serif clock with a greeting that follows the day
   ("Good morning." through "Good night.").
-- **Month calendar.** Today highlighted, dots on the dates you care about (birthdays repeat
-  every year), and the next one with a countdown: *Diwali, Sun 8 Nov · in 4 weeks*.
+- **Month calendar, live from Google Calendar.** Today highlighted, dots on busy days, and *Next
+  up*: your next event with its time (*Train to Washington DC, Mon 19 Oct · 7:01 pm*). A busy group
+  calendar can be marked quiet: no dots, just one line when something starts today or tomorrow.
 - **Photos.** Your own photos crossfade in the large tile. A script shrinks them to the frame's
   size first, HEIC included, so the frame never decodes a 12-megapixel original.
 - **Metro.** Live WMATA arrivals at your station in both directions, with each line's colour. The

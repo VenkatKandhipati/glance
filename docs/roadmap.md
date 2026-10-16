@@ -73,6 +73,12 @@ shows an error until it wakes. Bundling the dashboard into the kiosk app removes
 - [ ] `docs/api.md`: one JSON shape per feed, the contract the home server implements later
 - [ ] Cache the last good response on the frame and show it as stale when a fetch fails
 
+## Phase 2.5 — Live calendar
+
+- [x] Google Calendar by secret iCal address: own RFC 5545 reader (repeats, exceptions, time
+      zones), fetched by the kiosk on the frame or the Mac's `/ics`; Duckville marked quiet
+- [ ] Hand-typed dates in `content.js` are still starter placeholders
+
 ## Phase 3 — Home server
 
 - [ ] Implement `docs/api.md` on the home server; the kiosk loads `http://<server-ip>:<port>/`

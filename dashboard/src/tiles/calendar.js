@@ -1,5 +1,5 @@
-// Month calendar tile: this month's grid, today highlighted, dots on marked dates, and the next
-// marked date with a countdown. Redrawn when the day changes.
+// Month calendar tile: this month's grid with today highlighted and dots on busy days, then "Next
+// up": the soonest of your marked dates (content.js) and Google calendar events.
 import { dates, settings } from '../content.js';
 import { MONTHS, DAYS, addDays, dayKey, dayStart, daysBetween, esc } from '../time.js';
 
@@ -29,13 +29,78 @@ export function countdown(n) {
   return 'in ' + Math.round(n / 30) + ' months';
 }
 
-export function renderCalendar(el, now) {
+// "3:30 pm", or "7 pm" on the hour.
+export function timeText(d) {
+  const h = d.getHours(), m = d.getMinutes();
+  return (h % 12 || 12) + (m ? ':' + (m < 10 ? '0' : '') + m : '') + (h >= 12 ? ' pm' : ' am');
+}
+
+function dayText(day, today) {
+  const n = daysBetween(today, day);
+  if (n === 0) return 'Today';
+  if (n === 1) return 'Tomorrow';
+  return DAYS[day.getDay()].slice(0, 3) + ' ' + day.getDate() + ' ' + MONTHS[day.getMonth()].slice(0, 3);
+}
+
+// When line for "Next up": all-day items keep the countdown ("Tue 20 Oct · in 4 days"), timed ones
+// give the time ("Today · 3:30 pm", "Now · until 4 pm").
+export function whenText(item, now) {
+  const today = dayStart(now);
+  if (item.allDay) {
+    const day = dayStart(item.start);
+    const n = daysBetween(today, day);
+    return n < 2 ? dayText(day, today) : dayText(day, today) + ' · ' + countdown(n);
+  }
+  if (item.start <= now) return 'Now · until ' + timeText(item.end);
+  return dayText(dayStart(item.start), today) + ' · ' + timeText(item.start);
+}
+
+// The soonest of the marked dates and the (non-quiet) calendar events that start today or later
+// and haven't finished. Something that began before today, like day 3 of a trip, doesn't count.
+export function nextUp(list, events, now) {
+  const today = dayStart(now);
+  const items = events.filter((e) => !e.quiet && e.start >= today && (e.allDay || e.end > now));
+  const marked = nextMarked(list, today);
+  if (marked) items.push({ title: marked.title, start: marked.day, allDay: true });
+  items.sort((a, b) => a.start - b.start || (b.allDay ? 1 : 0) - (a.allDay ? 1 : 0));
+  return items[0] || null;
+}
+
+// Quiet calendars: what starts today or tomorrow, as { calendar, when, title, more }, or null.
+export function quietLine(events, now) {
+  const today = dayStart(now), dayAfter = addDays(today, 2);
+  const starting = events.filter((e) => e.quiet && e.start >= today && e.start < dayAfter);
+  if (!starting.length) return null;
+  const first = starting[0];
+  return {
+    calendar: first.calendar,
+    when: daysBetween(today, dayStart(first.start)) === 0 ? 'Today' : 'Tomorrow',
+    title: first.title,
+    more: starting.length - 1,
+  };
+}
+
+// Day keys to put a dot on: marked dates, plus each day a non-quiet event covers.
+export function markedDays(list, events, year) {
+  const marked = {};
+  datesIn(list, year).forEach((d) => { marked[dayKey(d.day)] = true; });
+  events.forEach((e) => {
+    if (e.quiet) return;
+    const last = e.allDay ? addDays(e.end, -1) : e.start;
+    for (let d = dayStart(e.start); d <= last; d = addDays(d, 1)) marked[dayKey(d)] = true;
+  });
+  return marked;
+}
+
+// Draws the tile; only touches the DOM when something visible changed, so it's cheap to call
+// every minute and whenever the calendars refresh.
+export function renderCalendar(el, now, events) {
+  events = events || [];
   const today = dayStart(now);
   const first = new Date(today.getFullYear(), today.getMonth(), 1);
   const lead = (first.getDay() - settings.weekStartsOn + 7) % 7;
   const start = addDays(first, -lead);
-  const marked = {};
-  datesIn(dates, today.getFullYear()).forEach((d) => { marked[dayKey(d.day)] = true; });
+  const marked = markedDays(dates, events, today.getFullYear());
 
   let grid = '';
   for (let i = 0; i < 7; i++) {
@@ -52,18 +117,23 @@ export function renderCalendar(el, now) {
     grid += '<span class="' + cls.join(' ') + '">' + d.getDate() + '</span>';
   }
 
-  const next = nextMarked(dates, today);
+  const quiet = quietLine(events, now);
+  const quietHtml = quiet
+    ? '<div class="cal-quiet"><div class="cal-label">' + esc(quiet.calendar) + (quiet.more ? ' · +' + quiet.more : '') +
+      '</div><div class="cal-quiet-title"><b>' + quiet.when + '</b> ' + esc(quiet.title) + '</div></div>'
+    : '';
+  const next = nextUp(dates, events, now);
   const nextHtml = next
-    ? '<div class="cal-next"><div class="cal-next-label">Next up</div>' +
+    ? '<div class="cal-next"><div class="cal-label">Next up</div>' +
       '<div class="cal-next-title">' + esc(next.title) + '</div>' +
-      '<div class="cal-next-when">' + DAYS[next.day.getDay()].slice(0, 3) + ' ' + next.day.getDate() + ' ' +
-      MONTHS[next.day.getMonth()].slice(0, 3) + ' · ' + countdown(daysBetween(today, next.day)) + '</div></div>'
+      '<div class="cal-next-when">' + whenText(next, now) + '</div></div>'
     : '';
 
-  el.innerHTML =
+  const html =
     '<div class="cal-side">' +
     '<div class="cal-month serif">' + MONTHS[today.getMonth()] + '<i>,</i></div>' +
     '<div class="cal-year">' + today.getFullYear() + '</div>' +
-    nextHtml + '</div>' +
+    '<div class="cal-agenda">' + quietHtml + nextHtml + '</div></div>' +
     '<div class="cal-grid">' + grid + '</div>';
+  if (el.__html !== html) el.innerHTML = el.__html = html;
 }

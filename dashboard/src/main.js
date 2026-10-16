@@ -3,16 +3,17 @@ import { renderClock } from './tiles/clock.js';
 import { renderCalendar } from './tiles/calendar.js';
 import { startPhotos } from './tiles/photo.js';
 import { mountTrains } from './tiles/trains.js';
+import { watchCalendars } from './calendars.js';
 import { mountNight } from './night.js';
 import { startDiag } from './diag.js';
-import { dayKey, clockIsSane } from './time.js';
+import { clockIsSane } from './time.js';
 
 window.__glance = true; // tells the watchdog in index.html that the bundle started
 
 const $ = (id) => document.getElementById(id);
 const updateNight = mountNight($('night'));
 const bootedAt = Date.now();
-let lastDay = '';
+let events = []; // Google calendar occurrences, refreshed every 10 minutes
 let reloadDue = false, lastServerCheck = 0;
 
 // Is the server (the Mac) answering? A reload while it's asleep would swap a working dashboard
@@ -25,16 +26,13 @@ function serverUp() {
     .finally(() => clearTimeout(timer));
 }
 
-// Once a minute: the clock text always; the calendar only when the day changes.
+// Once a minute: the clock, and the calendar (it only touches the DOM when its text changes, e.g.
+// at midnight or when "Next up" moves on).
 function tick() {
   const now = new Date();
   renderClock($('clock'), now);
   updateNight(now);
-  const day = dayKey(now);
-  if (day !== lastDay && clockIsSane(now, __BUILT_AT__)) {
-    lastDay = day;
-    renderCalendar($('cal'), now);
-  }
+  if (clockIsSane(now, __BUILT_AT__)) renderCalendar($('cal'), now, events);
   // Daily reload from 3 a.m. clears slow leaks and picks up new content and photos. If the server
   // is asleep it keeps the page running and checks again every 10 minutes.
   if (now.getHours() === 3 && now.getMinutes() === 0 && Date.now() - bootedAt > 3600e3) reloadDue = true;
@@ -51,9 +49,13 @@ function schedule() {
 }
 
 // Before network time after a power cut the clock reads an old date: draw the calendar anyway once,
-// then the day check above redraws it as soon as the real date arrives.
+// then the tick above redraws it as soon as the real date arrives.
 renderCalendar($('cal'), new Date());
 schedule();
+watchCalendars((list) => {
+  events = list;
+  if (clockIsSane(new Date(), __BUILT_AT__)) renderCalendar($('cal'), new Date(), events);
+});
 startPhotos($('photo'));
 mountTrains($('trains'));
 startDiag();

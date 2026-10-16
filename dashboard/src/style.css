@@ -143,15 +143,39 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .cal-month { font-size: 40px; line-height: 1; }
 .cal-month i { color: var(--gold); }
 .cal-year { margin-top: 4px; font-size: 15px; font-weight: 600; color: var(--mute); }
-.cal-next { margin-top: auto; }
-.cal-next-label {
+/* Duckville's line, then "Next up", pinned to the bottom of the column */
+.cal-agenda { margin-top: auto; }
+.cal-label {
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--mute);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.cal-next-title { margin-top: 6px; font-size: 19px; font-weight: 650; line-height: 1.2; }
+.cal-quiet { margin-bottom: 16px; }
+.cal-quiet-title b { font-weight: 600; color: var(--gold); }
+.cal-quiet-title {
+  margin-top: 4px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cal-next-title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  margin-top: 6px;
+  font-size: 19px;
+  font-weight: 650;
+  line-height: 1.2;
+}
 .cal-next-when { margin-top: 4px; font-size: 15px; font-weight: 500; color: var(--gold); }
 .cal-grid {
   display: grid;

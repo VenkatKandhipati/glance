@@ -12,6 +12,10 @@ and versions follow [Semantic Versioning](https://semver.org).
 - Glance's own kiosk app (`kiosk/`, adapted from wesbos/photo-frame-dashboard) and
   `scripts/frame-backup.sh`.
 
+- Live Google Calendar in the calendar tile: dots on busy days, *Next up* with the event's time,
+  and quiet calendars (Duckville) reduced to one line for what starts today or tomorrow.
+- The dashboard runs from inside the kiosk app (`npm run frame`), with no Mac.
+
 ### Removed
 
 - The chores strip.

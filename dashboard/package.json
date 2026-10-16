@@ -7,7 +7,7 @@
     "dev": "vite --host",
     "build": "vite build && node scripts/check-compat.mjs",
     "preview": "vite preview --host",
-    "test": "node --test test/*.test.js",
+    "test": "TZ=America/New_York node --test test/*.test.js",
     "photos": "node scripts/photos.mjs",
     "frame:build": "node scripts/frame.mjs",
     "frame": "node scripts/frame.mjs --install"

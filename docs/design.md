@@ -62,5 +62,8 @@ All in [`dashboard/src/style.css`](../dashboard/src/style.css) as custom propert
   its line's colour. The next train is ink, the two after it muted; arriving or boarding reads
   "Now" in gold. No destinations or units. WMATA line colours: Orange `#ed8b00`, Silver
   `#919d9d`, Red `#bf0d3e`, Blue `#009cde`, Yellow `#ffd100`, Green `#00b140`.
+- **Calendar agenda:** under the month, a quiet calendar's line (small-caps name, then the day in
+  gold and the event) and *Next up* (label, title clamped to two lines, gold when-line). Only
+  non-quiet calendars and marked dates put dots on the grid.
 - **No** shadows, blur, gradients that animate, or motion other than photo crossfades and the
   night clock's drift.

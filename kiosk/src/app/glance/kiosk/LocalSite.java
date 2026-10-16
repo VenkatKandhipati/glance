@@ -9,6 +9,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -20,7 +22,9 @@ import org.json.JSONArray;
  * - the built page (`npm run frame` copies dashboard/dist-frame/ into assets/www/)
  * - /photos/ lists, and /photos/<name> serves, the JPEGs `npm run frame` pushes to
  *   /sdcard/Android/data/app.glance.kiosk/files/photos/ (no permission needed, no reinstall)
- * Nothing goes over the network; the host only exists inside this WebView.
+ * - /ics?url=<https://calendar.google.com/…> fetches a Google calendar's iCal feed, which the page
+ *   can't fetch itself (Google sends no CORS headers). Only that host, only HTTPS.
+ * The host only exists inside this WebView; only /ics goes over the network.
  */
 final class LocalSite {
   static final String ORIGIN = "https://glance.local/";
@@ -49,6 +53,7 @@ final class LocalSite {
     if (!HOST.equals(url.getHost())) return null;
     String path = url.getPath() == null ? "/" : url.getPath();
     try {
+      if (path.equals("/ics")) return calendar(url.getQueryParameter("url"));
       if (path.equals("/photos/")) return listPhotos();
       if (path.startsWith("/photos/")) return photo(path.substring("/photos/".length()));
       return asset(path.equals("/") ? "/index.html" : path);
@@ -76,6 +81,20 @@ final class LocalSite {
     return respond(200, "image/jpeg", new FileInputStream(new File(photoDir(), name)));
   }
 
+  // Runs on the WebView's network thread, not the UI thread, so blocking here is fine.
+  private WebResourceResponse calendar(String target) throws IOException {
+    if (target == null || !target.startsWith("https://calendar.google.com/")) throw new IOException("not a Google calendar");
+    HttpURLConnection c = (HttpURLConnection) new URL(target).openConnection();
+    c.setConnectTimeout(10000);
+    c.setReadTimeout(20000);
+    c.setInstanceFollowRedirects(false);
+    if (c.getResponseCode() != 200) {
+      Log.w(MainActivity.TAG, "Calendar fetch failed: HTTP " + c.getResponseCode());
+      return respond(502, "text/plain", new ByteArrayInputStream(new byte[0]));
+    }
+    return respond(200, "text/calendar", c.getInputStream());
+  }
+
   private WebResourceResponse asset(String path) throws IOException {
     if (path.contains("..")) throw new IOException(path);
     InputStream in = context.getAssets().open("www" + path);
@@ -89,6 +108,7 @@ final class LocalSite {
     headers.put("Cache-Control", "no-store");
     headers.put("Access-Control-Allow-Origin", "*");
     String charset = type.startsWith("text/") || type.endsWith("json") ? "utf-8" : null;
-    return new WebResourceResponse(type, charset, status, status == 200 ? "OK" : "Not Found", headers, body);
+    String reason = status == 200 ? "OK" : status == 404 ? "Not Found" : "Bad Gateway";
+    return new WebResourceResponse(type, charset, status, reason, headers, body);
   }
 }
