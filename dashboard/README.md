@@ -1,6 +1,6 @@
 # dashboard
 
-The Glance web app: plain ES modules built with Vite for the frame's WebView 107.
+The Glance web app: plain ES modules built with Vite for the frame's WebView 106.
 Project overview in the [root README](../README.md); constraints in [docs/frame.md](../docs/frame.md).
 
 | Command | What it does |

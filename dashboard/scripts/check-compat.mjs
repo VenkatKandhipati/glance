@@ -1,5 +1,5 @@
 // Fails the build if the output uses CSS or JS the frame's WebView can't run.
-// The frame runs Android WebView 107 on Android 6; some features newer Chromes accept were
+// The frame runs Android WebView 106 on Android 8.1; some features newer Chromes accept were
 // rejected on these devices (see docs/frame.md). Run after `vite build`.
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -11,7 +11,7 @@ const CSS_RULES = [
   [/#(?:[0-9a-f]{4}|[0-9a-f]{8})(?![0-9a-f])/i, '4/8-digit hex colour (rejected on-device; use rgba())'],
   [/\b(?:color-mix|oklch|oklab)\(/, 'colour function newer than Chrome 106'],
   [/\b\d*\.?\d+(?:dvh|svh|lvh|dvw|svw|lvw)\b/, 'dynamic viewport unit (Chrome 108+)'],
-  [/backdrop-filter/, 'backdrop-filter (too slow on the Mali-400)'],
+  [/backdrop-filter/, 'backdrop-filter (too slow on the Mali-G31)'],
 ];
 const CSS_SELECTOR_RULES = [
   [/:has\(/, ':has() (did not work on these frames)'],
@@ -41,4 +41,4 @@ if (problems.length) {
   console.error('Frame compatibility check failed:\n  ' + problems.join('\n  '));
   process.exit(1);
 }
-console.log('Frame compatibility check passed (WebView 107 / Chrome 106 target).');
+console.log('Frame compatibility check passed (WebView 106 / Chrome 106 target).');

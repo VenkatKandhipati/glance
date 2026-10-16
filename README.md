@@ -6,7 +6,7 @@ today's chores, readable from across the room.
 ![Glance on a 1280 × 800 frame: clock, month calendar, photo tile and chores](docs/images/dashboard.png)
 
 Glance runs on a 10.1" photo frame bought for its screen: a budget quad-core chip, 1 GB of RAM
-and Android 6, whose newest browser engine is Chromium 107. The whole dashboard is one static web page,
+and Android 8.1, which shipped with a 2017 browser engine (Chromium 61) and now runs Chromium 106. The whole dashboard is one static web page,
 about 8 KB of gzipped JavaScript and CSS plus fonts, built to stay smooth on that hardware and to
 keep running for weeks with nobody touching it.
 
@@ -28,9 +28,9 @@ keep running for weeks with nobody touching it.
 
 ## Built for an old, slow browser
 
-The frame's WebView is Chromium 107 on Android 6. On frames like this one it has rejected 8-digit
-hex colours and `:has()`, it can't verify Let's Encrypt certificates, and its GPU struggles with a
-single blur. Glance treats that as a design constraint rather than a bug list.
+The frame's WebView is Chromium 106 on Android 8.1. On frames like this one it has rejected 8-digit
+hex colours and `:has()`, its certificate store stopped updating in 2020, and its GPU struggles
+with a single blur. Glance treats that as a design constraint rather than a bug list.
 
 - **Build targets** pinned to Chrome 106 for JS and Chrome 61 for CSS, so the minifier never emits
   syntax the frame rejects.
@@ -48,7 +48,7 @@ The full list, with reasons, is in [docs/frame.md](docs/frame.md).
 ## How it works
 
 ```
- Photo frame (Android 6)                         Mac on the same Wi-Fi
+ Photo frame (Android 8.1)                       Mac on the same Wi-Fi
  ┌──────────────────────────┐   HTTP on the LAN   ┌──────────────────────────┐
  │ Kiosk app (fullscreen    │ ──────────────────▶ │ Vite: serves the built   │
  │ WebView, set as Home)    │                     │ page, fonts and photos   │
@@ -79,14 +79,15 @@ Put it on the frame:
 
 ```sh
 npm run build && npm run preview     # serves on port 4173
-adb shell am start -n com.wesbos.homehq/.MainActivity --es url http://<your-mac-ip>:4173/
+adb shell am start -n app.glance.kiosk/.MainActivity --es url http://<your-mac-ip>:4173/
 ```
 
-This assumes a frame that already has ADB and a kiosk app. Getting there (unlocking, rooting,
-installing the kiosk) is device-specific; Wes Bos's
+This assumes a frame that already has ADB, WebView 106 and Glance's [kiosk app](kiosk/README.md).
+Getting there is device-specific. For this frame,
+[docs/connect-the-frame.md](docs/connect-the-frame.md) goes from a new frame out of the box to the
+dashboard on its screen; Wes Bos's
 [photo-frame-dashboard](https://github.com/wesbos/photo-frame-dashboard) has guides for many
-models. For this frame, [docs/connect-the-frame.md](docs/connect-the-frame.md) walks through
-connecting it to a Mac and getting the dashboard on it.
+other models.
 
 ## Project layout
 
@@ -101,8 +102,10 @@ dashboard/              the web app
     style.css           design tokens and all styles
   scripts/              photo resizer, frame-compatibility check
   test/                 unit tests (node --test)
+kiosk/                  the Android app the frame boots into: one fullscreen WebView
 scripts/
   frame-check.sh        read-only report of the frame over ADB
+  frame-backup.sh       read-only, verified firmware backup over ADB
 docs/
   roadmap.md            phases, from static dashboard to home server
   design.md             design language: layout, tokens, type

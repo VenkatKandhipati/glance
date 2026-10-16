@@ -1,83 +1,64 @@
 # Connecting the frame and running Glance on it
 
-A step-by-step guide for **this** frame: getting the Mac ready, connecting the frame over USB,
-checking what's on it (Phase 0), and getting the MVP dashboard running on it (the end of Phase 1).
-Everything here is copy-paste, run from Terminal on the Mac.
+A step-by-step guide for **this** frame, starting from a new one out of the box: getting the Mac
+ready, connecting over USB, checking and backing up the frame (Phase 0), preparing it, and getting
+the dashboard running on it (the end of Phase 1). Everything here is copy-paste, run from Terminal
+on the Mac.
 
-**Nothing in Parts 1–4 changes the frame.** Part 5 changes one setting: the kiosk's saved URL,
-which you can change back with the same command. Every step that touches the frame says so first.
+**Parts 1–3 change nothing on the frame** apart from switching on ADB in Frameo's own settings.
+From Part 4 on, every step that writes to the frame is marked ⚠️, with its undo. Record each one in
+the table at the end of [frame.md](frame.md#changes-made-to-this-frame).
 
 | Part | What you'll have at the end | Time |
 | --- | --- | --- |
 | [1. Get the Mac ready](#1-get-the-mac-ready) | `adb` installed | 5 min |
-| [2. Connect the frame](#2-connect-the-frame) | `adb devices` lists the frame | 5–20 min |
-| [3. Check the frame (Phase 0)](#3-check-the-frame-phase-0) | A report of what's on the frame | 5 min |
-| [4. Run the dashboard on the frame over USB](#4-run-the-dashboard-on-the-frame-over-usb) | The MVP on the frame's screen, live-reloading | 15 min |
-| [5. Make it the frame's everyday screen](#5-make-it-the-frames-everyday-screen) | The frame boots into Glance over Wi-Fi | 15 min |
+| [2. Connect the frame](#2-connect-the-frame) | `adb devices` lists the frame | 10–30 min |
+| [3. Check and back up the frame (Phase 0)](#3-check-and-back-up-the-frame-phase-0) | A report and a verified firmware backup | 15 min |
+| [4. Prepare the frame](#4-prepare-the-frame) | Updaters off, WebView 106, Glance's kiosk installed | 30 min |
+| [5. Run the dashboard on the frame over USB](#5-run-the-dashboard-on-the-frame-over-usb) | The MVP on the frame's screen, live-reloading | 15 min |
+| [6. Make it the frame's everyday screen](#6-make-it-the-frames-everyday-screen) | The frame boots into Glance over Wi-Fi | 15 min |
 | [Troubleshooting](#troubleshooting) | | |
 
 ## Your frame
 
 | | |
 | --- | --- |
-| Model | Akimart ZN-DP1002, 10.1" |
-| Board | Rockchip **RK3126**: 4× Cortex-A7, Mali-400 GPU |
-| Memory / storage | 1 GB RAM (128 MB zRAM), 32 GB eMMC |
-| Screen | 1280 × 800, touch |
-| Wi-Fi | `rk915_sdio` |
-| Software | Android 6.0.1, WebView 107, USB ADB and root built in, fullscreen kiosk |
+| Model | Akimart ZN-DP1002, 10.1" (reports model `Frame`, brand `SSA`) |
+| Board | Rockchip **RK3326**: 4× Cortex-A35, Mali-G31 GPU |
+| Memory / storage | 1 GB RAM, 32 GB NAND |
+| Screen | 1280 × 800, density 160, touch, no navigation bar |
+| Software | Android 8.1, stock Frameo, WebView 61 out of the box; root built in (`su 0`) |
 | USB vendor ID | `0x2207` (Rockchip). This is how the Mac recognises it |
 
 > [!WARNING]
-> **Two different boards are sold as the ZN-DP1002.** Yours should be the RK3126 / Android 6
-> one. The other has an RK3326 and Android 8.1, and its guide
-> ([wesbos `akimart-zn-dp1002.md`](https://github.com/wesbos/photo-frame-dashboard/blob/main/docs/akimart-zn-dp1002.md))
-> uses commands and partition offsets that don't apply to yours. Part 3 confirms which one you
-> have. **Don't run anything from either repo's setup scripts on this frame;** this guide doesn't need them.
+> **Two different boards are sold as the ZN-DP1002.** This guide is for the RK3326 / Android 8.1
+> one. The other has an RK3126 and Android 6
+> ([wesbos PR #42](https://github.com/wesbos/photo-frame-dashboard/pull/42)) and needs different
+> commands. Step 2.6 tells you which you have. **Don't run setup scripts from wesbos's repo on this
+> frame;** this guide covers everything they would do that Glance needs.
 
 ### What you need
 
 - [ ] The frame and its power adapter.
-- [ ] A **USB-A to USB-C data cable**. On these frames a USB-C to USB-C cable usually gives no power
-      and no data (their USB-C port doesn't announce itself the way the Mac expects). The cable that
-      came with the frame is often power-only.
-- [ ] If your Mac has only USB-C ports: a **USB-C to USB-A adapter**, plugged **directly** into the
-      Mac. Hubs and docks often don't work for this.
-- [ ] The frame and the Mac on the **same Wi-Fi network** (only for Part 5).
+- [ ] A **USB-A to USB-C data cable**. The cable in the box is power-only, and a USB-C to USB-C
+      cable gives no power and no data (the frame's USB-C port doesn't announce itself the way the
+      Mac expects). A cable that lights the frame up isn't necessarily a data cable.
+- [ ] If your Mac has only USB-C ports: a USB-C to USB-A adapter or hub. An Aukey USB-C hub
+      works for this frame.
+- [ ] The frame and the Mac on the **same Wi-Fi network** (only from Part 6).
 
 ## 1. Get the Mac ready
-
-Homebrew, Node and git are already on this Mac. If you're setting up a different Mac, run the
-optional block first.
-
-<details>
-<summary>Optional: a Mac without Homebrew or Node</summary>
-
-```sh
-# Homebrew (the official installer; it asks for your Mac password)
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-# Apple silicon: put brew on your PATH (the installer prints this too)
-echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile && eval "$(/opt/homebrew/bin/brew shellenv)"
-
-brew install node git
-```
-</details>
 
 **1.1 Install `adb`** (Android Debug Bridge, Google's tool for talking to Android devices):
 
 ```sh
 brew install --cask android-platform-tools
-```
-
-**1.2 Check it works:**
-
-```sh
 adb version
 ```
 
-✅ You should see `Android Debug Bridge version 1.0.41` (or newer) and a `Version 37.x` line.
+✅ `Android Debug Bridge version 1.0.41` (or newer) and a `Version 37.x` line.
 
-**1.3 Get the project ready** (skip if you've already run it):
+**1.2 Get the project ready:**
 
 ```sh
 cd ~/Documents/Projects/glance/dashboard
@@ -85,25 +66,26 @@ npm install
 npm test && npm run build
 ```
 
-✅ `pass 12`, then `Frame compatibility check passed`.
+✅ All tests pass, then `Frame compatibility check passed`.
 
 ## 2. Connect the frame
 
-**2.1** Plug the frame into power and turn it on. Wait until it has fully started (its photo app or
-dashboard is showing).
+**2.1 Go through Frameo's welcome screens, but don't connect to Wi-Fi.** Pick a language, and
+when it asks for Wi-Fi, choose **Skip**. Skip pairing a phone too. With the updaters still on,
+the frame shouldn't go online until Part 4 is done.
 
-**2.2** Connect the USB-A to USB-C data cable from the frame to the Mac (through the adapter if
-needed). If the frame's only port is the USB-C one, this cable powers it too.
+**2.2 Turn on ADB in Frameo.** On the photo screen, tap to show the menu → **Settings** →
+**About** → turn on **Beta Program**. A new **ADB access** switch appears below it; turn it on.
 
-**2.3** Check that the Mac sees a Rockchip device on USB:
+**2.3** Connect the data cable from the frame to the Mac and check the Mac sees it:
 
 ```sh
 system_profiler SPUSBHostDataType | grep -i -B3 -A8 "2207"
 ```
 
-✅ A block with `Vendor ID: 0x2207`. The Mac can see the frame. Go on to 2.4.<br>
-❌ Nothing printed: the Mac can't see it at all. This is almost always the cable, adapter or port.
-Go to [Mac doesn't see the frame](#mac-doesnt-see-the-frame-nothing-for-2207).
+✅ A block named `Frame` with `Vendor ID: 0x2207`. Go on to 2.4.<br>
+❌ Nothing printed: the Mac can't see the frame at all. This is almost always the cable. See
+[Mac doesn't see the frame](#mac-doesnt-see-the-frame-nothing-for-2207).
 
 **2.4** Ask `adb` for devices:
 
@@ -113,76 +95,137 @@ adb devices -l
 
 | You see | Meaning | Do this |
 | --- | --- | --- |
-| `<serial>  device  ... model:...` | ✅ Connected and authorised | Go to Part 3 |
+| `<serial>  device  ... model:Frame` | ✅ Connected and authorised | Go to 2.6 |
 | `<serial>  unauthorized` | The frame is waiting for you to allow this Mac | **2.5** |
 | `<serial>  offline` | Half-connected | `adb kill-server && adb devices -l`; replug the cable |
-| Empty list, but 2.3 found `0x2207` | USB debugging is off on the frame | [USB debugging is off](#usb-debugging-is-off) |
+| Empty list, but 2.3 found `0x2207` | ADB access is off | Redo 2.2, then replug the cable |
 
-**2.5 Allow the Mac.** Look at the frame's screen: an **"Allow USB debugging?"** box with the
-Mac's key fingerprint. Tick **Always allow from this computer**, then tap **OK**. Run
-`adb devices -l` again; it should now say `device`.
+**2.5 Allow the Mac.** The frame shows **"Allow USB debugging?"**. Tick **Always allow from this
+computer**, then tap **OK**. Run `adb devices -l` again; it should now say `device`.
 
-> If no box appears, unplug and replug the cable, then look again. On some frames the box hides
-> behind the kiosk; the [troubleshooting section](#unauthorized-but-no-prompt-on-screen) covers it.
-
-**2.6 Quick sanity check:**
+**2.6 Check the board:**
 
 ```sh
 adb shell getprop ro.build.fingerprint
 ```
 
-✅ Starts with `rockchip/rk312x/rk312x:6.0.1/`. That's the RK3126 board this guide is for.<br>
-⚠️ Starts with `rockchip/rk3326_go/` or says Android 8.1: you have the **other** board. Stop and
-check before going further; Parts 3–5 should still work, but nothing else here has been checked
-against that board.
+✅ Starts with `rockchip/rk3326_go/rk3326_go:8.1.0/`. That's the board this guide is for.<br>
+⚠️ Starts with `rockchip/rk312x/` or says Android 6: you have the **other** board. Stop here.
 
-## 3. Check the frame (Phase 0)
+## 3. Check and back up the frame (Phase 0)
 
-One read-only script collects everything we need to know: identity, screen, root, WebView
-version, the kiosk app and its saved URL, the Home app, apps that were disabled before, network and
-clock. **It changes nothing on the frame.**
+**3.1 Check the frame.** One read-only script collects identity, screen, root, WebView version,
+the kiosk app and its saved URL, the Home app, disabled apps, network and clock:
 
 ```sh
 cd ~/Documents/Projects/glance
 scripts/frame-check.sh
 ```
 
-It prints a report and saves it to `frames/check-<date>.txt`. That folder is gitignored, because
-the report contains the frame's serial number and network details. Never commit it.
-
-> If the script seems to hang at the start, look at the frame: a few `su` builds show a
-> **root permission prompt**. Tap **Grant/Allow**.
-
-**What to look for in the report**
+It saves the report to `frames/check-<date>.txt`. That folder is gitignored because the report
+contains the frame's serial number; never commit it.
 
 | Section | Good | If not |
 | --- | --- | --- |
-| Identity | fingerprint `rockchip/rk312x/rk312x:6.0.1/…`, SDK `23` | See 2.6 |
-| Screen | `Physical size: 1280x800`, `Physical density: 160` | Density not 160 means the bottom of the dashboard gets cut off. See [Dashboard is cut off or too big](#dashboard-is-cut-off-or-too-big) |
-| Root | `yes` | Not needed for Glance; only the saved-URL and Home-app lines need it |
-| WebView | `versionName=106…` or `107…` | 44 or similar means the WebView was never upgraded, and the dashboard won't render. Stop and check before upgrading anything |
-| Kiosk app | `com.wesbos.homehq installed`, with a URL in its saved settings | Different kiosk, or none: see [No kiosk, or a different one](#no-kiosk-or-a-different-one) |
-| Default Home app | `com.wesbos.homehq` | Fine either way for testing; matters for Part 5 |
-| Disabled apps | Frameo / FOTA / `mxota` / Rockchip update service | If Frameo or an updater is still enabled, keep the frame off the internet until we decide what to do |
-| Network and time | an `inet 192.168…` address; frame time ≈ Mac time | Wi-Fi only matters for Part 5. A wrong time means the clock tile will be wrong too |
+| Identity | fingerprint `rockchip/rk3326_go/…`, SDK `27` | See 2.6 |
+| Screen | `Physical size: 1280x800`, `Physical density: 160` | See [Dashboard is cut off or too big](#dashboard-is-cut-off-or-too-big) |
+| Root | `yes, via 'su 0 <cmd>'` | Needed for the WebView step in Part 4; stop and check |
+| WebView | `versionName=106…` | `61…` on a new frame: Part 4.2 fixes it |
+| Kiosk app | `app.glance.kiosk installed` | Not yet on a new frame: Part 4.3 |
+| Default Home app | `app.glance.kiosk/.Home` | Frameo on a new frame: Part 6 |
+| Disabled apps | `com.adups.fota`, `android.rockchip.update.service` | Part 4.1, before any Wi-Fi |
+| Network and time | frame time ≈ Mac time | Before Wi-Fi the clock reads an old date; that's expected |
 
-**3.1 Record it.** Send me the report (paste it in the chat). I'll fill in the device record in
-[`docs/frame.md`](frame.md) with everything except the serial number and addresses, and tick off
-Phase 0 in the [roadmap](roadmap.md).
+**3.2 Back up the firmware.** Read-only: it copies everything except your photos and app data
+(the first 8 MiB of the NAND and partitions 1–15, about 3.4 GB, 600 MB gzipped) and checks each
+part against a SHA-256 taken on the frame. It takes about 5 minutes over USB.
 
-## 4. Run the dashboard on the frame over USB
+```sh
+scripts/frame-backup.sh
+```
 
-This uses the frame's existing kiosk app (`com.wesbos.homehq`) and reaches the Mac through the USB
-cable, so Wi-Fi doesn't matter yet. Edits on the Mac show up on the frame within a second.
+✅ Every line ends in `ok`, then `Saved to …/frames/backup-<date>`. Copy that folder somewhere off
+the Mac. Do this before anything in Part 4.
 
-**4.1 Start the dev server** (leave this Terminal window open):
+## 4. Prepare the frame
+
+Already done on the first frame (2026-10-16, see [frame.md](frame.md#changes-made-to-this-frame));
+needed again only on a new or reset frame.
+
+**4.1 ⚠️ Turn off the vendor updaters,** so the frame can go online without a firmware update
+taking away root or replacing the WebView:
+
+```sh
+adb shell su 0 pm disable-user --user 0 com.adups.fota
+adb shell su 0 pm disable-user --user 0 android.rockchip.update.service
+```
+
+✅ Each prints `new state: disabled-user`.
+**Undo:** `adb shell su 0 pm default-state --user 0 <package>`.
+
+**4.2 ⚠️ Put WebView 106 in `/system`.** The frame ships with WebView 61 and the dashboard needs
+106. The stock WebView is signed with the vendor's key, so a newer one can't be installed as an
+update; it has to replace the file in `/system`. This uses the same file as wesbos PR #42, the
+LineageOS prebuilt 106.0.5249.126:
+
+```sh
+mkdir -p ~/Downloads/webview106 && cd ~/Downloads/webview106
+curl -fLO https://raw.githubusercontent.com/LineageOS/android_external_chromium-webview_prebuilt_arm/4b0ae494a7dd/webview.apk
+shasum -a 256 webview.apk     # must be e2edc1f89ec1608b169da9e7ffc037190b70c7825f0be29694f4cae719980580
+unzip -q -j webview.apk 'lib/armeabi-v7a/*' -d lib    # the libraries are compressed; Android needs them unpacked
+adb shell mkdir -p /data/local/tmp/glance/lib
+adb push webview.apk /data/local/tmp/glance/
+adb push lib/. /data/local/tmp/glance/lib/
+adb shell su 0 sh -c "'
+  set -e; T=/data/local/tmp/glance; W=/system/app/webview
+  mount -o remount,rw /system
+  [ -f \$W/webview.apk.bak ] || cp -p \$W/webview.apk \$W/webview.apk.bak
+  [ -d \$T/oat-61 ] || cp -a \$W/oat \$T/oat-61
+  cp \$T/webview.apk \$W/webview.apk
+  rm -rf \$W/oat \$W/lib; mkdir -p \$W/lib/arm; cp \$T/lib/*.so \$W/lib/arm/
+  chown -R 0:0 \$W; chmod 0755 \$W \$W/lib \$W/lib/arm; chmod 0644 \$W/*.apk* \$W/lib/arm/*.so
+  restorecon -R \$W; sync; mount -o remount,ro /system
+  rm -rf \$T/webview.apk \$T/lib
+'"
+adb reboot
+```
+
+After the reboot:
+
+```sh
+adb shell dumpsys webviewupdate | grep 'Current WebView'
+```
+
+✅ `(com.android.webview, 106.0.5249.126)`.
+**Undo:** `su 0 mount -o remount,rw /system`, move `webview.apk.bak` back to `webview.apk`,
+`rm -rf /system/app/webview/lib`, copy `/data/local/tmp/glance/oat-61` back as
+`/system/app/webview/oat`, remount read-only, reboot.
+
+**4.3 ⚠️ Install Glance's kiosk app.** It shows one URL full screen and nothing else. Build it
+once (setup in [kiosk/README.md](../kiosk/README.md)), then install it:
+
+```sh
+cd ~/Documents/Projects/glance
+bash kiosk/build.sh
+adb install -r kiosk/build/glance-kiosk.apk
+```
+
+✅ `Success`. Installing it doesn't change the Home app; Part 6 does that.
+**Undo:** `adb uninstall app.glance.kiosk` (make another app Home first if it's Home).
+
+## 5. Run the dashboard on the frame over USB
+
+This reaches the Mac through the USB cable, so Wi-Fi doesn't matter yet. Edits on the Mac show
+up on the frame within a second.
+
+**5.1 Start the dev server** (leave this Terminal window open):
 
 ```sh
 cd ~/Documents/Projects/glance/dashboard
 npm run dev
 ```
 
-**4.2 In a second Terminal window,** connect the frame's port 5173 to the Mac's through the cable:
+**5.2 In a second Terminal window,** connect the frame's port 5173 to the Mac's through the cable:
 
 ```sh
 adb reverse tcp:5173 tcp:5173
@@ -190,39 +233,35 @@ adb reverse tcp:5173 tcp:5173
 
 This lasts until the cable is unplugged or the frame restarts; rerun it after either.
 
-**4.3 Open the dashboard in the kiosk,** with remote debugging on for this launch only:
+**5.3 Open the dashboard in the kiosk,** with remote debugging on for this launch only:
 
 ```sh
-adb shell 'am start -a android.intent.action.VIEW -d "http://127.0.0.1:5173/?diag" -n com.wesbos.homehq/.MainActivity --ez debug true'
+adb shell 'am start -a android.intent.action.VIEW -d "http://127.0.0.1:5173/?diag" -n app.glance.kiosk/.MainActivity --ez debug true'
 ```
 
-This shows the page without changing the kiosk's saved URL. The next normal launch goes back to it.
+This shows the page without changing the kiosk's saved URL.
 
 ✅ The dashboard on the frame, with the green `?diag` box in the bottom-right corner.
 
-> **No `com.wesbos.homehq` on the frame?** Use the frame's default browser for now:
-> `adb shell am start -a android.intent.action.VIEW -d "http://127.0.0.1:5173/?diag"`.
-> If that opens Firefox, it isn't a fair test: Firefox brings its own engine, not the WebView the
-> kiosk uses. See [No kiosk, or a different one](#no-kiosk-or-a-different-one).
+**5.4 Watch it from the Mac.** Open **Google Chrome** on the Mac and go to `chrome://inspect`.
+Under the frame you'll see the dashboard page; click **inspect** for its console, elements and
+network tab, live from the frame.
 
-**4.4 Watch it from the Mac.** Open **Google Chrome** on the Mac and go to `chrome://inspect`.
-Under the frame's name you'll see the dashboard page; click **inspect** to get its console,
-elements and network tab, live from the frame.
-
-**4.5 Test checklist** (this is the end of Phase 1 in the [roadmap](roadmap.md)):
+**5.5 Test checklist** (this is the end of Phase 1 in the [roadmap](roadmap.md)):
 
 - [ ] **Fits the screen:** all four tiles visible, nothing cut off at the bottom or right.
 - [ ] **No errors:** the `chrome://inspect` console has no red lines.
-- [ ] **Clock:** matches the Mac's time; the greeting fits the time of day.
-- [ ] **Chores:** tap a few; they tick. Reload the page (in the `chrome://inspect` window press
-      ⌘R, or on the frame hold two fingers for 1.5 s → **Reload dashboard**). The ticks are still there.
+- [ ] **Clock:** before Wi-Fi the frame's clock is wrong, so check the clock after Part 6, or set
+      the time by hand in Android settings for now.
+- [ ] **Chores:** tap a few; they tick. Reload the page (⌘R in the `chrome://inspect` window, or
+      on the frame hold two fingers for 1.5 s → **Reload dashboard**). The ticks are still there.
 - [ ] **Speed:** in the `?diag` box, fps should sit near 60 when nothing moves, with long frames
       rising only when a photo changes.
 - [ ] **Photos:** copy a few photos into `dashboard/photos/`, run `npm run photos` (in a third
       Terminal, from `dashboard/`), then reload. They should appear and change every 2 minutes.
-- [ ] **Memory:** `adb shell dumpsys meminfo com.wesbos.homehq | grep TOTAL`. Note the number now
+- [ ] **Memory:** `adb shell dumpsys meminfo app.glance.kiosk | grep TOTAL`. Note the number now
       and again after an hour of photos; it shouldn't keep climbing.
-- [ ] **Night clock:** don't wait for 10 p.m. In `dashboard/src/content.js`, temporarily set
+- [ ] **Night clock:** in `dashboard/src/content.js`, temporarily set
       `night: { from: 0, to: 24, idleSeconds: 10 }`, save, and leave the frame alone for 10 s. The
       red clock should appear; one tap brings the dashboard back **without** ticking the chore under
       your finger. **Put the setting back** to `{ from: 22, to: 6, idleSeconds: 120 }` afterwards.
@@ -230,26 +269,23 @@ elements and network tab, live from the frame.
 Write down the `?diag` numbers and the memory figure; they go into `docs/frame.md` as the
 baseline for later changes.
 
-## 5. Make it the frame's everyday screen
+## 6. Make it the frame's everyday screen
 
 Now the frame should load Glance from the Mac over Wi-Fi, with no cable, and come back to it after a
 power cut.
 
 > **When does the Mac need to be awake?** Only when the page **loads**: when the frame starts up,
 > when the kiosk restarts, and for the daily refresh. Once the dashboard is on screen it runs on
-> the frame by itself, so you can put the Mac to sleep:
->
-> - The clock, calendar, chores and night clock keep working as normal.
-> - The photo tile keeps rotating through the photos it has already shown. New photos appear
->   again once the Mac wakes.
-> - The daily 3 a.m. refresh waits until the Mac is awake, so the frame never swaps a working
->   dashboard for an error screen.
->
-> The one case the Mac matters: if the frame **starts up** while the Mac is asleep (after a power
-> cut), it shows "Can't reach the dashboard" until the Mac wakes. Removing that is on the
-> [roadmap](roadmap.md#phase-15--no-mac-needed) (Phase 1.5).
+> the frame by itself; the clock, calendar, chores and night clock keep working, and the photo
+> tile rotates through photos it has already shown. If the frame **starts up** while the Mac is
+> asleep, it shows "Can't reach the dashboard" until the Mac wakes. Removing that is Phase 1.5 in
+> the [roadmap](roadmap.md#phase-15--no-mac-needed).
 
-**5.1 Build and serve the production version** (leave it running):
+**6.1 Check Part 4.1 is done** (`scripts/frame-check.sh` lists both updaters under "Disabled
+apps"). Then connect the frame to Wi-Fi: hold two fingers on the kiosk for 1.5 s → **Wi-Fi
+settings**, or from Frameo's own settings. Use a guest or IoT network if you have one.
+
+**6.2 Build and serve the production version** (leave it running):
 
 ```sh
 cd ~/Documents/Projects/glance/dashboard
@@ -257,77 +293,69 @@ npm run build && npm run preview
 ```
 
 If macOS asks **"Do you want the application node to accept incoming network connections?"**,
-click **Allow**. Otherwise the frame can't reach the Mac.
+click **Allow**.
 
-**5.2 Find the Mac's address** on the Wi-Fi network:
+**6.3 Find the Mac's address:** `ipconfig getifaddr en0` gives something like `192.168.1.23`.
+Check `http://192.168.1.23:4173/` loads from a phone on the same Wi-Fi. Give the Mac a **DHCP
+reservation** in your router so the address doesn't change. Don't use the Mac's `.local` name;
+Android 8.1 can't look those up.
 
-```sh
-ipconfig getifaddr en0
-```
-
-You'll get something like `192.168.1.23`. Check it from a phone on the same Wi-Fi first: open
-`http://192.168.1.23:4173/` in its browser and the dashboard should load.
-
-> This address can change when the Mac reconnects. To stop that, give the Mac a **DHCP
-> reservation** in your router's settings. Don't use the Mac's `.local` name; Android 6 can't
-> look those up.
-
-**5.3 ⚠️ Changes the frame:** save that address as the kiosk's dashboard URL (use your address):
+**6.4 ⚠️ Save that address as the kiosk's URL** (use your address):
 
 ```sh
-adb shell am start -n com.wesbos.homehq/.MainActivity --es url http://192.168.1.23:4173/
+adb shell am start -n app.glance.kiosk/.MainActivity --es url http://192.168.1.23:4173/
 ```
 
-**Undo:** run the same command with the URL that `scripts/frame-check.sh` showed under
-"Saved settings" in Part 3.
+**Undo:** the same command with another URL.
 
-**5.4 Check the kiosk is the Home app** (so the frame boots into it). The Part 3 report's
-"Default Home app" section should mention `com.wesbos.homehq`. If it doesn't, stop here and
-send me the report: making it the Home app is a frame change we'll do deliberately.
+**6.5 ⚠️ Make the kiosk the Home app,** so the frame boots into it:
 
-**5.5 Power-cut test** (Mac awake). Unplug the USB cable, then pull the frame's power, wait 10 s,
+```sh
+adb shell am start -n app.glance.kiosk/.MainActivity --ez home true
+adb shell cmd package set-home-activity --user 0 app.glance.kiosk/.Home
+adb shell cmd package resolve-activity --brief -c android.intent.category.HOME -a android.intent.action.MAIN
+```
+
+✅ The last line is `app.glance.kiosk/.Home`.
+**Undo:** `adb shell cmd package set-home-activity --user 0 net.frameo.frame/.ui.activities.AWaitForDeferredInitCompleted`,
+then `adb shell am start -n app.glance.kiosk/.MainActivity --ez home false`.
+
+**6.6 ⚠️ Turn off Frameo** (optional, recommended). Frameo keeps running in the background,
+updates itself over the internet, and can take the screen back.
+
+```sh
+adb shell su 0 pm disable-user --user 0 net.frameo.frame
+```
+
+**Undo:** `adb shell su 0 pm default-state --user 0 net.frameo.frame`. Frameo also holds the **ADB
+access** switch: with Frameo off, USB debugging stays as it is, and you change it from Android
+Settings → Developer options instead (two-finger hold → **Android settings**).
+
+**6.7 Power-cut test** (Mac awake). Unplug the USB cable, then pull the frame's power, wait 10 s,
 and plug it back in.
 
 ✅ Within a couple of minutes it shows the Glance dashboard on its own. While Wi-Fi is still
 connecting you may briefly see the kiosk's "Connect to Wi-Fi?" or "Can't reach the dashboard"
 screen; it retries every 5 s and clears itself.
 
-**5.6 Mac asleep test.** With the dashboard showing, put the Mac to sleep (Apple menu → Sleep) and
-leave it 10 minutes.
+**6.8 Mac asleep test.** With the dashboard showing, put the Mac to sleep and leave it 10 minutes.
 
 ✅ The dashboard stays up: the clock keeps time, chores still tick, and the photo tile keeps
-changing (between photos it has already shown). Wake the Mac; nothing on the frame should flicker
-or reload.
+changing. Wake the Mac; nothing on the frame should flicker or reload.
 
-When 5.5 and 5.6 pass, Phase 1 is done. 🎉
+When 6.7 and 6.8 pass, Phase 1 is done.
 
 ## Troubleshooting
 
 ### Mac doesn't see the frame (nothing for `2207`)
 
-Work down the list; most fixes are in the first three.
-
-1. **Cable.** Use a USB-A to USB-C cable you know carries data (it works for file transfer with a
-   phone). Many cables are charge-only. USB-C to USB-C usually does nothing on these frames.
-2. **Adapter, hub or dock.** Plug the adapter straight into the Mac. Try the other USB-C port.
-3. **The right port on the frame.** If the frame has more than one port, the data one is usually
-   USB-C (marked, or next to the power jack). A micro-USB or barrel jack may be power-only.
-4. **Power.** Some frames don't power up properly from a Mac port alone. If the frame has a
-   separate power input, keep its adapter plugged in as well.
-5. **Restart both:** unplug, restart the frame, plug in again once it has started.
-
-### USB debugging is off
-
-The Mac sees `0x2207`, but `adb devices` stays empty. Turn it on from the frame's screen:
-
-- **If the kiosk is showing:** hold **two fingers** on the screen, a few centimetres apart, for
-  1.5 s → **Android settings**.
-- **If Frameo is showing:** Frameo **Settings → About → Beta program → ADB access** on. (On the
-  other ZN-DP1002 board, this turned on USB ADB only.)
-- **In Android Settings:** **About tablet** → tap **Build number** 7 times ("You are now a
-  developer") → back → **Developer options** → **USB debugging** on.
-
-Then unplug and replug the cable and run `adb devices -l` again.
+1. **Cable.** The frame lighting up only proves power. Use a USB-A to USB-C cable you know carries
+   data (it works for file transfer with a phone). This was the problem on the first frame: the
+   first cable charged it but carried no data.
+2. **Hub port.** Try another port on the hub, or plug a USB stick into the same port to check it
+   carries data.
+3. **USB-C to USB-C** doesn't work with this frame at all.
+4. **Restart the frame** with the cable connected.
 
 ### `unauthorized` but no prompt on screen
 
@@ -336,65 +364,58 @@ adb kill-server
 adb devices -l
 ```
 
-Unplug and replug, then look at the frame again. If the kiosk covers the prompt, hold two fingers
-for 1.5 s → **Open launcher**; the prompt is often behind it. Still nothing: on the frame,
-**Developer options → Revoke USB debugging authorizations**, then replug.
+Unplug and replug, then look at the frame again. If there's still no prompt, turn **ADB access**
+off and on in Frameo's settings (or Developer options), then replug.
 
 ### `adb: more than one device/emulator`
 
-Another Android device (a phone) is connected. Find the frame's serial in `adb devices -l` and
-pick it for this Terminal window:
+Another Android device (a phone) is connected. Pick the frame for this Terminal window:
 
 ```sh
-export ANDROID_SERIAL=<the frame's serial>
+export ANDROID_SERIAL=<the frame's serial from adb devices -l>
 ```
 
-### Dashboard shows "Can't reach the dashboard" over USB (Part 4)
+### Dashboard shows "Can't reach the dashboard" over USB (Part 5)
 
 - `npm run dev` stopped: check its window.
 - The `adb reverse` was lost (cable replugged, frame restarted): run
   `adb reverse tcp:5173 tcp:5173` again.
-- Check from the frame's side: `adb shell 'curl -sI http://127.0.0.1:5173/ | head -1'`
-  (if `curl` isn't on the frame, skip this).
 
-### Frame can't reach the Mac over Wi-Fi (Part 5)
+### Frame can't reach the Mac over Wi-Fi (Part 6)
 
 - `npm run preview` stopped, or the Mac was asleep when the frame started up. Wake it; the kiosk
-  retries every 5 s and the dashboard appears by itself.
-- The Mac's address changed: `ipconfig getifaddr en0`, then redo 5.3.
+  retries every 5 s.
+- The Mac's address changed: `ipconfig getifaddr en0`, then redo 6.4.
 - macOS firewall: **System Settings → Network → Firewall → Options**, allow incoming connections
   for `node`.
-- Different networks: the frame must be on the same Wi-Fi as the Mac, not a guest network
-  that isolates devices from each other. The Part 3 report shows the frame's address; its first
-  three numbers should match the Mac's.
+- Different networks: the frame must be on the same Wi-Fi as the Mac, not a guest network that
+  isolates devices from each other.
 
 ### Dashboard is cut off or too big
 
-`wm density` wasn't 160 in Part 3. **Changes the frame** (undo: `adb shell wm density reset`):
+`wm density` isn't 160. ⚠️ Changes the frame (undo: `adb shell wm density reset`):
 
 ```sh
 adb shell wm density 160
 ```
 
-Android's own menus get smaller too. The setting survives a restart.
-
-### No kiosk, or a different one
-
-If `com.wesbos.homehq` isn't installed, or the frame shows something else full screen, stop and
-send me the Part 3 report. The roadmap's plan is to bring in Glance's own kiosk app at that point
-instead of in Phase 3. Don't install anything on the frame yet.
-
 ### Dashboard looks broken (unstyled, missing fonts, wrong colours)
 
 - Open `chrome://inspect` and read the console.
-- Check the WebView version in the Part 3 report. Below 106, the page can't render.
+- Check the WebView is 106 (Part 4.2). On 61, the page can't render.
 - Run `npm run build` on the Mac: the compatibility check names any CSS or JS the frame can't run.
 
 ### Clock shows the wrong time
 
-Android's own clock is off. Check that the frame has Wi-Fi and network time on (**Settings → Date &
-time → Automatic date & time**). Right after a power cut the frame may read 1970 for a minute; the
-dashboard waits for the real date before drawing the calendar.
+Android's own clock is off. Before the frame has been online it reads its firmware date
+(28 Sep 2025); the dashboard leaves the calendar alone until the real date arrives. Once on Wi-Fi,
+check **Settings → Date & time → Automatic date & time** is on.
+
+### Stuck in another app with no way back
+
+The frame has no navigation bar. `adb shell input keyevent KEYCODE_HOME` goes Home, and
+`adb shell am start -n app.glance.kiosk/.MainActivity` opens the kiosk. For on-screen Back and
+Dashboard buttons, see "Frames without Home or Back buttons" in [kiosk/README.md](../kiosk/README.md).
 
 ### Useful commands
 
@@ -404,20 +425,16 @@ dashboard waits for the real date before drawing the calendar.
 | `adb kill-server` | Restart `adb` on the Mac (fixes most odd states) |
 | `adb shell` | Open a shell on the frame (`exit` to leave) |
 | `adb shell input keyevent KEYCODE_HOME` | Press Home on the frame |
-| `adb shell am start -n com.wesbos.homehq/.MainActivity` | Open the kiosk |
+| `adb shell am start -n app.glance.kiosk/.MainActivity` | Open the kiosk |
 | `adb exec-out screencap -p > frame.png` | Screenshot of the frame's screen, on the Mac |
-| `adb logcat -d \| grep -iE "chromium\|HomeHQ" \| tail -40` | Recent page errors and kiosk logs |
+| `adb logcat -d \| grep -iE "chromium\|Glance" \| tail -40` | Recent page errors and kiosk logs |
 | `adb reboot` | Restart the frame |
 
 ## Safety notes
 
-- This frame runs Android 6 with years-old security patches (the Part 3 report shows the date)
-  and gives root to any app without asking.
-  Keep it on your home Wi-Fi (ideally a guest or IoT network once you're past Part 5), and don't
-  sign into any personal accounts on it.
-- Don't turn on ADB over Wi-Fi (`adb tcpip`). On a rooted frame it gives root to anyone on the
-  network.
-- Before anything that **changes** the frame beyond what this guide does, take a backup first.
-  wesbos's [BIUFRAME guide](https://github.com/wesbos/photo-frame-dashboard/blob/main/docs/biuframe-setup-guide.md#step-3-back-up-the-firmware)
-  covers the same chip, but its script stops on this frame's partition layout (no
-  `/dev/block/by-name`), so we'd adapt it, not run it as-is.
+- This frame runs Android 8.1 with a 2020 security patch and gives root to any app that asks.
+  Keep it on a guest or IoT network, and don't sign into any personal accounts on it.
+- Don't turn on ADB over Wi-Fi (`adb tcpip`). On a rooted frame it gives root to anyone who can
+  get a key approved.
+- Before anything that **changes** the frame beyond this guide, make sure the Part 3.2 backup
+  exists and is copied off the Mac. Restoring from it is untested.

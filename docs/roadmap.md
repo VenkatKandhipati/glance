@@ -11,11 +11,13 @@ Ideas that aren't scheduled yet live in [ideas.md](ideas.md).
 
 Read-only checks, recorded in [frame.md](frame.md). Step by step: [connect-the-frame.md](connect-the-frame.md).
 
-- [ ] `brew install android-platform-tools`; `adb devices -l` lists the frame
-- [ ] Record `ro.build.fingerprint`, `wm size`, `wm density` (must be 160), WebView version
-- [ ] Confirm the kiosk package, its saved URL, and that it's the Home app. If it can't be
-      pointed at our URL (`--es url`), bring in the kiosk app now instead of in Phase 3
-- [ ] Note what was already changed on the frame (vendor apps, zRAM) and how to undo it
+- [x] `brew install android-platform-tools`; `adb devices -l` lists the frame
+- [x] Record `ro.build.fingerprint`, `wm size`, `wm density` (must be 160), WebView version.
+      It's the RK3326 / Android 8.1 board with stock Frameo, not the RK3126 we planned for
+- [x] Verified firmware backup (`scripts/frame-backup.sh`) before any change
+- [x] Vendor updaters off; WebView 61 → 106 in `/system` (logged with undo in frame.md)
+- [ ] No kiosk on a stock frame: bring Glance's own kiosk in now (`kiosk/`, forked from
+      wesbos/photo-frame-dashboard) instead of in Phase 1.5, install it and make it Home
 
 ## Phase 1 — Static dashboard (MVP) · v0.1
 
@@ -50,8 +52,8 @@ power cut (while the Mac is serving).
 The frame only needs the Mac when the page loads; a frame that starts up while the Mac sleeps
 shows an error until it wakes. Bundling the dashboard into the kiosk app removes the Mac entirely.
 
-- [ ] Fork the kiosk app from wesbos/photo-frame-dashboard into `kiosk/` (moved up from Phase 3):
-      Glance's own name and icon
+- [x] Fork the kiosk app from wesbos/photo-frame-dashboard into `kiosk/` (moved up to Phase 0,
+      because the stock frame had no kiosk): Glance's own name; own icon still to do
 - [ ] Build the dashboard into the app and serve it to the WebView from inside the app
       (`shouldInterceptRequest` on a fixed `https://glance.local/` origin), so it works with no
       network at all

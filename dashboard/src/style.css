@@ -1,4 +1,4 @@
-/* Target: Android WebView 107 on a Mali-400. No nesting, :has(), color-mix(), oklch(), dvh,
+/* Target: Android WebView 106 on a Mali-G31. No nesting, :has(), color-mix(), oklch(), dvh,
    4/8-digit hex, backdrop-filter, blur or shadows. Colours are #rrggbb or rgba(). */
 @import '@fontsource/instrument-serif/400.css';
 @import '@fontsource/instrument-serif/400-italic.css';

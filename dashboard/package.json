@@ -17,7 +17,7 @@
     "@fontsource-variable/plus-jakarta-sans": "^5.3.0",
     "@fontsource/instrument-serif": "^5.3.0"
   },
-  "description": "Static home dashboard for a hacked 10.1\" Android photo frame (WebView 107, 1280x800).",
+  "description": "Static home dashboard for a hacked 10.1\" Android photo frame (WebView 106, 1280x800).",
   "license": "MIT",
   "engines": {
     "node": ">=22"
