@@ -33,8 +33,19 @@ export function mountChores(el) {
       }).join('') + '</div>';
   }
 
+  // The frame's touchscreen reports taps 25–50 px below the finger near the bottom edge, often
+  // under the chip. The chores are one row, so a tap anywhere in the tile picks its column.
+  function choreAt(x) {
+    const chips = el.querySelectorAll('.chore');
+    for (let i = 0; i < chips.length; i++) {
+      const r = chips[i].getBoundingClientRect();
+      if (x >= r.left - 5 && x <= r.right + 5) return chips[i]; // 5 px = half the gap
+    }
+    return null;
+  }
+
   el.addEventListener('click', (e) => {
-    const btn = e.target.closest('.chore');
+    const btn = e.target.closest('.chore') || choreAt(e.clientX);
     if (!btn) return;
     const id = btn.dataset.id, at = done.indexOf(id);
     if (at > -1) done.splice(at, 1); else done.push(id);

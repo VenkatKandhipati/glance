@@ -12,6 +12,7 @@ Read over ADB on 2026-10-16.
 | SoC | Rockchip RK3326: 4× Cortex-A35 at 1.5 GHz (32-bit userland, `armeabi-v7a`), Mali-G31 GPU (OpenGL ES 3.2) |
 | Memory / storage | 1 GB RAM (360 MB zRAM), 32 GB logical NAND (`rknand0`, `/dev/block/by-name` present) |
 | Screen | 1280 × 800 landscape at **47 Hz**, density 160 (devicePixelRatio 1), touch; no navigation bar |
+| Touch | gslX680, 480 × 800 raw (Android scales X by 2.66). No jitter, but near the bottom edge it reports taps 25–50 px **below** the finger |
 | Wi-Fi | AIC8800 (`aicwf_sdio`) |
 | OS | Android 8.1 (API 27), firmware `SSA_Frame_20250928`, security patch 2020-06-05, SELinux permissive |
 | Browser engine | Android System WebView 106.0.5249.126, put in `/system` by this project (it shipped with 61) |
@@ -51,6 +52,13 @@ most of them: `npm run build` runs [`scripts/check-compat.mjs`](../dashboard/scr
 | `backdrop-filter`, big blurs, shadows | Too slow for a Mali-G31 at 1280 × 800 | Pre-darkened images, flat fills |
 | `alert()`, pop-ups, `target="_blank"` | The kiosk has no handler / no way back | In-page UI |
 | Two-finger hold | Opens the kiosk's own menu | Single taps |
+
+## Touch
+
+Measured 2026-10-16 with `getevent` on six taps aimed at a chore chip (screen y 702–748): each was
+a clean press with no movement, reported at y 750–775, just under the chip. Only 2–3 of 6
+registered. Design for it: big targets, and no small controls along the bottom edge. The chores
+strip counts a tap anywhere in its tile for the chip in that column.
 
 ## Performance rules
 
