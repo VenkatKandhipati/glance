@@ -30,7 +30,7 @@ export const metro = {
 };
 
 export const settings = {
-  weekStartsOn: 1,          // 0 = Sunday, 1 = Monday
+  weekStartsOn: 0,          // 0 = Sunday (like Google Calendar), 1 = Monday
   photoSeconds: 120,        // how long each photo stays up
   night: { from: 22, to: 6, idleSeconds: 120 }, // red clock window (24 h) and idle time before it shows
 };
