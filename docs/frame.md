@@ -55,10 +55,10 @@ most of them: `npm run build` runs [`scripts/check-compat.mjs`](../dashboard/scr
 
 ## Touch
 
-Measured 2026-10-16 with `getevent` on six taps aimed at a chore chip (screen y 702–748): each was
+Measured 2026-10-16 with `getevent` on six taps aimed at a 46 px chip (screen y 702–748): each was
 a clean press with no movement, reported at y 750–775, just under the chip. Only 2–3 of 6
-registered. Design for it: big targets, and no small controls along the bottom edge. The chores
-strip counts a tap anywhere in its tile for the chip in that column.
+registered. Design for it: big targets, and no small controls along the bottom edge. (The
+chores strip, since replaced by the Metro banner, counted a tap anywhere in its tile.)
 
 ## Performance rules
 

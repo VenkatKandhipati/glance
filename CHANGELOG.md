@@ -5,7 +5,24 @@ and versions follow [Semantic Versioning](https://semver.org).
 
 ## [Unreleased]
 
+### Added
+
+- Metro banner in place of the chores strip: live WMATA arrivals at Ballston in both directions,
+  through `/api/trains` on the Mac, which holds the API key.
+- Glance's own kiosk app (`kiosk/`, adapted from wesbos/photo-frame-dashboard) and
+  `scripts/frame-backup.sh`.
+
+### Removed
+
+- The chores strip.
+
+### Fixed
+
+- The calendar no longer trusts the frame's fallback clock (its firmware date) after a power cut.
+
 ### Changed
+
+- Docs and scripts now target the RK3326 / Android 8.1 frame that arrived, not the RK3126.
 
 - The dashboard keeps running while the Mac sleeps: built files are served as cacheable forever,
   the photo tile rotates through photos it has already loaded when the server can't be reached,

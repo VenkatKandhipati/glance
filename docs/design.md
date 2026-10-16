@@ -22,7 +22,7 @@ A fixed 1280 × 800 grid (the frame's exact resolution at DPR 1), 20 px outer ma
 ├────────────────────────┤ Photo            715 × 633      │
 │ Calendar   509 × 287   │                                 │
 ├────────────────────────┴─────────────────────────────────┤
-│ Chores                                       1240 × 111  │
+│ Metro                                        1240 × 111  │
 └──────────────────────────────────────────────────────────┘
 ```
 
@@ -36,7 +36,7 @@ All in [`dashboard/src/style.css`](../dashboard/src/style.css) as custom propert
 | `--tile` | `#11151c` | Default tile surface |
 | `--tile-blue` | `#131925` | Calendar tile (each tile gets its own faint tint) |
 | `--tile-line` | `rgba(255,255,255,.07)` | 1 px tile border |
-| `--chip` / `--chip-line` | `rgba(255,255,255,.04)` / `.09` | Pills: date, chores |
+| `--chip` / `--chip-line` | `rgba(255,255,255,.04)` / `.09` | Pills: date |
 | `--ink` / `--ink-2` / `--mute` | `#f3f0e9` / `#c9ccd3` / `#858a95` | Text, from primary to quiet |
 | `--gold` / `--gold-fill` | `#cbb47c` / `#d4b54e` | Accent text, today, ticks |
 | `--violet` | `#b4a6ff` | Icon chips |
@@ -47,14 +47,18 @@ All in [`dashboard/src/style.css`](../dashboard/src/style.css) as custom propert
 
 - **Instrument Serif** for display: the time, the greeting, the month. Italic for small flourishes
   (am/pm, the gold comma in "October,").
-- **Plus Jakarta Sans** (variable) for everything else: labels, pills, chores.
+- **Plus Jakarta Sans** (variable) for everything else: labels, pills, the Metro banner.
 - Both are bundled as woff2 through Fontsource. The frame never loads fonts from the web.
 
 ## Patterns
 
 - **Two-tone headings:** a gold first line and a white second ("Good night. / Here's your day.",
-  "Chores, / 2 left today").
+  "Ballston, / Next trains").
 - **Pills** for metadata and actions, with an optional 28 px tinted icon chip at the start.
 - **Done state:** filled gold circle with a dark tick, muted strikethrough label.
+- **Metro banner:** a 6 px stripe in the station's line colours down the left edge; per direction,
+  the next train large (line bullet, destination, serif minutes with a gold italic *min*) and the
+  two after it as small coloured dots. WMATA line colours: Orange `#ed8b00`, Silver `#919d9d`, Red
+  `#bf0d3e`, Blue `#009cde`, Yellow `#ffd100`, Green `#00b140`; bullets use dark text.
 - **No** shadows, blur, gradients that animate, or motion other than photo crossfades and the
   night clock's drift.

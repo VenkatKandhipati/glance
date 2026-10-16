@@ -1,7 +1,7 @@
 # Glance
 
 A calm home dashboard for a cheap Android photo frame: the time, this month, your photos and
-today's chores, readable from across the room.
+the next Metro trains, readable from across the room.
 
 ![Glance on a 1280 × 800 frame: clock, month calendar, photo tile and chores](docs/images/dashboard.png)
 
@@ -18,7 +18,8 @@ keep running for weeks with nobody touching it.
   every year), and the next one with a countdown: *Diwali, Sun 8 Nov · in 4 weeks*.
 - **Photos.** Your own photos crossfade in the large tile. A script shrinks them to the frame's
   size first, HEIC included, so the frame never decodes a 12-megapixel original.
-- **Chores.** Tap to tick off. Ticks are saved on the frame and reset each morning.
+- **Metro.** Live WMATA arrivals at your station in both directions, with each line's colour. The
+  Mac fetches them with your API key, so the key never reaches the frame.
 - **Night clock.** After 10 p.m., two idle minutes turn the screen into a dim red clock on black.
   It drifts a few pixels now and then so it doesn't burn in. One tap brings the dashboard back.
 - **Runs unattended.** It reloads itself if it fails to start and once a day at 3 a.m., and it
@@ -71,7 +72,9 @@ npm run dev            # http://localhost:5173; open it at 1280 × 800
 
 Make it yours:
 
-- **Dates and chores:** edit [`dashboard/src/content.js`](dashboard/src/content.js).
+- **Dates and Metro station:** edit [`dashboard/src/content.js`](dashboard/src/content.js).
+- **WMATA API key:** copy `dashboard/.env.example` to `dashboard/.env.local` and paste in a free key
+  from [developer.wmata.com](https://developer.wmata.com). `.env.local` is gitignored.
 - **Photos:** copy them into `dashboard/photos/` and run `npm run photos`. Photos stay on your
   machine; both photo folders are gitignored.
 
@@ -95,8 +98,9 @@ other models.
 dashboard/              the web app
   src/
     main.js             minute tick, daily reload, wiring
-    content.js          the file you edit: dates, chores, timings
-    tiles/              clock, calendar, photo, chores
+    content.js          the file you edit: dates, Metro station, timings
+    tiles/              clock, calendar, photo, Metro
+  server/               /api/trains (WMATA proxy; holds the API key)
     night.js            night clock
     diag.js             ?diag performance overlay
     style.css           design tokens and all styles

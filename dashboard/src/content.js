@@ -15,15 +15,17 @@ export const dates = [
   { date: '10-26', title: 'Birthday (example — edit me)' },
 ];
 
-// Chores shown in the bottom strip. Ticks are saved on the frame and cleared every morning.
-// `id` must stay the same when you rename a chore, or its tick is lost for the day.
-export const chores = [
-  { id: 'recycling', title: 'Recycling out' },
-  { id: 'plants', title: 'Water the plants' },
-  { id: 'power-bill', title: 'Pay power bill' },
-  { id: 'coffee', title: 'Order coffee beans' },
-  { id: 'laundry', title: 'Laundry' },
-];
+// Metro banner along the bottom: live WMATA arrivals for one station, through the Mac's
+// /api/trains (the API key lives in dashboard/.env.local). Station codes: WMATA's jStations list.
+// `group` is the platform track; name each one by where its trains go.
+export const metro = {
+  station: 'K04',
+  name: 'Ballston',
+  directions: [
+    { group: '1', label: 'To DC' },
+    { group: '2', label: 'To Vienna · Ashburn' },
+  ],
+};
 
 export const settings = {
   weekStartsOn: 1,          // 0 = Sunday, 1 = Monday

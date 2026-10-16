@@ -2,7 +2,7 @@ import './style.css';
 import { renderClock } from './tiles/clock.js';
 import { renderCalendar } from './tiles/calendar.js';
 import { startPhotos } from './tiles/photo.js';
-import { mountChores } from './tiles/chores.js';
+import { mountTrains } from './tiles/trains.js';
 import { mountNight } from './night.js';
 import { startDiag } from './diag.js';
 import { dayKey, clockIsSane } from './time.js';
@@ -10,7 +10,6 @@ import { dayKey, clockIsSane } from './time.js';
 window.__glance = true; // tells the watchdog in index.html that the bundle started
 
 const $ = (id) => document.getElementById(id);
-const updateChores = mountChores($('chores'));
 const updateNight = mountNight($('night'));
 const bootedAt = Date.now();
 let lastDay = '';
@@ -26,7 +25,7 @@ function serverUp() {
     .finally(() => clearTimeout(timer));
 }
 
-// Once a minute: the clock text always; the calendar and chores only when the day changes.
+// Once a minute: the clock text always; the calendar only when the day changes.
 function tick() {
   const now = new Date();
   renderClock($('clock'), now);
@@ -36,7 +35,6 @@ function tick() {
     lastDay = day;
     renderCalendar($('cal'), now);
   }
-  updateChores(now);
   // Daily reload from 3 a.m. clears slow leaks and picks up new content and photos. If the server
   // is asleep it keeps the page running and checks again every 10 minutes.
   if (now.getHours() === 3 && now.getMinutes() === 0 && Date.now() - bootedAt > 3600e3) reloadDue = true;
@@ -57,4 +55,5 @@ function schedule() {
 renderCalendar($('cal'), new Date());
 schedule();
 startPhotos($('photo'));
+mountTrains($('trains'));
 startDiag();

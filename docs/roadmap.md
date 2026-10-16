@@ -28,7 +28,7 @@ One screen, no navigation, no API calls.
 | Clock | frame clock | time, am/pm, date pill; greeting by time of day |
 | Month calendar | clock + `dates` in `content.js` | today highlighted, dots on marked dates (yearly ones repeat), next marked date with a countdown |
 | Photo tile | `dashboard/photos/` (gitignored) | crossfades every 2 min; next photo loaded before the swap; never more than two decoded |
-| Chores | `chores` in `content.js` | tap to tick; saved on the frame; reset each day; "N left today" |
+| Chores | `chores` in `content.js` | tap to tick; saved on the frame; reset each day. Replaced by the Metro banner (Phase 2) |
 | Night clock | frame clock | 22:00–06:00 after 2 min untouched: dim red clock on black; tap to dismiss; drifts against burn-in |
 
 - [x] Scaffold `dashboard/` (Vite, tokens, self-hosted fonts, grid)
@@ -39,7 +39,7 @@ One screen, no navigation, no API calls.
 - [x] Night clock
 - [x] Reload watchdog, daily 3 a.m. reload, `?diag` overlay
 - [x] Unit tests, frame-compatibility check, CI
-- [ ] Tap-test chores and the night clock by hand; Chrome DevTools with 6× CPU throttle
+- [ ] Tap-test the night clock by hand; Chrome DevTools with 6× CPU throttle
 - [x] Run on the frame over `adb reverse`; record `?diag` numbers (47 fps = the panel's 47 Hz)
 - [x] Point the kiosk at the Mac's LAN URL; it boots into the dashboard after `adb reboot`
 - [ ] Unplug-and-replug power test; Mac-asleep test; an hour of photos without memory growth
@@ -63,6 +63,8 @@ shows an error until it wakes. Bundling the dashboard into the kiosk app removes
 
 ## Phase 2 — First live data, via the Mac
 
+- [x] Metro banner in place of chores: WMATA arrivals at Ballston (`K04`) through `/api/trains`
+      on the Mac's dev/preview server; the key lives in `dashboard/.env.local`
 - [ ] Weather and AQI from Open-Meteo (no key) through a Vite server middleware at `/api/weather`
       and `/api/air`; the frame still only talks to the Mac
 - [ ] `docs/api.md`: one JSON shape per feed, the contract the home server implements later

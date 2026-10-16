@@ -22,7 +22,7 @@ export function mountNight(el) {
   }
 
   // Any touch counts as activity. The night clock itself is dismissed on click, not pointerdown:
-  // hiding it earlier would let the same tap's click land on a chore underneath.
+  // hiding it earlier would let the same tap's click land on whatever is underneath.
   document.addEventListener('pointerdown', () => { idle = 0; }, true);
   el.addEventListener('click', (e) => {
     e.stopPropagation();

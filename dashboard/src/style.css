@@ -57,7 +57,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   display: grid;
   grid-template-columns: 509px 1fr;
   grid-template-rows: 330px 1fr 111px;
-  grid-template-areas: 'clock photo' 'cal photo' 'chores chores';
+  grid-template-areas: 'clock photo' 'cal photo' 'trains trains';
   gap: var(--gap);
   width: 1280px;
   height: 800px;
@@ -71,7 +71,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   background: var(--tile);
 }
 
-/* pill used for the date, labels and chores */
+/* pill used for the date and labels */
 .chip {
   display: inline-flex;
   align-items: center;
@@ -228,30 +228,81 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   font-size: 15px;
 }
 
-/* ------------------------------------------------------------------ chores */
-.chores {
-  grid-area: chores;
+/* ------------------------------------------------------------------ metro */
+/* WMATA line colours; text on the bullets is dark for contrast, as on Silver and Yellow signs. */
+.trains {
+  grid-area: trains;
   display: flex;
   align-items: center;
   gap: 28px;
   padding: 0 var(--pad) 0 30px;
 }
-.chores-title { flex: none; width: 170px; font-size: 26px; font-weight: 650; line-height: 1.05; }
-.chores-title b { display: block; font-weight: 650; color: var(--gold); }
-.chores-list { display: flex; gap: 10px; flex-wrap: nowrap; overflow: hidden; }
-.chore { height: 46px; padding: 0 18px 0 12px; font-size: 17px; }
-.chore-box {
+/* the two lines that serve the station, as a stripe down the left edge */
+.trains::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 6px;
+  background: linear-gradient(#ed8b00 50%, #919d9d 50%);
+}
+.trains-title { flex: none; width: 170px; font-size: 26px; font-weight: 650; line-height: 1.05; }
+.trains-title b { display: block; font-weight: 650; color: var(--gold); }
+.trains-title .is-stale { color: var(--mute); font-size: 17px; }
+.trains-dirs { flex: 1; display: flex; min-width: 0; height: 100%; }
+.trains-dir {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 24px;
+  border-left: 1px solid var(--tile-line);
+}
+.trains-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+.trains-row { display: flex; align-items: center; gap: 18px; height: 50px; }
+.train-main { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.train-dest {
+  font-size: 19px;
+  font-weight: 650;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.train-min { flex: none; font-size: 42px; line-height: 1; }
+.train-min i { margin-left: 4px; font-size: 20px; color: var(--gold); }
+.train-now { flex: none; font-size: 15px; font-weight: 750; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gold); }
+.train-next { flex: none; display: flex; align-items: center; gap: 7px; font-size: 18px; font-weight: 650; color: var(--ink-2); }
+.train-empty, .trains-off { font-size: 17px; font-weight: 600; color: var(--mute); }
+.trains-off { display: flex; align-items: center; padding-left: 24px; border-left: 1px solid var(--tile-line); }
+.line {
+  flex: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  border: 2px solid var(--gold-fill);
-  color: #15171c;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: #0c0f14;
+  background: var(--mute);
 }
-.chore.is-done .chore-box { background: var(--gold-fill); }
-.chore.is-done .chore-name { color: var(--mute); text-decoration: line-through; }
+.line.is-small { width: 14px; height: 14px; }
+.line-OR { background: #ed8b00; }
+.line-SV { background: #919d9d; }
+.line-RD { background: #bf0d3e; color: #ffffff; }
+.line-BL { background: #009cde; }
+.line-YL { background: #ffd100; }
+.line-GR { background: #00b140; }
 
 /* ------------------------------------------------------------------ night clock */
 .night {

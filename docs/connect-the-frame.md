@@ -253,8 +253,8 @@ network tab, live from the frame.
 - [ ] **No errors:** the `chrome://inspect` console has no red lines.
 - [ ] **Clock:** before Wi-Fi the frame's clock is wrong, so check the clock after Part 6, or set
       the time by hand in Android settings for now.
-- [ ] **Chores:** tap a few; they tick. Reload the page (⌘R in the `chrome://inspect` window, or
-      on the frame hold two fingers for 1.5 s → **Reload dashboard**). The ticks are still there.
+- [ ] **Metro:** the bottom banner shows live trains both ways within a few seconds (it needs
+      `dashboard/.env.local` with your WMATA key, and refreshes every 30 s).
 - [ ] **Speed:** in the `?diag` box, fps should sit at 47 when nothing moves (the panel runs at
       47 Hz, not 60), with long frames rising only at load and when a photo changes.
 - [ ] **Photos:** copy a few photos into `dashboard/photos/`, run `npm run photos` (in a third
@@ -264,8 +264,7 @@ network tab, live from the frame.
 - [ ] **Night clock:** before Wi-Fi the frame's clock reads about 4 a.m., inside the night window,
       so the red clock appears on its own after 2 minutes. Otherwise, in `dashboard/src/content.js`, temporarily set
       `night: { from: 0, to: 24, idleSeconds: 10 }`, save, and leave the frame alone for 10 s. The
-      red clock should appear; one tap brings the dashboard back **without** ticking the chore under
-      your finger. **Put the setting back** to `{ from: 22, to: 6, idleSeconds: 120 }` afterwards.
+      red clock should appear; one tap brings the dashboard back. **Put the setting back** to `{ from: 22, to: 6, idleSeconds: 120 }` afterwards.
 
 Write down the `?diag` numbers and the memory figure; they go into `docs/frame.md` as the
 baseline for later changes.
@@ -277,7 +276,7 @@ power cut.
 
 > **When does the Mac need to be awake?** Only when the page **loads**: when the frame starts up,
 > when the kiosk restarts, and for the daily refresh. Once the dashboard is on screen it runs on
-> the frame by itself; the clock, calendar, chores and night clock keep working, and the photo
+> the frame by itself; the clock, calendar and night clock keep working, and the photo
 > tile rotates through photos it has already shown. If the frame **starts up** while the Mac is
 > asleep, it shows "Can't reach the dashboard" until the Mac wakes. Removing that is Phase 1.5 in
 > the [roadmap](roadmap.md#phase-15--no-mac-needed).
@@ -341,7 +340,7 @@ screen; it retries every 5 s and clears itself.
 
 **6.8 Mac asleep test.** With the dashboard showing, put the Mac to sleep and leave it 10 minutes.
 
-✅ The dashboard stays up: the clock keeps time, chores still tick, and the photo tile keeps
+✅ The dashboard stays up: the clock keeps time and the photo tile keeps
 changing. Wake the Mac; nothing on the frame should flicker or reload.
 
 When 6.7 and 6.8 pass, Phase 1 is done.
