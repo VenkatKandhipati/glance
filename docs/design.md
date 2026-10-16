@@ -47,8 +47,10 @@ All in [`dashboard/src/style.css`](../dashboard/src/style.css) as custom propert
 
 - **Instrument Serif** for display: the time, the greeting, the month. Italic for small flourishes
   (am/pm, the gold comma in "October,").
-- **Plus Jakarta Sans** (variable) for everything else: labels, pills, the Metro banner.
-- Both are bundled as woff2 through Fontsource. The frame never loads fonts from the web.
+- **Plus Jakarta Sans** (variable) for everything else: labels, pills, the Metro banner's text.
+- **Doto** (800, latin only, 4 KB) for the Metro times only: dot-matrix digits like WMATA's
+  platform arrival boards.
+- All three are bundled as woff2 through Fontsource. The frame never loads fonts from the web.
 
 ## Patterns
 
@@ -56,10 +58,11 @@ All in [`dashboard/src/style.css`](../dashboard/src/style.css) as custom propert
   "Ballston, / Next trains").
 - **Pills** for metadata and actions, with an optional 28 px tinted icon chip at the start.
 - **Done state:** filled gold circle with a dark tick, muted strikethrough label.
-- **Metro banner:** a 6 px stripe in the station's line colours down the left edge; per direction,
-  just its name ("To DC") and the next three times in the serif, each after a 12 px dot in its
-  line's colour. The next train is ink, the two after it muted; arriving or boarding reads *Now*
-  in gold italic. No destinations or units. WMATA line colours: Orange `#ed8b00`, Silver
+- **Metro banner:** a 6 px stripe in the station's line colours down the left edge; the title is
+  just the station name in gold (a quiet second line appears only for "Checking…" or old times);
+  per direction, its name ("To DC") and the next three times in Doto, each after a 12 px dot in
+  its line's colour. The next train is ink, the two after it muted; arriving or boarding reads
+  "Now" in gold. No destinations or units. WMATA line colours: Orange `#ed8b00`, Silver
   `#919d9d`, Red `#bf0d3e`, Blue `#009cde`, Yellow `#ffd100`, Green `#00b140`.
 - **No** shadows, blur, gradients that animate, or motion other than photo crossfades and the
   night clock's drift.

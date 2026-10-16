@@ -37,7 +37,7 @@ test('keeps passenger trains with a time, soonest first, with readable names', (
 test('banner shows up to three times per direction, with no destinations or units', () => {
   const now = 1e12;
   const html = trainsHtml(metro, { data: normalize(wmata, now), lastOk: now }, now);
-  assert.match(html, /Ballston,/);
+  assert.match(html, /<b>Ballston<\/b><\/div>/); // no second line while times are live
   assert.match(html, /To DC.*line-SV"><\/span><i>Now<\/i>.*line-OR"><\/span>2<\/span>/);
   assert.match(html, /To Vienna.*line-OR"><\/span><i>Now<\/i>.*line-SV"><\/span>8<\/span>/);
   assert.doesNotMatch(html, /Downtown Largo|Ashburn|min</);

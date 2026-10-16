@@ -13,7 +13,7 @@ function time(t) {
 function direction(dir, trains) {
   const list = trains.filter((t) => t.group === dir.group).slice(0, SHOW);
   return '<div class="trains-dir"><span class="trains-label">' + esc(dir.label) + '</span>' +
-    (list.length ? '<span class="trains-times serif">' + list.map(time).join('') + '</span>'
+    (list.length ? '<span class="trains-times">' + list.map(time).join('') + '</span>'
       : '<span class="trains-note">No trains</span>') + '</div>';
 }
 
@@ -21,11 +21,11 @@ function direction(dir, trains) {
 export function trainsHtml(cfg, state, now) {
   const age = state.lastOk ? now - state.lastOk : Infinity;
   const fresh = state.data && age <= STALE_MS;
-  let sub = 'Next trains';
+  // Just the station name while times are live; a quiet second line only when something's off.
+  let sub = '';
   if (!state.data) sub = 'Checking…';
   else if (!fresh) sub = 'Times from ' + Math.round(age / 60000) + ' min ago';
-  return '<div class="trains-title"><b>' + esc(cfg.name) + ',</b><span' + (fresh ? '' : ' class="is-quiet"') + '>' +
-    sub + '</span></div>' +
+  return '<div class="trains-title"><b>' + esc(cfg.name) + '</b>' + (sub ? '<span>' + sub + '</span>' : '') + '</div>' +
     (fresh ? cfg.directions.map((d) => direction(d, state.data.trains)).join('')
       : '<div class="trains-dir"><span class="trains-note">' + (state.data ? 'Live times unavailable' : '') + '</span></div>');
 }

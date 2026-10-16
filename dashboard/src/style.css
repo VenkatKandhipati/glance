@@ -3,6 +3,8 @@
 @import '@fontsource/instrument-serif/400.css';
 @import '@fontsource/instrument-serif/400-italic.css';
 @import '@fontsource-variable/plus-jakarta-sans';
+/* dot-matrix digits for the Metro banner, like WMATA's platform arrival boards */
+@import '@fontsource/doto/latin-800.css';
 
 :root {
   /* ground + surfaces (taken from the mockup) */
@@ -29,6 +31,7 @@
   /* type */
   --serif: 'Instrument Serif', Georgia, serif;
   --sans: 'Plus Jakarta Sans Variable', 'Plus Jakarta Sans', Roboto, sans-serif;
+  --led: 'Doto', monospace;
 
   /* shape + space */
   --r: 30px;
@@ -249,7 +252,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 }
 .trains-title { flex: none; width: 170px; font-size: 26px; font-weight: 650; line-height: 1.05; }
 .trains-title b { display: block; font-weight: 650; color: var(--gold); }
-.trains-title .is-quiet { color: var(--mute); font-size: 17px; }
+.trains-title span { display: block; margin-top: 4px; color: var(--mute); font-size: 15px; }
 .trains-dir {
   flex: 1;
   min-width: 0;
@@ -261,10 +264,10 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   border-left: 1px solid var(--tile-line);
 }
 .trains-label { flex: none; width: 118px; font-size: 20px; font-weight: 650; }
-.trains-times { display: flex; align-items: center; gap: 30px; font-size: 44px; line-height: 1; }
+.trains-times { display: flex; align-items: center; gap: 30px; font-family: var(--led); font-weight: 800; font-size: 46px; line-height: 1; }
 .train { display: flex; align-items: center; gap: 10px; color: var(--mute); }
 .train:first-child { color: var(--ink); }
-.train i { font-style: italic; color: var(--gold); }
+.train i { font-style: normal; color: var(--gold); }
 .trains-note { font-size: 17px; font-weight: 600; color: var(--mute); }
 .line { flex: none; width: 12px; height: 12px; border-radius: 50%; background: var(--mute); }
 .line-OR { background: #ed8b00; }
