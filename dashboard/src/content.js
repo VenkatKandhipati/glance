@@ -1,18 +1,11 @@
 // Everything on the dashboard that isn't the clock, your photos or a tap.
-// Edit this file, save, and the frame picks it up on its next reload.
+// Edit this file, then run `npm run frame` with the frame on USB to put it on the frame.
 
-// Dates marked on the month calendar. The next one is shown under it with a countdown.
+// Extra dates to mark on the month calendar, on top of your Google calendars (empty: those cover it).
 //   'MM-DD'       repeats every year (birthdays, anniversaries, fixed holidays)
 //   'YYYY-MM-DD'  happens once (trips, festivals whose date moves each year)
 export const dates = [
-  { date: '01-01', title: "New Year's Day" },
-  { date: '01-26', title: 'Republic Day' },
-  { date: '08-15', title: 'Independence Day' },
-  { date: '10-02', title: 'Gandhi Jayanti' },
-  { date: '12-25', title: 'Christmas' },
-  { date: '2026-10-20', title: 'Dussehra' },
-  { date: '2026-11-08', title: 'Diwali' },
-  { date: '10-26', title: 'Birthday (example — edit me)' },
+  // { date: '03-14', title: "Someone's birthday" },
 ];
 
 // Google calendars, read live by their secret iCal address (CAL_<ID> in dashboard/.env.local, never

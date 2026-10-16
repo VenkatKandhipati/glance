@@ -77,7 +77,7 @@ shows an error until it wakes. Bundling the dashboard into the kiosk app removes
 
 - [x] Google Calendar by secret iCal address: own RFC 5545 reader (repeats, exceptions, time
       zones), fetched by the kiosk on the frame or the Mac's `/ics`; Duckville marked quiet
-- [ ] Hand-typed dates in `content.js` are still starter placeholders
+- [x] Starter placeholder dates removed from `content.js`; Google Calendar covers them
 
 ## Phase 3 — Home server
 
