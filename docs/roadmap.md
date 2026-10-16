@@ -60,7 +60,8 @@ shows an error until it wakes. Bundling the dashboard into the kiosk app removes
       network at all; photos live on the frame's storage, so new ones need no reinstall
 - [x] `npm run frame` on the Mac: build, package and install over ADB in one command
 - [x] Metro banner calls WMATA from the frame (owner-approved exception; key baked in at build)
-- [ ] Install on the frame and pass the power-cut test with the Mac off
+- [x] Install on the frame; after `adb reboot` with no Mac server it came back with photos and trains
+- [ ] Real power-cut test (pull the plug) with the Mac off
 - [ ] Build the APK in CI
 
 ## Phase 2 — First live data, via the Mac
