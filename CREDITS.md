@@ -19,6 +19,10 @@
 
 ## Code adapted from other projects
 
+`kiosk/` is adapted from `dashboard/kiosk` in wesbos/photo-frame-dashboard (commit `48b4ab0`),
+with Wes Bos's permission: the app source, manifest, build script, accessibility config and icon.
+Glance changed the package name, labels and default URL.
+
 `dashboard/src/diag.js` is adapted from `dashboard/src/diag.js` in huntsyea/kitchen-frame:
 
 > MIT License
