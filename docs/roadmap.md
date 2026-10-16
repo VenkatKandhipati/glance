@@ -55,10 +55,12 @@ shows an error until it wakes. Bundling the dashboard into the kiosk app removes
 
 - [x] Fork the kiosk app from wesbos/photo-frame-dashboard into `kiosk/` (moved up to Phase 0,
       because the stock frame had no kiosk): Glance's own name; own icon still to do
-- [ ] Build the dashboard into the app and serve it to the WebView from inside the app
+- [x] Build the dashboard into the app and serve it to the WebView from inside the app
       (`shouldInterceptRequest` on a fixed `https://glance.local/` origin), so it works with no
-      network at all
-- [ ] `npm run frame` on the Mac: build, package and install over ADB in one command
+      network at all; photos live on the frame's storage, so new ones need no reinstall
+- [x] `npm run frame` on the Mac: build, package and install over ADB in one command
+- [x] Metro banner calls WMATA from the frame (owner-approved exception; key baked in at build)
+- [ ] Install on the frame and pass the power-cut test with the Mac off
 - [ ] Build the APK in CI
 
 ## Phase 2 — First live data, via the Mac

@@ -2,3 +2,4 @@
 *.log
 frames/
 kiosk/build/
+kiosk/assets/

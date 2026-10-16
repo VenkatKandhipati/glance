@@ -84,10 +84,14 @@ renderer. The kiosk window is up 1.5 s after launch.
 
 ## Network
 
-- The frame talks to **one origin we control**, over plain HTTP on the LAN, by IP address
-  (Android 8.1 doesn't resolve `.local` names).
-- It never calls third-party APIs itself. API keys have to stay off a device anyone on the
-  network can read.
+- Day to day the page comes from **inside the kiosk app** at `https://glance.local/`, a host that
+  exists only in its WebView (see below); while developing, from the Mac over plain HTTP by IP
+  address (Android 8.1 doesn't resolve `.local` names on the network).
+- **One third-party call, by owner decision (2026-10-16): WMATA.** The frame build calls
+  `api.wmata.com` directly with the key baked in at build time, so the Metro banner works with
+  the Mac off. Anyone who can reach the frame can read that key (any app can get root), which is
+  acceptable for a free, rate-limited key that can be regenerated. Move it to the home server
+  when there is one. No other service, and no other key, goes on the frame.
 - Trust store: the 2025 firmware ships a store from about 2023 (205 roots, newest March 2023),
   despite the 2020 security patch. It has ISRG Root X1 and X2, Sectigo R46 (WMATA's root), GTS,
   Amazon and DigiCert G2, but no roots from 2024 on, such as the ISRG Root YR that Open-Meteo
@@ -97,9 +101,18 @@ renderer. The kiosk window is up 1.5 s after launch.
 - Keep it on a guest or IoT network: Android 8.1 with a 2020 security patch, and any app can
   get root.
 
-## Serving the page from the Mac
+## How the page gets onto the frame
 
-While developing, over USB:
+**Day to day: inside the kiosk app.** `npm run frame` builds a frame copy of the dashboard
+(`vite build --mode frame` into `dist-frame/`), packages it into the app's `assets/www/`, installs
+the app over USB, copies the resized photos to `/sdcard/Android/data/app.glance.kiosk/files/photos/`,
+and points the kiosk at `https://glance.local/`. The kiosk answers that host itself
+([`LocalSite.java`](../kiosk/src/app/glance/kiosk/LocalSite.java)): pages from the APK, photos
+and their list (`/photos/`) from storage. Nothing depends on the Mac or the LAN; the Metro banner
+needs internet. Changing content, photos or design means running `npm run frame` again with the
+frame on USB.
+
+**Developing: from the Mac.** Over USB:
 
 ```sh
 cd dashboard && npm run dev
@@ -108,19 +121,10 @@ adb shell 'am start -a android.intent.action.VIEW -d "http://127.0.0.1:5173/" -n
 # then chrome://inspect on the Mac for the console
 ```
 
-Day to day, over Wi-Fi:
-
-```sh
-cd dashboard && npm run build && npm run preview          # port 4173
-adb shell am start -n app.glance.kiosk/.MainActivity --es url http://<mac-lan-ip>:4173/
-```
-
-Give the Mac a DHCP reservation so its IP doesn't change.
-
-**With the Mac asleep:** a dashboard that's already loaded keeps running. Hashed files (JS, CSS,
-fonts, photos) are served as cacheable forever, so the photo tile rotates through photos it has
-already shown; the daily 3 a.m. reload waits until the server answers. Only a frame that *starts
-up* while the Mac sleeps shows the kiosk's "Can't reach the dashboard" screen, until the Mac wakes.
+Or over Wi-Fi from `npm run build && npm run preview` (port 4173):
+`adb shell am start -n app.glance.kiosk/.MainActivity --es url http://<mac-lan-ip>:4173/`. That
+copy gets its Metro times from the Mac's `/api/trains`, which keeps the key on the Mac. Go back to
+the built-in copy with `--es url https://glance.local/`.
 
 ## Changes made to this frame
 

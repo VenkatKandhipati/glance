@@ -6,8 +6,16 @@ Package `app.glance.kiosk`, Android 6+ (built for API 23).
 Adapted from the Home HQ kiosk in
 [wesbos/photo-frame-dashboard](https://github.com/wesbos/photo-frame-dashboard/tree/main/dashboard/kiosk)
 (commit `48b4ab0`) with Wes Bos's permission; see [CREDITS.md](../CREDITS.md). Glance changes the
-package name and labels, and the default URL: the upstream app opens a hosted demo, this one opens
-the Mac's dev server through `adb reverse`, so the frame never loads a third-party site.
+package name and labels, and serves the dashboard from inside the app
+([`LocalSite.java`](src/app/glance/kiosk/LocalSite.java)) instead of opening a hosted demo.
+
+## The dashboard inside the app
+
+By default the kiosk opens `https://glance.local/`, a host that only exists inside its WebView:
+the built dashboard comes from the APK's `assets/www/`, and photos from
+`/sdcard/Android/data/app.glance.kiosk/files/photos/` (listed as JSON at `/photos/`). Both are
+filled by `npm run frame` in `dashboard/`. A saved URL (`--es url …`) overrides the default, for
+showing the Mac's copy while developing.
 
 ## On the frame
 
@@ -57,12 +65,14 @@ export JAVA_HOME=$(brew --prefix openjdk@17)/libexec/openjdk.jdk/Contents/Home P
 sdkmanager --sdk_root=/opt/homebrew/share/android-commandlinetools "build-tools;34.0.0" "platforms;android-34"
 ```
 
-`sdkmanager` asks you to accept Google's Android SDK licence. Then, from the repository root:
+`sdkmanager` asks you to accept Google's Android SDK licence. Then, from `dashboard/`:
 
 ```sh
-bash kiosk/build.sh
-adb install -r kiosk/build/glance-kiosk.apk
+npm run frame:build    # build the dashboard into kiosk/build/glance-kiosk.apk
+npm run frame          # …and install it, sync photos and open it, over USB
 ```
+
+`bash kiosk/build.sh` alone builds the app around whatever is in `kiosk/assets/`.
 
 The APK is signed with the Mac's Android debug key (`~/.android/debug.keystore`, created on the
 first build). An update must be signed with the same key, so keep that file; with a different

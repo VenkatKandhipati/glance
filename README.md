@@ -49,16 +49,20 @@ The full list, with reasons, is in [docs/frame.md](docs/frame.md).
 ## How it works
 
 ```
- Photo frame (Android 8.1)                       Mac on the same Wi-Fi
- ┌──────────────────────────┐   HTTP on the LAN   ┌──────────────────────────┐
- │ Kiosk app (fullscreen    │ ──────────────────▶ │ Vite: serves the built   │
- │ WebView, set as Home)    │                     │ page, fonts and photos   │
- └──────────────────────────┘                     └──────────────────────────┘
+ Photo frame (Android 8.1)                         Internet
+ ┌─────────────────────────────────────┐  HTTPS    ┌──────────────────────┐
+ │ Kiosk app (fullscreen WebView, Home)│ ────────▶ │ WMATA: Metro times   │
+ │  https://glance.local/ ← from APK   │           └──────────────────────┘
+ │  /photos/ ← frame's storage         │
+ └─────────────────────────────────────┘
+        ▲ npm run frame (USB): build, install, copy photos
+ Mac
 ```
 
-The frame boots straight into a fullscreen kiosk app that loads one URL. Today that URL is the
-built dashboard on a Mac. Later a home server takes its place and adds live data (weather, news,
-music) behind the same page; see the [roadmap](docs/roadmap.md).
+The frame boots straight into a fullscreen kiosk app that serves the dashboard from inside itself,
+so it runs with the Mac off; only the Metro banner goes online. The Mac builds it and installs
+updates over USB. Later a home server adds live data (weather, news, music) and takes over the
+WMATA call, so no key lives on the frame; see the [roadmap](docs/roadmap.md).
 
 ## Getting started
 
@@ -78,11 +82,11 @@ Make it yours:
 - **Photos:** copy them into `dashboard/photos/` and run `npm run photos`. Photos stay on your
   machine; both photo folders are gitignored.
 
-Put it on the frame:
+Put it on the frame (over USB): the dashboard and photos go inside the kiosk app, so the frame
+runs with no Mac. Run it again after changing content or photos.
 
 ```sh
-npm run build && npm run preview     # serves on port 4173
-adb shell am start -n app.glance.kiosk/.MainActivity --es url http://<your-mac-ip>:4173/
+npm run frame
 ```
 
 This assumes a frame that already has ADB, WebView 106 and Glance's [kiosk app](kiosk/README.md).

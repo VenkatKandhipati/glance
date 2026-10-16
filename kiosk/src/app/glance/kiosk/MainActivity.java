@@ -27,6 +27,8 @@ import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -52,9 +54,9 @@ import android.widget.TextView;
  */
 public class MainActivity extends Activity {
   static final String TAG = "Glance";
-  // Until a URL is saved: the Mac's dev server through `adb reverse tcp:5173 tcp:5173`.
-  // Never a third-party site; the frame only talks to an origin we control.
-  static final String DEFAULT_URL = "http://127.0.0.1:5173/";
+  // Until another URL is saved: the dashboard built into the app (LocalSite). Saving a Mac URL
+  // (`--es url http://<mac>:4173/`) shows the Mac's copy instead, for development.
+  static final String DEFAULT_URL = LocalSite.ORIGIN;
   static final String PREFS = "kiosk";
   static final String PREF_URL = "url";
   static final long EXIT_HOLD_MS = 1500;
@@ -148,7 +150,13 @@ public class MainActivity extends Activity {
     // Keep navigation inside the kiosk. When the kiosk starts at boot before Wi-Fi is up, the
     // first load fails and would stay on the error page, so retry failed main-frame loads.
     // The offline screen covers WebView's error page until a load succeeds.
+    final LocalSite site = new LocalSite(this);
     web.setWebViewClient(new WebViewClient() {
+      @Override
+      public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+        return site.handle(request.getUrl());
+      }
+
       @Override
       public void onPageStarted(WebView view, String url, Bitmap icon) {
         pageFailed = false;

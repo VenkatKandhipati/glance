@@ -4,7 +4,8 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-const DIST = new URL('../dist/assets/', import.meta.url).pathname;
+// Checks dist/ by default; `node scripts/check-compat.mjs dist-frame` checks the frame build.
+const DIST = new URL('../' + (process.argv[2] || 'dist') + '/assets/', import.meta.url).pathname;
 
 // Checked inside CSS declaration blocks only, so ID selectors can't false-positive as hex colours.
 const CSS_RULES = [

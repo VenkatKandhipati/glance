@@ -45,7 +45,7 @@ the table at the end of [frame.md](frame.md#changes-made-to-this-frame).
       Mac expects). A cable that lights the frame up isn't necessarily a data cable.
 - [ ] If your Mac has only USB-C ports: a USB-C to USB-A adapter or hub. An Aukey USB-C hub
       works for this frame.
-- [ ] The frame and the Mac on the **same Wi-Fi network** (only from Part 6).
+- [ ] Wi-Fi with internet for the frame (from Part 6; only the Metro banner uses it).
 
 ## 1. Get the Mac ready
 
@@ -271,44 +271,28 @@ baseline for later changes.
 
 ## 6. Make it the frame's everyday screen
 
-Now the frame should load Glance from the Mac over Wi-Fi, with no cable, and come back to it after a
-power cut.
-
-> **When does the Mac need to be awake?** Only when the page **loads**: when the frame starts up,
-> when the kiosk restarts, and for the daily refresh. Once the dashboard is on screen it runs on
-> the frame by itself; the clock, calendar and night clock keep working, and the photo
-> tile rotates through photos it has already shown. If the frame **starts up** while the Mac is
-> asleep, it shows "Can't reach the dashboard" until the Mac wakes. Removing that is Phase 1.5 in
-> the [roadmap](roadmap.md#phase-15--no-mac-needed).
+Now the dashboard goes inside the kiosk app, so the frame runs it with no Mac at all, and it
+should come back by itself after a power cut. Only the Metro banner needs internet.
 
 **6.1 Check Part 4.1 is done** (`scripts/frame-check.sh` lists both updaters under "Disabled
 apps"). Then connect the frame to Wi-Fi: hold two fingers on the kiosk for 1.5 s → **Wi-Fi
-settings**, or from Frameo's own settings. Use a guest or IoT network if you have one.
+settings**. Use a guest or IoT network if you have one.
 
-**6.2 Build and serve the production version** (leave it running):
+**6.2 ⚠️ Put the dashboard on the frame** (frame on USB; needs `dashboard/.env.local` with your
+WMATA key):
 
 ```sh
 cd ~/Documents/Projects/glance/dashboard
-npm run build && npm run preview
+npm run frame
 ```
 
-If macOS asks **"Do you want the application node to accept incoming network connections?"**,
-click **Allow**.
+It resizes the photos, builds the frame copy, packages and installs the kiosk app, copies the
+photos to the frame and opens `https://glance.local/`. Run it again whenever you change
+`content.js`, photos or the design.
+**Undo:** `adb shell am start -n app.glance.kiosk/.MainActivity --es url http://<mac-lan-ip>:4173/`
+shows the Mac's copy again; the photos are removed with the app.
 
-**6.3 Find the Mac's address:** `ipconfig getifaddr en0` gives something like `192.168.1.23`.
-Check `http://192.168.1.23:4173/` loads from a phone on the same Wi-Fi. Give the Mac a **DHCP
-reservation** in your router so the address doesn't change. Don't use the Mac's `.local` name;
-Android 8.1 can't look those up.
-
-**6.4 ⚠️ Save that address as the kiosk's URL** (use your address):
-
-```sh
-adb shell am start -n app.glance.kiosk/.MainActivity --es url http://192.168.1.23:4173/
-```
-
-**Undo:** the same command with another URL.
-
-**6.5 ⚠️ Make the kiosk the Home app,** so the frame boots into it:
+**6.3 ⚠️ Make the kiosk the Home app,** so the frame boots into it:
 
 ```sh
 adb shell am start -n app.glance.kiosk/.MainActivity --ez home true
@@ -320,7 +304,7 @@ adb shell cmd package resolve-activity --brief -c android.intent.category.HOME -
 **Undo:** `adb shell cmd package set-home-activity --user 0 net.frameo.frame/.ui.activities.AWaitForDeferredInitCompleted`,
 then `adb shell am start -n app.glance.kiosk/.MainActivity --ez home false`.
 
-**6.6 ⚠️ Turn off Frameo** (optional, recommended). Frameo keeps running in the background,
+**6.4 ⚠️ Turn off Frameo** (optional, recommended). Frameo keeps running in the background,
 updates itself over the internet, and can take the screen back.
 
 ```sh
@@ -331,19 +315,13 @@ adb shell su 0 pm disable-user --user 0 net.frameo.frame
 access** switch: with Frameo off, USB debugging stays as it is, and you change it from Android
 Settings → Developer options instead (two-finger hold → **Android settings**).
 
-**6.7 Power-cut test** (Mac awake). Unplug the USB cable, then pull the frame's power, wait 10 s,
-and plug it back in.
+**6.5 Power-cut test, with the Mac off or asleep.** Unplug the USB cable, then pull the frame's
+power, wait 10 s, and plug it back in.
 
-✅ Within a couple of minutes it shows the Glance dashboard on its own. While Wi-Fi is still
-connecting you may briefly see the kiosk's "Connect to Wi-Fi?" or "Can't reach the dashboard"
-screen; it retries every 5 s and clears itself.
+✅ Within a couple of minutes it shows the dashboard with your photos on its own, and the Metro
+times appear once Wi-Fi is up.
 
-**6.8 Mac asleep test.** With the dashboard showing, put the Mac to sleep and leave it 10 minutes.
-
-✅ The dashboard stays up: the clock keeps time and the photo tile keeps
-changing. Wake the Mac; nothing on the frame should flicker or reload.
-
-When 6.7 and 6.8 pass, Phase 1 is done.
+When 6.5 passes, Phase 1.5 is done.
 
 ## Troubleshooting
 
@@ -381,11 +359,11 @@ export ANDROID_SERIAL=<the frame's serial from adb devices -l>
 - The `adb reverse` was lost (cable replugged, frame restarted): run
   `adb reverse tcp:5173 tcp:5173` again.
 
-### Frame can't reach the Mac over Wi-Fi (Part 6)
+### Frame can't reach the Mac over Wi-Fi (only when showing the Mac's copy)
 
 - `npm run preview` stopped, or the Mac was asleep when the frame started up. Wake it; the kiosk
-  retries every 5 s.
-- The Mac's address changed: `ipconfig getifaddr en0`, then redo 6.4.
+  retries every 5 s. Or switch back to the built-in copy: `--es url https://glance.local/`.
+- The Mac's address changed: `ipconfig getifaddr en0`, then save the new URL.
 - macOS firewall: **System Settings → Network → Firewall → Options**, allow incoming connections
   for `node`.
 - Different networks: the frame must be on the same Wi-Fi as the Mac, not a guest network that

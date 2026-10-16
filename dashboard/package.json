@@ -8,7 +8,9 @@
     "build": "vite build && node scripts/check-compat.mjs",
     "preview": "vite preview --host",
     "test": "node --test test/*.test.js",
-    "photos": "node scripts/photos.mjs"
+    "photos": "node scripts/photos.mjs",
+    "frame:build": "node scripts/frame.mjs",
+    "frame": "node scripts/frame.mjs --install"
   },
   "devDependencies": {
     "vite": "^8.3.4"

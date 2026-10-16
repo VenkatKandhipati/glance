@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { minutes, normalize } from '../server/trains.mjs';
+import { minutes, normalize } from '../src/tiles/trains-data.js';
 import { trainsHtml, STALE_MS } from '../src/tiles/trains-view.js';
 
 // Shape of a real GetPrediction/K04 response (2026-10-16), plus the odd rows WMATA sends.

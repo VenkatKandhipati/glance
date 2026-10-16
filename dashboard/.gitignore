@@ -6,3 +6,4 @@ photos/*
 .photos-resized/
 # Local secrets: never commit (see .env.example).
 .env*.local
+dist-frame/

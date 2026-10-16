@@ -35,12 +35,28 @@ function cacheHashedAssets() {
 // The frame runs Android WebView 106 on Android 8.1. JS stays within Chromium 106.
 // cssTarget is lower on purpose: these WebViews reject 4/8-digit hex colours, and a newer target
 // lets the minifier rewrite rgba() into that form (found on-device in wesbos/photo-frame-dashboard).
-export default defineConfig(({ mode }) => ({
-  plugins: [cacheHashedAssets(), liveData(loadEnv(mode, new URL('.', import.meta.url).pathname, ''))],
-  // Lets the page tell a real date from the frame's fallback clock (see clockIsSane).
-  define: { __BUILT_AT__: String(Date.now()) },
-  build: {
-    target: 'chrome106',
-    cssTarget: 'chrome61',
-  },
-}));
+//
+// `--mode frame` builds the copy that goes inside the kiosk app (`npm run frame`): it reads photos
+// from the frame's storage and calls WMATA directly, so it needs no Mac. Only that build carries
+// the WMATA key, and it goes to dist-frame/ and the APK, both gitignored, never to dist/.
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, new URL('.', import.meta.url).pathname, '');
+  const frame = mode === 'frame';
+  if (frame && !env.WMATA_API_KEY) throw new Error('--mode frame needs WMATA_API_KEY in dashboard/.env.local');
+  return {
+    plugins: [cacheHashedAssets(), liveData(env)],
+    // The frame build leaves photos out of the bundle; they live on the frame's storage.
+    resolve: frame ? { alias: [{ find: /^\.\/photo-files\.js$/, replacement: './photo-files-frame.js' }] } : {},
+    define: {
+      // Lets the page tell a real date from the frame's fallback clock (see clockIsSane).
+      __BUILT_AT__: String(Date.now()),
+      __FRAME__: String(frame),
+      __WMATA_KEY__: JSON.stringify(frame ? env.WMATA_API_KEY : ''),
+    },
+    build: {
+      target: 'chrome106',
+      cssTarget: 'chrome61',
+      outDir: frame ? 'dist-frame' : 'dist',
+    },
+  };
+});

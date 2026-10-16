@@ -17,9 +17,14 @@ KS="$HOME/.android/debug.keystore"
 
 rm -rf build && mkdir -p build/gen build/classes
 
+# assets/www/ holds the built dashboard (`npm run frame` fills it; gitignored). Without it the app
+# still builds, and shows whatever URL is saved.
+ASSETS=()
+[ -d assets ] && ASSETS=(-A assets)
+
 "$BT/aapt2" compile --dir res -o build/res.zip
-"$BT/aapt2" link -o build/base.apk -I "$JAR" --manifest AndroidManifest.xml build/res.zip \
-  --java build/gen --min-sdk-version 23 --target-sdk-version 23 --version-code 1 --version-name 0.1
+"$BT/aapt2" link -o build/base.apk -I "$JAR" --manifest AndroidManifest.xml build/res.zip ${ASSETS[@]+"${ASSETS[@]}"} \
+  --java build/gen --min-sdk-version 23 --target-sdk-version 23 --version-code 2 --version-name 0.2
 
 javac -nowarn -source 8 -target 8 -classpath "$JAR" -d build/classes \
   src/app/glance/kiosk/*.java build/gen/app/glance/kiosk/R.java

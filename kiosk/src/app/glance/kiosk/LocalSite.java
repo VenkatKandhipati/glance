@@ -1,0 +1,94 @@
+package app.glance.kiosk;
+
+import android.content.Context;
+import android.net.Uri;
+import android.util.Log;
+import android.webkit.WebResourceResponse;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import org.json.JSONArray;
+
+/**
+ * Serves the dashboard from inside the app at https://glance.local/, so the frame needs no server:
+ * - the built page (`npm run frame` copies dashboard/dist-frame/ into assets/www/)
+ * - /photos/ lists, and /photos/<name> serves, the JPEGs `npm run frame` pushes to
+ *   /sdcard/Android/data/app.glance.kiosk/files/photos/ (no permission needed, no reinstall)
+ * Nothing goes over the network; the host only exists inside this WebView.
+ */
+final class LocalSite {
+  static final String ORIGIN = "https://glance.local/";
+  private static final String HOST = "glance.local";
+  private static final Map<String, String> TYPES = new HashMap<>();
+  static {
+    TYPES.put("html", "text/html");
+    TYPES.put("js", "text/javascript");
+    TYPES.put("css", "text/css");
+    TYPES.put("json", "application/json");
+    TYPES.put("woff2", "font/woff2");
+    TYPES.put("woff", "font/woff");
+    TYPES.put("svg", "image/svg+xml");
+    TYPES.put("png", "image/png");
+    TYPES.put("jpg", "image/jpeg");
+  }
+
+  private final Context context;
+
+  LocalSite(Context context) {
+    this.context = context;
+  }
+
+  /** A response for glance.local URLs, or null to let the WebView load anything else itself. */
+  WebResourceResponse handle(Uri url) {
+    if (!HOST.equals(url.getHost())) return null;
+    String path = url.getPath() == null ? "/" : url.getPath();
+    try {
+      if (path.equals("/photos/")) return listPhotos();
+      if (path.startsWith("/photos/")) return photo(path.substring("/photos/".length()));
+      return asset(path.equals("/") ? "/index.html" : path);
+    } catch (IOException e) {
+      Log.w(MainActivity.TAG, "Not found: " + path);
+      return respond(404, "text/plain", new ByteArrayInputStream(new byte[0]));
+    }
+  }
+
+  private File photoDir() {
+    return new File(context.getExternalFilesDir(null), "photos");
+  }
+
+  private WebResourceResponse listPhotos() {
+    String[] names = photoDir().list((dir, name) -> name.endsWith(".jpg"));
+    if (names == null) names = new String[0];
+    Arrays.sort(names);
+    byte[] json = new JSONArray(Arrays.asList(names)).toString().getBytes(StandardCharsets.UTF_8);
+    return respond(200, "application/json", new ByteArrayInputStream(json));
+  }
+
+  private WebResourceResponse photo(String name) throws IOException {
+    // Only plain file names from the photo folder: no paths, no climbing out of it.
+    if (name.isEmpty() || name.contains("/") || name.startsWith(".")) throw new IOException(name);
+    return respond(200, "image/jpeg", new FileInputStream(new File(photoDir(), name)));
+  }
+
+  private WebResourceResponse asset(String path) throws IOException {
+    if (path.contains("..")) throw new IOException(path);
+    InputStream in = context.getAssets().open("www" + path);
+    String ext = path.substring(path.lastIndexOf('.') + 1);
+    String type = TYPES.containsKey(ext) ? TYPES.get(ext) : "application/octet-stream";
+    return respond(200, type, in);
+  }
+
+  private static WebResourceResponse respond(int status, String type, InputStream body) {
+    Map<String, String> headers = new HashMap<>();
+    headers.put("Cache-Control", "no-store");
+    headers.put("Access-Control-Allow-Origin", "*");
+    String charset = type.startsWith("text/") || type.endsWith("json") ? "utf-8" : null;
+    return new WebResourceResponse(type, charset, status, status == 200 ? "OK" : "Not Found", headers, body);
+  }
+}
