@@ -414,9 +414,17 @@ check **Settings → Date & time → Automatic date & time** is on.
 
 ### Stuck in another app with no way back
 
-The frame has no navigation bar. `adb shell input keyevent KEYCODE_HOME` goes Home, and
-`adb shell am start -n app.glance.kiosk/.MainActivity` opens the kiosk. For on-screen Back and
-Dashboard buttons, see "Frames without Home or Back buttons" in [kiosk/README.md](../kiosk/README.md).
+The frame has no navigation bar. With **Glance navigation** on (it is on the first frame), floating
+**Back** and **Dashboard** buttons appear in the bottom-right corner outside the kiosk. Without it,
+`adb shell am start -n app.glance.kiosk/.MainActivity` opens the kiosk. ⚠️ To turn it on:
+
+```sh
+adb shell settings put secure enabled_accessibility_services app.glance.kiosk/app.glance.kiosk.NavigationService
+adb shell settings put secure accessibility_enabled 1
+```
+
+Undo: `adb shell settings delete secure enabled_accessibility_services` and
+`adb shell settings put secure accessibility_enabled 0`.
 
 ### Useful commands
 

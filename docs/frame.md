@@ -17,7 +17,7 @@ Read over ADB on 2026-10-16.
 | Browser engine | Android System WebView 106.0.5249.126, put in `/system` by this project (it shipped with 61) |
 | Access | USB ADB once enabled in Frameo (Settings → About → Beta Program → ADB access); root as `su 0 <cmd>` |
 | Came with | Frameo (`net.frameo.frame`) as the Home app; vendor updaters `com.adups.fota` and `android.rockchip.update.service` |
-| Runs | Glance's kiosk app ([`kiosk/`](../kiosk/README.md)), one fullscreen WebView, as the Home app |
+| Runs | Glance's kiosk app ([`kiosk/`](../kiosk/README.md)), one fullscreen WebView, as the Home app; boots into the dashboard over Wi-Fi |
 
 The same product name ships with different boards. This one matches the RK3326 unit in
 [wesbos/photo-frame-dashboard `docs/akimart-zn-dp1002.md`](https://github.com/wesbos/photo-frame-dashboard/blob/main/docs/akimart-zn-dp1002.md),
@@ -121,3 +121,7 @@ Record every change with its undo, newest last. All `su 0` commands run through 
 | 2026-10-16 | WebView 61 → 106.0.5249.126 in `/system/app/webview`: LineageOS prebuilt `webview.apk` (SHA-256 `e2edc1f8…0580`, same file as wesbos PR #42), its three `.so` files unpacked into `lib/arm/`, old `oat/` removed. It can't go in as an update: the stock WebView has a different signing key. Original kept as `webview.apk.bak` (SHA-256 `db1f9a14…bc3b`), old `oat/` in `/data/local/tmp/glance/oat-61` | `su 0 mount -o remount,rw /system`, move `webview.apk.bak` back to `webview.apk`, `rm -rf lib`, copy `oat-61` back as `oat`, remount read-only, reboot. Last resort: write `p11-system` from the firmware backup back to the partition |
 | 2026-10-16 | Installed Glance's kiosk `app.glance.kiosk` 0.1 (`adb install -r kiosk/build/glance-kiosk.apk`), signed with the Mac's debug key. Home app unchanged (Frameo), no URL saved | `adb uninstall app.glance.kiosk` |
 | 2026-10-16 | Joined Wi-Fi (owner, on the frame); network time arrived at once. Timezone America/Los_Angeles → America/New_York: `su 0 service call alarm 3 s16 America/New_York` (AlarmManager.setTimeZone, so apps get the change without a restart; automatic timezone is off) | Same command with `America/Los_Angeles` |
+| 2026-10-16 | Saved the kiosk URL `http://<mac-lan-ip>:4173/` (`am start -n app.glance.kiosk/.MainActivity --es url …`); the Mac has a DHCP reservation to set | The same command with another URL |
+| 2026-10-16 | Kiosk as Home: `am start -n app.glance.kiosk/.MainActivity --ez home true`, then `cmd package set-home-activity --user 0 app.glance.kiosk/.Home` | `cmd package set-home-activity --user 0 net.frameo.frame/.ui.activities.AWaitForDeferredInitCompleted` (after re-enabling Frameo), then `--ez home false` |
+| 2026-10-16 | Disabled Frameo: `su 0 pm disable-user --user 0 net.frameo.frame`. ADB stays on (`adb_enabled=1`); its switch is now in Developer options | `su 0 pm default-state --user 0 net.frameo.frame` |
+| 2026-10-16 | Turned on Glance navigation (floating Back / Dashboard outside the kiosk): `settings put secure enabled_accessibility_services app.glance.kiosk/app.glance.kiosk.NavigationService`, `settings put secure accessibility_enabled 1` (both were unset/0) | `settings delete secure enabled_accessibility_services`, `settings put secure accessibility_enabled 0` |

@@ -16,7 +16,7 @@ Read-only checks, recorded in [frame.md](frame.md). Step by step: [connect-the-f
       It's the RK3326 / Android 8.1 board with stock Frameo, not the RK3126 we planned for
 - [x] Verified firmware backup (`scripts/frame-backup.sh`) before any change
 - [x] Vendor updaters off; WebView 61 → 106 in `/system` (logged with undo in frame.md)
-- [ ] No kiosk on a stock frame: bring Glance's own kiosk in now (`kiosk/`, forked from
+- [x] No kiosk on a stock frame: bring Glance's own kiosk in now (`kiosk/`, forked from
       wesbos/photo-frame-dashboard) instead of in Phase 1.5, install it and make it Home
 
 ## Phase 1 — Static dashboard (MVP) · v0.1
@@ -41,7 +41,8 @@ One screen, no navigation, no API calls.
 - [x] Unit tests, frame-compatibility check, CI
 - [ ] Tap-test chores and the night clock by hand; Chrome DevTools with 6× CPU throttle
 - [x] Run on the frame over `adb reverse`; record `?diag` numbers (47 fps = the panel's 47 Hz)
-- [ ] Point the kiosk at the Mac's LAN URL; unplug-and-replug test
+- [x] Point the kiosk at the Mac's LAN URL; it boots into the dashboard after `adb reboot`
+- [ ] Unplug-and-replug power test; Mac-asleep test; an hour of photos without memory growth
 
 **Done when** it runs on the frame with no console errors, photos rotate for an hour without
 memory growing, chores survive a reload, and the frame returns to the dashboard on its own after a
