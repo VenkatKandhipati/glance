@@ -40,9 +40,10 @@ export function greeting(d) {
   return 'Good night.';
 }
 
-// Before network time arrives after a power cut, the frame's clock can read 1970.
-export function clockIsSane(d) {
-  return d.getFullYear() >= 2025;
+// Before network time arrives after a power cut, the frame's clock reads 1970 or the firmware's
+// build date (28 Sep 2025 on this frame). Any time before the dashboard was built is one of those.
+export function clockIsSane(d, builtAt) {
+  return d.getTime() >= builtAt;
 }
 
 export function esc(s) {

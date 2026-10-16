@@ -32,7 +32,7 @@ function tick() {
   renderClock($('clock'), now);
   updateNight(now);
   const day = dayKey(now);
-  if (day !== lastDay && clockIsSane(now)) {
+  if (day !== lastDay && clockIsSane(now, __BUILT_AT__)) {
     lastDay = day;
     renderCalendar($('cal'), now);
   }
@@ -52,7 +52,7 @@ function schedule() {
   setTimeout(schedule, 60000 - (Date.now() % 60000) + 50);
 }
 
-// Before network time after a power cut the clock may read 1970: draw the calendar anyway once,
+// Before network time after a power cut the clock reads an old date: draw the calendar anyway once,
 // then the day check above redraws it as soon as the real date arrives.
 renderCalendar($('cal'), new Date());
 schedule();

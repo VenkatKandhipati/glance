@@ -21,11 +21,13 @@ function cacheHashedAssets() {
   };
 }
 
-// The frame runs Android WebView 107 on Android 6. JS stays within Chromium 106.
+// The frame runs Android WebView 106 on Android 8.1. JS stays within Chromium 106.
 // cssTarget is lower on purpose: these WebViews reject 4/8-digit hex colours, and a newer target
 // lets the minifier rewrite rgba() into that form (found on-device in wesbos/photo-frame-dashboard).
 export default defineConfig({
   plugins: [cacheHashedAssets()],
+  // Lets the page tell a real date from the frame's fallback clock (see clockIsSane).
+  define: { __BUILT_AT__: String(Date.now()) },
   build: {
     target: 'chrome106',
     cssTarget: 'chrome61',
