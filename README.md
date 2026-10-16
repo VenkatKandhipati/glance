@@ -30,7 +30,7 @@ keep running for weeks with nobody touching it.
 ## Built for an old, slow browser
 
 The frame's WebView is Chromium 106 on Android 8.1. On frames like this one it has rejected 8-digit
-hex colours and `:has()`, its certificate store stopped updating in 2020, and its GPU struggles
+hex colours and `:has()`, its certificate store stops at 2023, and its GPU struggles
 with a single blur. Glance treats that as a design constraint rather than a bug list.
 
 - **Build targets** pinned to Chrome 106 for JS and Chrome 61 for CSS, so the minifier never emits

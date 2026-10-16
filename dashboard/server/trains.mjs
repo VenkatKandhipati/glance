@@ -1,6 +1,5 @@
 // /api/trains: live WMATA rail predictions for one station, served by the Mac (later the home
-// server). The API key stays here; the frame only ever calls this origin, and WMATA's certificate
-// chains to a root the frame's 2020 trust store doesn't have anyway.
+// server). The API key stays here, and the frame only ever calls this origin.
 //
 //   GET /api/trains?station=K04  →  { updated, trains: [{ line, dest, group, min }] }
 //

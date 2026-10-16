@@ -86,9 +86,13 @@ renderer. The kiosk window is up 1.5 s after launch.
 
 - The frame talks to **one origin we control**, over plain HTTP on the LAN, by IP address
   (Android 8.1 doesn't resolve `.local` names).
-- It never calls third-party APIs itself. Its trust store is frozen at 2020: it has ISRG Root X1
-  and X2, but not newer roots such as the ISRG Root YR that Open-Meteo now chains to. API keys
-  also have to stay off a device anyone on the network can read.
+- It never calls third-party APIs itself. API keys have to stay off a device anyone on the
+  network can read.
+- Trust store: the 2025 firmware ships a store from about 2023 (205 roots, newest March 2023),
+  despite the 2020 security patch. It has ISRG Root X1 and X2, Sectigo R46 (WMATA's root), GTS,
+  Amazon and DigiCert G2, but no roots from 2024 on, such as the ISRG Root YR that Open-Meteo
+  now chains to. Checked 2026-10-16: the kiosk's WebView reached `https://api.wmata.com` and got
+  WMATA's own reply.
 - Fonts and images are bundled; nothing loads from a CDN.
 - Keep it on a guest or IoT network: Android 8.1 with a 2020 security patch, and any app can
   get root.
