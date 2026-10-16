@@ -50,7 +50,6 @@ Bundled through [Fontsource](https://fontsource.org), each under the SIL Open Fo
 
 - [Instrument Serif](https://github.com/Instrument/instrument-serif) by Instrument
 - [Plus Jakarta Sans](https://github.com/tokotype/PlusJakartaSans) by Tokotype
-- [Doto](https://github.com/oliverlalan/Doto) by the Doto Project Authors (the Metro banner's dot-matrix digits)
 
 ## Open-source software
 
