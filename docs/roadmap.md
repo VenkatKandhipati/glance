@@ -40,7 +40,7 @@ One screen, no navigation, no API calls.
 - [x] Reload watchdog, daily 3 a.m. reload, `?diag` overlay
 - [x] Unit tests, frame-compatibility check, CI
 - [ ] Tap-test chores and the night clock by hand; Chrome DevTools with 6× CPU throttle
-- [ ] Run on the frame over `adb reverse`; record `?diag` numbers
+- [x] Run on the frame over `adb reverse`; record `?diag` numbers (47 fps = the panel's 47 Hz)
 - [ ] Point the kiosk at the Mac's LAN URL; unplug-and-replug test
 
 **Done when** it runs on the frame with no console errors, photos rotate for an hour without

@@ -11,7 +11,7 @@ Read over ADB on 2026-10-16.
 | Model | Akimart ZN-DP1002, 10.1" (reports itself as model `Frame`, brand `SSA`) |
 | SoC | Rockchip RK3326: 4× Cortex-A35 at 1.5 GHz (32-bit userland, `armeabi-v7a`), Mali-G31 GPU (OpenGL ES 3.2) |
 | Memory / storage | 1 GB RAM (360 MB zRAM), 32 GB logical NAND (`rknand0`, `/dev/block/by-name` present) |
-| Screen | 1280 × 800 landscape, density 160 (devicePixelRatio 1), touch; no navigation bar |
+| Screen | 1280 × 800 landscape at **47 Hz**, density 160 (devicePixelRatio 1), touch; no navigation bar |
 | Wi-Fi | AIC8800 (`aicwf_sdio`) |
 | OS | Android 8.1 (API 27), firmware `SSA_Frame_20250928`, security patch 2020-06-05, SELinux permissive |
 | Browser engine | Android System WebView 106.0.5249.126, put in `/system` by this project (it shipped with 61) |
@@ -59,7 +59,11 @@ most of them: `npm run build` runs [`scripts/check-compat.mjs`](../dashboard/scr
 - Images at display size: photos are resized to ≤ 1280 px before the frame sees them, and at
   most two are decoded at once.
 - Measure on the frame with `?diag` (fps, long frames, DOM nodes, image megapixels, heap) before
-  and after a change.
+  and after a change. The panel runs at 47 Hz, so 47 fps is full speed.
+
+Baseline, 2026-10-16 (dev server over USB, no photos yet): **47 fps** at rest, 2–3 long frames,
+all at page load; 106 DOM nodes; JS heap 10 MB; kiosk 40 MB PSS plus 33 MB for the WebView
+renderer. The kiosk window is up 1.5 s after launch.
 
 ## Running unattended
 
@@ -115,3 +119,4 @@ Record every change with its undo, newest last. All `su 0` commands run through 
 | 2026-10-16 | Turned on ADB from Frameo's own settings (Settings → About → Beta Program → ADB access). Wi-Fi was skipped in Frameo's setup | Turn the same switches off |
 | 2026-10-16 | Disabled the vendor updaters: `su 0 pm disable-user --user 0 com.adups.fota` and `… android.rockchip.update.service` (read back `enabled=3`, no process) | `su 0 pm default-state --user 0 <package>` |
 | 2026-10-16 | WebView 61 → 106.0.5249.126 in `/system/app/webview`: LineageOS prebuilt `webview.apk` (SHA-256 `e2edc1f8…0580`, same file as wesbos PR #42), its three `.so` files unpacked into `lib/arm/`, old `oat/` removed. It can't go in as an update: the stock WebView has a different signing key. Original kept as `webview.apk.bak` (SHA-256 `db1f9a14…bc3b`), old `oat/` in `/data/local/tmp/glance/oat-61` | `su 0 mount -o remount,rw /system`, move `webview.apk.bak` back to `webview.apk`, `rm -rf lib`, copy `oat-61` back as `oat`, remount read-only, reboot. Last resort: write `p11-system` from the firmware backup back to the partition |
+| 2026-10-16 | Installed Glance's kiosk `app.glance.kiosk` 0.1 (`adb install -r kiosk/build/glance-kiosk.apk`), signed with the Mac's debug key. Home app unchanged (Frameo), no URL saved | `adb uninstall app.glance.kiosk` |

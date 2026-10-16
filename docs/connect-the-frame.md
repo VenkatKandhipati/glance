@@ -255,13 +255,14 @@ network tab, live from the frame.
       the time by hand in Android settings for now.
 - [ ] **Chores:** tap a few; they tick. Reload the page (⌘R in the `chrome://inspect` window, or
       on the frame hold two fingers for 1.5 s → **Reload dashboard**). The ticks are still there.
-- [ ] **Speed:** in the `?diag` box, fps should sit near 60 when nothing moves, with long frames
-      rising only when a photo changes.
+- [ ] **Speed:** in the `?diag` box, fps should sit at 47 when nothing moves (the panel runs at
+      47 Hz, not 60), with long frames rising only at load and when a photo changes.
 - [ ] **Photos:** copy a few photos into `dashboard/photos/`, run `npm run photos` (in a third
       Terminal, from `dashboard/`), then reload. They should appear and change every 2 minutes.
 - [ ] **Memory:** `adb shell dumpsys meminfo app.glance.kiosk | grep TOTAL`. Note the number now
       and again after an hour of photos; it shouldn't keep climbing.
-- [ ] **Night clock:** in `dashboard/src/content.js`, temporarily set
+- [ ] **Night clock:** before Wi-Fi the frame's clock reads about 4 a.m., inside the night window,
+      so the red clock appears on its own after 2 minutes. Otherwise, in `dashboard/src/content.js`, temporarily set
       `night: { from: 0, to: 24, idleSeconds: 10 }`, save, and leave the frame alone for 10 s. The
       red clock should appear; one tap brings the dashboard back **without** ticking the chore under
       your finger. **Put the setting back** to `{ from: 22, to: 6, idleSeconds: 120 }` afterwards.
