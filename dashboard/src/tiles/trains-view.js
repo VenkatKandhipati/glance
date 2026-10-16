@@ -12,9 +12,9 @@ function time(t) {
 
 function direction(dir, trains) {
   const list = trains.filter((t) => t.group === dir.group).slice(0, SHOW);
-  return '<div class="trains-dir"><span class="trains-label">' + esc(dir.label) + '</span>' +
+  return '<div class="trains-dir"><div class="trains-row"><span class="trains-label">' + esc(dir.label) + '</span>' +
     (list.length ? '<span class="trains-times">' + list.map(time).join('') + '</span>'
-      : '<span class="trains-note">No trains</span>') + '</div>';
+      : '<span class="trains-note">No trains</span>') + '</div></div>';
 }
 
 // state: { data, lastOk } where lastOk is when data arrived (ms, frame clock); data may be null.

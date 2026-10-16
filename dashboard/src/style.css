@@ -255,12 +255,14 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   min-width: 0;
   display: flex;
   align-items: center;
-  gap: 28px;
   height: 100%;
   padding-left: 32px;
   border-left: 1px solid var(--tile-line);
 }
-.trains-label { flex: none; width: 118px; font-size: 20px; font-weight: 650; }
+/* name and times share a baseline, so they read as one line of text. The row is centred as a box,
+   and its 40 px times push that baseline 5 px below "Ballston"; lift it back onto the same line. */
+.trains-row { position: relative; top: -5px; display: flex; align-items: baseline; gap: 28px; }
+.trains-label { flex: none; width: 138px; font-size: 26px; font-weight: 650; }
 /* bold sans with equal-width digits, like WMATA's Helvetica station signs */
 .trains-times {
   display: flex;
@@ -272,11 +274,12 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   font-variant-numeric: tabular-nums;
   line-height: 1;
 }
-.train { display: flex; align-items: center; gap: 10px; color: var(--mute); }
+/* the digits carry the baseline; the dot (no text) centres itself instead of setting it */
+.train { display: flex; align-items: baseline; gap: 10px; color: var(--mute); }
 .train:first-child { color: var(--ink); }
 .train i { font-style: normal; color: var(--gold); }
 .trains-note { font-size: 17px; font-weight: 600; color: var(--mute); }
-.line { flex: none; width: 12px; height: 12px; border-radius: 50%; background: var(--mute); }
+.line { flex: none; align-self: center; width: 12px; height: 12px; border-radius: 50%; background: var(--mute); }
 .line-OR { background: #ed8b00; }
 .line-SV { background: #919d9d; }
 .line-RD { background: #bf0d3e; }
