@@ -1,12 +1,15 @@
 // Metro banner: live arrivals, refreshed every 30 s. Served by the Mac, they come from its
 // /api/trains; the frame build calls WMATA directly with the key baked in at build time.
 // Only redraws when the markup changes. A failed fetch keeps the last times until they're too old.
-// Asleep (night clock up) it stops asking, about a third of the day's calls; waking asks at once.
+// Asleep (night clock up, screen off) it stops asking, about a third of the day's calls; waking
+// asks at once. The Transit screen hears every answer through onUpdate.
 import { metro } from '../content.js';
 import { trainsHtml } from './trains-view.js';
 import { normalize } from './trains-data.js';
+import { DEMO, demoTrains } from '../demo.js';
 
 function request(signal) {
+  if (DEMO) return Promise.resolve(demoTrains());
   if (__FRAME__) {
     return fetch('https://api.wmata.com/StationPrediction.svc/json/GetPrediction/' + encodeURIComponent(metro.station),
       { cache: 'no-store', signal, headers: { api_key: __WMATA_KEY__ } })
@@ -19,13 +22,15 @@ function request(signal) {
 
 const POLL_MS = 30000;
 
-export function mountTrains(el) {
+// Returns setAsleep(on).
+export function mountTrains(el, onUpdate) {
   const state = { data: null, lastOk: 0 };
   let html = '', asleep = false;
 
   function render() {
     const next = trainsHtml(metro, state, Date.now());
     if (next !== html) el.innerHTML = html = next;
+    onUpdate(state);
   }
 
   function poll() {

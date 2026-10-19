@@ -1,4 +1,5 @@
-// Clock tile: date pill, weather pill, time, greeting with the weather. Redrawn once a minute.
+// Clock tile: date pill, weather pill (the temperature now), time, greeting with the weather.
+// Redrawn once a minute.
 import { DAYS, MONTHS, clockParts, greeting } from '../time.js';
 import { weatherLine } from './weather-data.js';
 
@@ -7,7 +8,8 @@ const CAL_ICON = svg('<rect x="3" y="5" width="18" height="16" rx="3"/><path d="
 
 const CLOUD = '<path d="M7 18h10a4 4 0 0 0 .5-8 5.5 5.5 0 0 0-10.6 1.5A3.3 3.3 0 0 0 7 18z"/>';
 const SMALL_CLOUD = '<path d="M9 20h8a3.2 3.2 0 0 0 .4-6.4 4.4 4.4 0 0 0-8.5 1.2A2.6 2.6 0 0 0 9 20z"/>';
-const ICONS = {
+// Also used by the weather screen, drawn larger there.
+export const ICONS = {
   sun: svg('<circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'),
   moon: svg('<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>'),
   'sun-cloud': svg('<path d="M8 3v1.5M3.5 8H5M4.8 4.8l1 1M12.2 4.8l-1 1"/><path d="M5.6 11.5a3.5 3.5 0 0 1 6-4"/>' + SMALL_CLOUD),
@@ -21,9 +23,7 @@ const ICONS = {
 };
 
 function weatherChip(w) {
-  const temps = w.high !== null ? 'H ' + w.high + '° · L ' + w.low + '°'
-    : w.low !== null ? 'Low ' + w.low + '°' : '';
-  return '<span class="chip"><span class="chip-icon chip-icon-wx">' + (ICONS[w.icon] || ICONS.cloud) + '</span>' + temps + '</span>';
+  return '<span class="chip"><span class="chip-icon chip-icon-wx">' + (ICONS[w.icon] || ICONS.cloud) + '</span>' + w.temp + '°</span>';
 }
 
 // w: summarize()'s weather, or null while there's none to show.

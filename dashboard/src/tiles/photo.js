@@ -4,11 +4,13 @@
 import { settings } from '../content.js';
 import { createPicker } from './photo-picker.js';
 import files from './photo-files.js';
+import { DEMO, demoPhotos } from '../demo.js';
 
 // Served by the Mac, the photos are bundled (photo-files.js). In the frame build the kiosk serves
 // them from the frame's storage and lists them at /photos/.
 
 function photoUrls() {
+  if (DEMO) return Promise.resolve(demoPhotos);
   if (!__FRAME__) return Promise.resolve(Object.values(files));
   return fetch('/photos/', { cache: 'no-store' })
     .then((r) => (r.ok ? r.json() : []))
@@ -23,8 +25,11 @@ function shuffle(list) {
   return list;
 }
 
+// Returns next(): show another photo now (a tap on the tile).
 export function startPhotos(el) {
-  photoUrls().then((list) => show(el, shuffle(list)));
+  let next = () => {};
+  photoUrls().then((list) => { next = show(el, shuffle(list)); });
+  return () => next();
 }
 
 function show(el, urls) {
@@ -33,7 +38,7 @@ function show(el, urls) {
       '<div class="photo-empty"><h2 class="serif">Your photos<i>,</i><br>right here.</h2>' +
       '<p>Drop photos into <code>dashboard/photos/</code>, then run <code>' + (__FRAME__ ? 'npm run frame' : 'npm run photos') +
       '</code> on the Mac.</p></div>';
-    return;
+    return () => {};
   }
 
   const picker = createPicker(urls);
@@ -59,5 +64,12 @@ function show(el, urls) {
   }
 
   next();
-  if (urls.length > 1) setInterval(next, settings.photoSeconds * 1000);
+  if (urls.length < 2) return () => {};
+  let timer = setInterval(next, settings.photoSeconds * 1000);
+  // A tap moves on now, and the photo it brings gets its full time on screen.
+  return () => {
+    clearInterval(timer);
+    next();
+    timer = setInterval(next, settings.photoSeconds * 1000);
+  };
 }

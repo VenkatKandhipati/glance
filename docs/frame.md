@@ -58,7 +58,10 @@ most of them: `npm run build` runs [`scripts/check-compat.mjs`](../dashboard/scr
 Measured 2026-10-16 with `getevent` on six taps aimed at a 46 px chip (screen y 702–748): each was
 a clean press with no movement, reported at y 750–775, just under the chip. Only 2–3 of 6
 registered. Design for it: big targets, and no small controls along the bottom edge. (The
-chores strip, since replaced by the Metro banner, counted a tap anywhere in its tile.)
+chores strip, since replaced by the Metro banner, counted a tap anywhere in its tile.) The month
+grid's 31 px days are the one small target: a tap opens the day sheet, whose ‹ › buttons fix a
+tap that landed a row off. `adb shell input tap x y` skips the touch controller, so it lands
+exactly; use it to test layouts, not touch accuracy.
 
 ## Performance rules
 
@@ -154,3 +157,5 @@ Record every change with its undo, newest last. All `su 0` commands run through 
 | 2026-10-16 | Kiosk 0.2 with the dashboard built in (`npm run frame`): app updated (`adb install -r`), 40 resized photos (13 MB) pushed to `/sdcard/Android/data/app.glance.kiosk/files/photos/`, saved URL → `https://glance.local/`. The app now holds the WMATA API key (owner-approved). After `adb reboot` with no server running on the Mac, it came up on the dashboard with photos and live trains | Saved URL back to the Mac (`--es url http://<mac-lan-ip>:4173/`); `adb install -r` an older build; photos go with `adb uninstall app.glance.kiosk`. Regenerate the WMATA key if it leaks |
 | 2026-10-16 | Kiosk with live Google Calendar (`npm run frame`): the app now holds three calendar secret addresses and fetches them every 10 minutes | Reinstall without `CAL_*` in `.env.local`; Reset the addresses in Google Calendar if they leak |
 | 2026-10-19 | Kiosk with weather (`npm run frame`): the page asks `api.weather.gov` every 30 minutes; the Metro banner stops asking WMATA while the night clock is up | `adb install -r` an older build |
+| 2026-10-19 | Power-cut test: unplugged 10 s with the Mac's server off. Booted straight into the kiosk and the dashboard within about a minute, with the right time, trains, calendar, weather and photos | — |
+| 2026-10-19 | Kiosk 0.3 (`npm run frame`): screens, taps, and the backlight bridge. From midnight to 8 a.m. the page asks the app to turn the backlight off; the app writes `0` to `/sys/class/backlight/backlight/brightness` through `su 0` and writes Android's own brightness setting (179) back on a tap or when it leaves the foreground. Checked on the frame: off → `0`, tap → `179` | Tap the screen; if it ever stays dark, `adb shell su 0 sh -c 'echo 179 > /sys/class/backlight/backlight/brightness'`. Undo the feature with `night.off`/`night.on` equal in `content.js`, or an older build |

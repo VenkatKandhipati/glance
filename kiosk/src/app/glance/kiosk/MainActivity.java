@@ -1,7 +1,8 @@
 package app.glance.kiosk;
 
 // Adapted from wesbos/photo-frame-dashboard (dashboard/kiosk, commit 48b4ab0) with Wes Bos's
-// permission; see CREDITS.md. Changes: Glance's package name and labels, local default URL.
+// permission; see CREDITS.md. Changes: Glance's package name and labels, local default URL, the
+// backlight bridge (Backlight.java).
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -67,6 +68,7 @@ public class MainActivity extends Activity {
   static final float EXIT_SLOP_PX = 60;
 
   private WebView web;
+  private Backlight backlight;
   private final Handler handler = new Handler(Looper.getMainLooper());
   // Not cleared in onDestroy, so a navigation rebind that has started always finishes.
   private final Handler rebindHandler = new Handler(Looper.getMainLooper());
@@ -150,6 +152,9 @@ public class MainActivity extends Activity {
     // Keep navigation inside the kiosk. When the kiosk starts at boot before Wi-Fi is up, the
     // first load fails and would stay on the error page, so retry failed main-frame loads.
     // The offline screen covers WebView's error page until a load succeeds.
+    // The page turns the screen off at night (GlanceKiosk.setScreenOn); see Backlight.java.
+    backlight = new Backlight(this);
+    web.addJavascriptInterface(backlight, "GlanceKiosk");
     final LocalSite site = new LocalSite(this);
     web.setWebViewClient(new WebViewClient() {
       @Override
@@ -209,6 +214,7 @@ public class MainActivity extends Activity {
   @Override
   protected void onPause() {
     cancelExit();
+    backlight.restore(); // never leave Settings or another app on a dark screen
     NavigationService.setDashboardVisible(false);
     super.onPause();
   }

@@ -29,7 +29,7 @@ One screen, no navigation, no API calls.
 | Month calendar | clock + `dates` in `content.js` | today highlighted, dots on marked dates (yearly ones repeat), next marked date with a countdown |
 | Photo tile | `dashboard/photos/` (gitignored) | crossfades every 2 min; next photo loaded before the swap; never more than two decoded |
 | Chores | `chores` in `content.js` | tap to tick; saved on the frame; reset each day. Replaced by the Metro banner (Phase 2) |
-| Night clock | frame clock | 22:00–06:00 after 2 min untouched: dim red clock on black; tap to dismiss; drifts against burn-in |
+| Night | frame clock | After 2 min untouched: dim red clock on black 22:00–00:00 (drifts against burn-in), backlight off 00:00–08:00; tap to dismiss |
 
 - [x] Scaffold `dashboard/` (Vite, tokens, self-hosted fonts, grid)
 - [x] Clock tile and minute-aligned tick
@@ -69,9 +69,9 @@ shows an error until it wakes. Bundling the dashboard into the kiosk app removes
 - [x] Metro banner in place of chores: WMATA arrivals at Ballston (`K04`) through `/api/trains`
       on the Mac's dev/preview server; the key lives in `dashboard/.env.local`
 - [x] Weather on the clock tile from the National Weather Service (`api.weather.gov`, no key),
-      called by the page itself (owner-approved, 2026-10-19): now, today's high and low, and when
-      rain starts if it's coming
-- [x] Metro banner stops asking WMATA while the night clock is up
+      called by the page itself (owner-approved, 2026-10-19): the temperature now, the sky, and
+      when rain starts if it's coming
+- [x] Metro banner stops asking WMATA at night
 - [ ] Air quality (AQI)
 - [ ] `docs/api.md`: one JSON shape per feed, the contract the home server implements later
 - [ ] Cache the last good response on the frame and show it as stale when a fetch fails
@@ -81,6 +81,22 @@ shows an error until it wakes. Bundling the dashboard into the kiosk app removes
 - [x] Google Calendar by secret iCal address: own RFC 5545 reader (repeats, exceptions, time
       zones), fetched by the kiosk on the frame or the Mac's `/ics`; Duckville marked quiet
 - [x] Starter placeholder dates removed from `content.js`; Google Calendar covers them
+
+## Phase 2.6 — Screens and touch
+
+- [x] Side bar, hidden until a tap on the left edge: Home, Week, Transit, Weather; back to Home
+      after 2 idle minutes
+- [x] Week: the next seven days, every calendar, multi-day items once
+- [x] Transit: the full board (destination, cars), WMATA alerts for the station's lines, elevator
+      and escalator outages (same key)
+- [x] Weather: now, 12 hours, 7 days, sunrise and sunset, NWS alerts (same service)
+- [x] Taps on Home: a day or *Next up* → that day's events; weather → Weather; Metro → Transit;
+      photo → next; the time → night clock
+- [x] Night: red clock 22:00–00:00, backlight fully off 00:00–08:00 (kiosk 0.3, through root)
+- [x] `?demo` mode and README screenshots with nothing personal
+- [ ] Weather warnings on Home, not just the Weather screen
+- [ ] Kiosk icon of Glance's own
+- [ ] Touch calibration, if smaller targets are ever needed
 
 ## Phase 3 — Home server
 

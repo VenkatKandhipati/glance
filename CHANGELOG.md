@@ -15,13 +15,20 @@ and versions follow [Semantic Versioning](https://semver.org).
 - Live Google Calendar in the calendar tile: dots on busy days, *Next up* with the event's time,
   and quiet calendars (Duckville) reduced to one line for what starts today or tomorrow.
 - The dashboard runs from inside the kiosk app (`npm run frame`), with no Mac.
-- Weather on the clock tile from the National Weather Service: the temperature and sky now,
-  today's high and low, and "rain from 4 pm" when rain is coming.
+- Weather on the clock tile from the National Weather Service: the temperature now in a pill, and
+  the sky ("Mostly sunny.", or "Rain from 4 pm." when rain is coming) under the greeting.
+- Screens behind a side bar that comes out from the left edge: Week, Transit (full board, line
+  alerts, elevator outages) and Weather (now, 12 hours, 7 days, sunrise and sunset, warnings).
+- Taps on Home: a day or *Next up* opens that day's events; the weather, the Metro banner, the
+  photo and the time each do something (see the README).
+- The screen goes fully off from midnight to 8 a.m. (kiosk 0.3 turns the backlight off through
+  root); a tap wakes it.
+- `?demo` mode, and new README screenshots taken with it.
 
 ### Changed
 
-- The Metro banner stops asking WMATA while the night clock is up, and asks again on the tap that
-  wakes the dashboard.
+- The Metro banner stops asking WMATA at night, and asks again on the tap that wakes the dashboard.
+- The night clock now runs from 10 p.m. to midnight only; the screen is off after that.
 
 ### Removed
 

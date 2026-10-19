@@ -68,7 +68,11 @@ export function summarize(daily, hourly, now) {
   if (i < 0) return null;
   const hour = hourly[i];
   const s = sky(hour);
-  const out = { temp: hour.temperature, icon: s.icon, words: s.words, high: null, low: null, rainFrom: null };
+  const out = {
+    temp: hour.temperature, icon: s.icon, words: s.words, high: null, low: null, rainFrom: null,
+    humidity: hour.relativeHumidity ? hour.relativeHumidity.value : null,
+    wind: hour.windSpeed ? (hour.windDirection ? hour.windDirection + ' ' : '') + hour.windSpeed : '',
+  };
 
   // Today's high and tonight's low from the 12-hour periods; after dark only tonight's low is left.
   const d = daily ? daily.findIndex((p) => t < Date.parse(p.endTime)) : -1;
@@ -92,8 +96,67 @@ export function summarize(daily, hourly, now) {
   return out;
 }
 
-// "62° and sunny", or "62°, rain from 4 pm" when it's dry now and wet soon.
+const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+
+// The greeting's second line: "Mostly sunny.", or "Rain from 4 pm." when it's dry now and wet soon.
 export function weatherLine(w) {
-  if (w.rainFrom) return w.temp + '°, ' + w.rainFrom.what + ' from ' + timeText(w.rainFrom.at);
-  return w.temp + '° and ' + w.words;
+  if (w.rainFrom) return cap(w.rainFrom.what) + ' from ' + timeText(w.rainFrom.at) + '.';
+  return cap(w.words) + '.';
+}
+
+// The `n` hours from the current one: { at, temp, icon, pop }.
+export function nextHours(hourly, now, n) {
+  const t = now.getTime();
+  return (hourly || []).filter((p) => Date.parse(p.endTime) > t).slice(0, n).map((p) =>
+    ({ at: new Date(p.startTime), temp: p.temperature, icon: sky(p).icon, pop: pop(p) }));
+}
+
+// Day and night periods paired into days: { name, icon, words, high, low, pop }. When the
+// forecast starts at night, the first day is just tonight, with no high.
+export function forecastDays(daily, n) {
+  const out = [];
+  const list = daily || [];
+  for (let i = 0; i < list.length && out.length < n; i++) {
+    const p = list[i];
+    const s = sky(p);
+    if (!p.isDaytime) {
+      if (i === 0) out.push({ name: 'Tonight', icon: s.icon, words: s.words, high: null, low: p.temperature, pop: pop(p) });
+      continue;
+    }
+    const night = list[i + 1] && !list[i + 1].isDaytime ? list[i + 1] : null;
+    const day = new Date(p.startTime);
+    out.push({
+      name: out.length === 0 ? 'Today' : DAY_NAMES[day.getDay()],
+      icon: s.icon, words: s.words, high: p.temperature, low: night ? night.temperature : null,
+      pop: Math.max(pop(p), night ? pop(night) : 0),
+    });
+  }
+  return out;
+}
+const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+// Active warnings, watches and advisories from /alerts/active: { event, ends }, soonest-ending
+// first, one per kind.
+export function activeAlerts(json, now) {
+  const seen = {};
+  return ((json && json.features) || []).map((f) => f.properties || {})
+    .map((p) => ({ event: p.event || '', ends: p.ends || p.expires ? new Date(p.ends || p.expires) : null }))
+    .filter((a) => a.event && (!a.ends || a.ends > now) && !seen[a.event] && (seen[a.event] = true))
+    .sort((a, b) => (a.ends || Infinity) - (b.ends || Infinity));
+}
+
+// Sunrise and sunset on `day` at lat/lon (NOAA's simplified equations, within a minute or two).
+export function sunTimes(day, lat, lon) {
+  const rad = Math.PI / 180, sin = (x) => Math.sin(x * rad), cos = (x) => Math.cos(x * rad);
+  const n = Math.round(Date.UTC(day.getFullYear(), day.getMonth(), day.getDate(), 12) / 864e5 - 10957.5);
+  const J = n - lon / 360;                                   // mean solar noon, days since J2000
+  const M = (357.5291 + 0.98560028 * J) % 360;               // solar mean anomaly
+  const L = (M + 1.9148 * sin(M) + 0.02 * sin(2 * M) + 0.0003 * sin(3 * M) + 282.9372) % 360;
+  const transit = J + 0.0053 * sin(M) - 0.0069 * sin(2 * L);
+  const decl = Math.asin(sin(L) * sin(23.44));
+  const cosH = (sin(-0.833) - sin(lat) * Math.sin(decl)) / (cos(lat) * Math.cos(decl));
+  if (cosH < -1 || cosH > 1) return null;
+  const half = Math.acos(cosH) / rad / 360;
+  const J2000 = 946728000000;
+  return { rise: new Date(J2000 + (transit - half) * 864e5), set: new Date(J2000 + (transit + half) * 864e5) };
 }

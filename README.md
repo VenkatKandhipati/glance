@@ -1,29 +1,47 @@
 # Glance
 
-A calm home dashboard for a cheap Android photo frame: the time, this month, your photos and
-the next Metro trains, readable from across the room.
+A calm home dashboard for a cheap Android photo frame: the time, the weather, your calendar, your
+photos and the next Metro trains, readable from across the room. Tap for the week ahead, the full
+train board or the forecast.
 
-![Glance on a 1280 × 800 frame: clock, month calendar, photo tile and chores](docs/images/dashboard.png)
+![Glance on a 1280 × 800 frame: clock and weather, month calendar, a photo and Metro times](docs/images/home.png)
+
+<p>
+<img src="docs/images/week.png" width="32%" alt="Week screen: the next seven days in columns">
+<img src="docs/images/transit.png" width="32%" alt="Transit screen: the station's board in both directions and service alerts">
+<img src="docs/images/weather.png" width="32%" alt="Weather screen: now, the next 12 hours and the week">
+</p>
+
+<sub>Screenshots from the frame in demo mode (`?demo`): made-up events and trains, and a
+public-domain photo of the Tidal Basin by the National Park Service.</sub>
 
 Glance runs on a 10.1" photo frame bought for its screen: a budget quad-core chip, 1 GB of RAM
 and Android 8.1, which shipped with a 2017 browser engine (Chromium 61) and now runs Chromium 106. The whole dashboard is one static web page,
-about 8 KB of gzipped JavaScript and CSS plus fonts, built to stay smooth on that hardware and to
+about 21 KB of gzipped JavaScript and CSS plus fonts, built to stay smooth on that hardware and to
 keep running for weeks with nobody touching it.
 
 ## Features
 
 - **Clock, greeting and weather.** A large serif clock with a greeting that follows the day,
-  then the weather: *62° and mostly sunny*, or *62°, rain from 4 pm* when rain is coming, with
-  today's high and low in a pill. From the National Weather Service, with no key.
+  then the sky (*Mostly sunny.*, or *Rain from 4 pm.* when rain is coming) and the temperature
+  now in a pill. From the National Weather Service, with no key.
 - **Month calendar, live from Google Calendar.** Today highlighted, dots on busy days, and *Next
   up*: your next event with its time (*Train to Washington DC, Mon 19 Oct · 7:01 pm*). A busy group
   calendar can be marked quiet: no dots, just one line when something starts today or tomorrow.
 - **Photos.** Your own photos crossfade in the large tile. A script shrinks them to the frame's
   size first, HEIC included, so the frame never decodes a 12-megapixel original.
 - **Metro.** Live WMATA arrivals at your station in both directions, with each line's colour. It
-  stops asking while the night clock is up.
-- **Night clock.** After 10 p.m., two idle minutes turn the screen into a dim red clock on black.
-  It drifts a few pixels now and then so it doesn't burn in. One tap brings the dashboard back.
+  stops asking at night.
+- **Screens.** A tap on the left edge brings out a side bar: **Week** (the next seven days, every
+  calendar), **Transit** (the full board with destinations and cars, line alerts and elevator
+  outages) and **Weather** (now, the next 12 hours, the week, sunrise and sunset, and any
+  warnings). Two idle minutes bring back Home.
+- **Taps on Home.** A day on the month, or *Next up*, opens that day's events (‹ › step through
+  days). The weather opens Weather, the Metro banner opens Transit, the photo moves on, and the
+  time brings the night clock now.
+- **Night.** From 10 p.m., two idle minutes turn the screen into a dim red clock on black that
+  drifts a few pixels against burn-in. From midnight to 8 a.m. the backlight goes fully off. A
+  tap brings the dashboard back either way.
 - **Runs unattended.** It reloads itself if it fails to start and once a day at 3 a.m., and it
   waits out the frame's clock reading 1970 after a power cut.
 
@@ -106,11 +124,14 @@ dashboard/              the web app
     main.js             minute tick, daily reload, wiring
     content.js          the file you edit: dates, Metro station, timings
     tiles/              clock, calendar, photo, Metro
-  server/               /api/trains (WMATA proxy; holds the API key)
-    night.js            night clock
+    screens/            Week, Transit, Weather
+    nav.js, sheet.js    side bar; one day's events
+    demo.js             ?demo: made-up data for screenshots
+    night.js            night clock and screen off
     diag.js             ?diag performance overlay
     style.css           design tokens and all styles
-  scripts/              photo resizer, frame-compatibility check
+  server/               /api/trains, /api/incidents, /ics (the Mac's proxies; hold the secrets)
+  scripts/              photo resizer, frame build, frame-compatibility check
   test/                 unit tests (node --test)
 kiosk/                  the Android app the frame boots into: one fullscreen WebView
 scripts/

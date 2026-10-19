@@ -23,6 +23,7 @@ export const calendars = [
 export const metro = {
   station: 'K04',
   name: 'Ballston',
+  lines: ['OR', 'SV'], // for the Transit screen's service alerts
   directions: [
     { group: '1', label: 'To DC' },
     { group: '2', label: 'To Vienna' },
@@ -31,10 +32,12 @@ export const metro = {
 
 // Weather on the clock tile, from the National Weather Service (US only, no key). Any spot near
 // home works; two decimals (about 1 km) is plenty.
-export const weather = { lat: 38.88, lon: -77.11 };
+export const weather = { name: 'Arlington', lat: 38.88, lon: -77.11 };
 
 export const settings = {
   weekStartsOn: 0,          // 0 = Sunday (like Google Calendar), 1 = Monday
   photoSeconds: 120,        // how long each photo stays up
-  night: { from: 22, to: 6, idleSeconds: 120 }, // red clock window (24 h) and idle time before it shows
+  // After `idleSeconds` with no touch: a red clock from `clock` until `off`, then the screen off
+  // until `on` (24 h hours). A tap brings the dashboard back.
+  night: { clock: 22, off: 0, on: 8, idleSeconds: 120 },
 };

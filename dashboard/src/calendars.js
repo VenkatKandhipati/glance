@@ -4,6 +4,7 @@
 import { calendars } from './content.js';
 import { parseIcs, occurrences } from './ics.js';
 import { addDays, clockIsSane, dayStart } from './time.js';
+import { DEMO, demoEvents } from './demo.js';
 
 const POLL_MS = 10 * 60000;
 
@@ -14,6 +15,7 @@ function feedUrl(cal) {
 }
 
 export function watchCalendars(onChange) {
+  if (DEMO) { onChange(demoEvents()); return; }
   const latest = {}; // calendar id → occurrences
 
   function poll() {
@@ -30,7 +32,7 @@ export function watchCalendars(onChange) {
         .then((text) => {
           if (text.indexOf('BEGIN:VCALENDAR') < 0) return;
           latest[cal.id] = occurrences(parseIcs(text), from, to).map((o) =>
-            Object.assign(o, { quiet: !!cal.quiet, calendar: cal.name || cal.id }));
+            Object.assign(o, { quiet: !!cal.quiet, calendar: cal.name || cal.id, calId: cal.id }));
         }, () => {});
     })).then(() => onChange([].concat.apply([], calendars.map((c) => latest[c.id] || []))));
   }

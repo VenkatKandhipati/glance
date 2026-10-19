@@ -10,7 +10,7 @@ air quality and chores. The MVP keeps its visual language and swaps the tiles th
 for ones that don't (calendar, photos). The rest return once the home server exists
 ([roadmap](roadmap.md)).
 
-![The MVP dashboard](images/dashboard.png)
+![The dashboard, in demo mode](images/home.png)
 
 ## Layout
 
@@ -62,11 +62,19 @@ All in [`dashboard/src/style.css`](../dashboard/src/style.css) as custom propert
   its line's colour. The next train is ink, the two after it muted; arriving or boarding reads
   "Now" in gold. No destinations or units. WMATA line colours: Orange `#ed8b00`, Silver
   `#919d9d`, Red `#bf0d3e`, Blue `#009cde`, Yellow `#ffd100`, Green `#00b140`.
-- **Weather:** a pill at the clock tile's top right (gold-tinted icon chip, "H 65° · L 48°", or
-  "Low 48°" after dark) and the greeting's second line ("62° and mostly sunny"). Without a
-  forecast the line falls back to "Here's your day."
+- **Weather:** a pill at the clock tile's top right (gold-tinted icon chip, the temperature now)
+  and the greeting's second line ("Mostly sunny.", "Rain from 4 pm."). Without a forecast the line
+  falls back to "Here's your day."
 - **Calendar agenda:** under the month, a quiet calendar's line (small-caps name, then the day in
   gold and the event) and *Next up* (label, title clamped to two lines, gold when-line). Only
   non-quiet calendars and marked dates put dots on the grid.
-- **No** shadows, blur, gradients that animate, or motion other than photo crossfades and the
-  night clock's drift.
+- **Screens** (Week, Transit, Weather): a serif heading with a gold comma ("This week,") and a
+  muted note beside it, then tiles in the board's style. Calendars keep one colour each, in
+  `content.js` order: gold, violet, teal, rose; quiet calendars are muted grey.
+- **Side bar:** 120 px, hidden off the left edge with a faint 5 px handle showing; 100 px tall
+  buttons (icon and label), the current screen tinted gold. It slides in and out (transform only).
+- **Day sheet:** a panel over a dimmed screen: the day in serif, 76 px round ‹ › buttons, then each
+  event with its time in its calendar's colour and a bar of the same colour.
+- **Touch:** every target is at least 76 px, because the frame reads taps low (docs/frame.md).
+- **No** shadows, blur, gradients that animate, or motion other than photo crossfades, the side
+  bar's slide and the night clock's drift.

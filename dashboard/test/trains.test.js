@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { minutes, normalize } from '../src/tiles/trains-data.js';
+import { minutes, normalize, normalizeIncidents } from '../src/tiles/trains-data.js';
 import { trainsHtml, STALE_MS } from '../src/tiles/trains-view.js';
 
 // Shape of a real GetPrediction/K04 response (2026-10-16), plus the odd rows WMATA sends.
@@ -53,4 +53,22 @@ test('old times are hidden rather than shown wrong', () => {
 test('an empty platform says so', () => {
   const html = trainsHtml(metro, { data: { trains: [] }, lastOk: 5 }, 5);
   assert.equal((html.match(/No trains/g) || []).length, 2);
+});
+
+test('incidents: only the station\'s lines; elevator outages by unit', () => {
+  const rail = { Incidents: [
+    { Description: 'Single tracking between New Carrollton and Cheverly. ', IncidentType: 'Alert', LinesAffected: 'OR; SV;' },
+    { Description: 'Red Line delays.', IncidentType: 'Delay', LinesAffected: 'RD;' },
+  ] };
+  const lifts = { ElevatorIncidents: [{ UnitType: 'ELEVATOR', LocationDescription: 'Street to mezzanine' }, { UnitType: 'ESCALATOR', LocationDescription: 'Mezzanine to platform' }] };
+  assert.deepEqual(normalizeIncidents(rail, lifts, ['OR', 'SV']), {
+    alerts: [{ type: 'Alert', text: 'Single tracking between New Carrollton and Cheverly.', lines: ['OR', 'SV'] }],
+    outages: [{ unit: 'Elevator', where: 'Street to mezzanine' }, { unit: 'Escalator', where: 'Mezzanine to platform' }],
+  });
+  assert.deepEqual(normalizeIncidents(null, null, ['OR']), { alerts: [], outages: [] });
+});
+
+test('car counts', () => {
+  const { trains } = normalize(wmata, 1);
+  assert.deepEqual(trains.map((t) => t.cars), [8, 8, 8, 6]);
 });

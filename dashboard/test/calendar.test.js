@@ -88,3 +88,24 @@ test('multi-day events mark every day they cover', () => {
   const dots = markedDays([], [allDay('Trip', 22, 3)], 2026);
   assert.deepEqual(['2026-10-21', '2026-10-22', '2026-10-23', '2026-10-24', '2026-10-25'].map((k) => !!dots[k]), [false, true, true, true, false]);
 });
+
+test('night: red clock in the evening, screen off after midnight until morning', async () => {
+  const { nightMode } = await import('../src/night.js');
+  const cfg = { clock: 22, off: 0, on: 8 };
+  const at = (h) => new Date(2026, 9, 19, h, 30);
+  assert.deepEqual([21, 22, 23, 0, 3, 7, 8, 12].map((h) => nightMode(at(h), cfg)),
+    [null, 'clock', 'clock', 'off', 'off', 'off', null, null]);
+  // An evening-only clock that runs past midnight still works when `off` is later.
+  assert.equal(nightMode(at(1), { clock: 22, off: 2, on: 8 }), 'clock');
+});
+
+test('a tap on the month grid finds its day (Sunday-first October 2026, 7 columns of 40 px)', async () => {
+  const { dayAtGrid } = await import('../src/tiles/calendar.js');
+  const now = new Date(2026, 9, 19, 12);
+  const key = (d) => d && d.getMonth() + 1 + '-' + d.getDate();
+  assert.equal(dayAtGrid(now, 280, 10, 10), null);          // weekday names
+  assert.equal(key(dayAtGrid(now, 280, 10, 40)), '9-27');    // first row, Sunday
+  assert.equal(key(dayAtGrid(now, 280, 45, 31 * 4 + 5)), '10-19');
+  assert.equal(key(dayAtGrid(now, 280, 275, 31 * 5 + 30)), '10-31');
+  assert.equal(dayAtGrid(now, 280, 10, 31 * 6 + 5), null);   // below the last week
+});

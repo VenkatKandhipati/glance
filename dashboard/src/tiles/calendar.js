@@ -92,6 +92,24 @@ export function markedDays(list, events, year) {
   return marked;
 }
 
+// The first day shown on the month grid: the start of the week the 1st falls in.
+function gridStart(today) {
+  const first = new Date(today.getFullYear(), today.getMonth(), 1);
+  return addDays(first, -((first.getDay() - settings.weekStartsOn + 7) % 7));
+}
+
+// The day under a tap at (x, y) px from the grid's top left, or null. Every grid row is ROW px,
+// weekday names included; a tap is taken by the cell it's closest to, not just the circle drawn.
+const ROW = 31;
+export function dayAtGrid(now, width, x, y) {
+  const row = Math.floor(y / ROW) - 1, col = Math.floor(x / (width / 7));
+  if (row < 0 || col < 0 || col > 6) return null;
+  const today = dayStart(now);
+  const day = addDays(gridStart(today), row * 7 + col);
+  const lastOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+  return day <= addDays(lastOfMonth, 6 - ((lastOfMonth.getDay() - settings.weekStartsOn + 7) % 7)) ? day : null;
+}
+
 // Draws the tile; only touches the DOM when something visible changed, so it's cheap to call
 // every minute and whenever the calendars refresh.
 export function renderCalendar(el, now, events) {
@@ -99,7 +117,7 @@ export function renderCalendar(el, now, events) {
   const today = dayStart(now);
   const first = new Date(today.getFullYear(), today.getMonth(), 1);
   const lead = (first.getDay() - settings.weekStartsOn + 7) % 7;
-  const start = addDays(first, -lead);
+  const start = gridStart(today);
   const marked = markedDays(dates, events, today.getFullYear());
 
   let grid = '';
