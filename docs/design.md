@@ -79,7 +79,8 @@ All in [`dashboard/src/style.css`](../dashboard/src/style.css) as custom propert
   text and a warning sign), and the greeting's second line names the warning in `#f2a7b8`.
 - **App icon:** a gold (`#cbb47c`) G drawn as one round-capped stroke, like a clock face with a
   hand at three, on the tile colour `#11151c`.
-- **Public pictures:** paintings and astronomy pictures are shown whole (`object-fit: contain`)
+- **Public pictures:** paintings and astronomy pictures are shown whole and never enlarged
+  (`object-fit: scale-down`)
   on the tile's dark ground; photos fill the tile. A credit line sits in a dark pill
   (`rgba(8, 10, 14, 0.7)`, 14 px) at the bottom left and fades with the picture.
 - **Touch:** every target is at least 76 px, because the frame reads taps low (docs/frame.md).

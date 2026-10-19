@@ -240,8 +240,9 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   transition: opacity 1.2s ease;
 }
 .photo-img.is-on { opacity: 1; }
-/* paintings and astronomy pictures are shown whole, on the tile's dark ground */
-.photo-img.is-contain { object-fit: contain; }
+/* paintings and astronomy pictures are shown whole, on the tile's dark ground, and never enlarged
+   (the Met's web images are about 520 px; stretched, they blur) */
+.photo-img.is-contain { object-fit: scale-down; }
 /* the credit line for a picture from a public source */
 .photo-cap {
   position: absolute;

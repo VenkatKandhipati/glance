@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { dayNumber, pickSome, paintingItem, apodItem, earthItems, commonsTitles, natureItems } from '../src/featured-data.js';
+import { dayNumber, pickSome, paintingItem, aicItems, apodItem, earthItems, commonsTitles, natureItems, clevelandItems, metItem } from '../src/featured-data.js';
 
 test('the day number turns over at local midnight', () => {
   assert.equal(dayNumber(new Date(2026, 9, 19, 23, 59)) + 1, dayNumber(new Date(2026, 9, 20, 0, 1)));
@@ -58,4 +58,31 @@ test('Commons: JPEGs, landscape-shaped, a short name and the licence', () => {
   } } });
   assert.deepEqual(items.map((i) => i.caption), ['Laguna Cañapa · Diego Delso, CC BY-SA 4.0 · Wikimedia Commons',
     'Beskid Sądecki in winter · Wikimedia Commons', 'Kotor Bay Montenegro · Ggia · Wikimedia Commons']);
+});
+
+test('Cleveland: South Asian paintings only, at the 900 px web size', () => {
+  const items = clevelandItems({ data: [
+    { title: 'King Bana in his court', culture: ['Northern India, Pahari kingdoms'], creation_date: 'c. 1780',
+      images: { web: { url: 'https://openaccess-cdn.clevelandart.org/1986.62/1986.62_web.jpg' } } },
+    { title: 'Buddha', culture: ['Thailand'], images: { web: { url: 'https://x/t.jpg' } } },
+    { title: 'Akbar hunting', culture: ['Mughal India, court of Akbar (reigned 1556–1605)'], images: { web: { url: 'https://x/a.jpg' } } },
+    { title: 'No image', culture: ['Nepal'], images: null },
+  ] });
+  assert.deepEqual(items.map((i) => i.caption), [
+    'King Bana in his court, Northern India, Pahari kingdoms, c. 1780 · Cleveland Museum of Art',
+    'Akbar hunting, Mughal India, court of Akbar · Cleveland Museum of Art']);
+  assert.equal(items[0].fit, 'contain');
+});
+
+test('Met: public-domain objects with an image', () => {
+  const o = { isPublicDomain: true, primaryImageSmall: 'https://images.metmuseum.org/CRDImages/as/web-large/DT5391.jpg',
+    title: 'Maharana Amar Singh II Riding a Jodhpur Horse', artistDisplayName: 'Stipple Master', culture: 'India (Rajasthan, Mewar)', objectDate: 'ca. 1700–1710' };
+  assert.equal(metItem(o).caption, 'Maharana Amar Singh II Riding a Jodhpur Horse, Stipple Master, India (Rajasthan, Mewar), ca. 1700–1710 · The Met');
+  assert.equal(metItem(Object.assign({}, o, { isPublicDomain: false })), null);
+  assert.equal(metItem(Object.assign({}, o, { primaryImageSmall: '' })), null);
+});
+
+test('Art Institute: every work with an image, with the museum named', () => {
+  const items = aicItems({ data: [{ title: 'Asavari Ragini', date_display: 'c. 1700', image_id: 'x' }, { title: 'None' }] }, '', ' · Art Institute of Chicago');
+  assert.deepEqual(items.map((i) => i.caption), ['Asavari Ragini, c. 1700 · Art Institute of Chicago']);
 });

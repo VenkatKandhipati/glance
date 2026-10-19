@@ -18,6 +18,9 @@ function getJson(url) {
     .finally(() => clearTimeout(timer));
 }
 
+// A part of a source that fails gives nothing rather than sinking the rest.
+const orNone = (p) => p.catch(() => []);
+
 const SOURCES = {
   // One painting a day, the same all day. The search reaches only its first 1,000 results (100
   // pages of 10), so: a page a day, and the next painting on it each time round, about 3 years.
@@ -30,10 +33,30 @@ const SOURCES = {
   },
   earth: (day) => getJson(F.NASA_EARTH_SEARCH + '&page=' + (1 + day % F.NASA_EARTH_PAGES))
     .then((json) => F.pickSome(F.earthItems(json), PER_SOURCE, day)),
-  nature: (day) => getJson(F.commonsListUrl(F.COMMONS_CATEGORIES[day % F.COMMONS_CATEGORIES.length]))
-    .then((json) => getJson(F.commonsInfoUrl(F.pickSome(F.commonsTitles(json), PER_SOURCE * 2, day))))
-    .then((json) => F.pickSome(F.natureItems(json), PER_SOURCE, day)),
+  nature: (day) => commons(F.COMMONS_CATEGORIES[day % F.COMMONS_CATEGORIES.length], day, PER_SOURCE),
+  // Paintings from India, Nepal and the Himalaya: a few a day from each museum, mixed.
+  'south-asian-art': (day) => Promise.all([
+    orNone(getJson(F.clevelandUrl((day * 25) % 1000)).then((json) => F.pickSome(F.clevelandItems(json), 3, day))),
+    orNone(getJson(F.metSearchUrl((day * 12) % 744))
+      .then((json) => Promise.all(F.pickSome(json.objectIDs || [], 4, day).map((id) => orNone(getJson(F.metObjectUrl(id)))))))
+      .then((objects) => objects.map(F.metItem).filter(Boolean).slice(0, 3)),
+    orNone(getJson(F.AIC_INDIA_SEARCH + '&limit=10&page=' + (1 + day % 5))
+      .then((json) => F.pickSome(F.aicItems(json, '', ' · Art Institute of Chicago'), 2, day))),
+  ]).then((parts) => F.pickSome([].concat.apply([], parts), 8, day)),
+  // South Asian landscapes from Commons, and the subcontinent from the Space Station.
+  'south-asian-nature': (day) => Promise.all([
+    orNone(commons(F.COMMONS_SOUTH_ASIA[day % F.COMMONS_SOUTH_ASIA.length], day, 6)),
+    orNone(getJson(F.NASA_EARTH_SOUTH_ASIA[day % F.NASA_EARTH_SOUTH_ASIA.length])
+      .then((json) => F.pickSome(F.earthItems(json), 2, day))),
+  ]).then((parts) => [].concat.apply([], parts)),
 };
+
+// `n` landscape-shaped photos from a Commons category, the same ones all day.
+function commons(category, day, n) {
+  return getJson(F.commonsListUrl(category))
+    .then((json) => getJson(F.commonsInfoUrl(F.pickSome(F.commonsTitles(json), n * 2, day))))
+    .then((json) => F.pickSome(F.natureItems(json), n, day));
+}
 
 // Returns next(): the next picture to show between your photos, or null while there are none.
 export function startFeatured() {
@@ -45,7 +68,8 @@ export function startFeatured() {
     const now = new Date();
     if (!clockIsSane(now, __BUILT_AT__)) return; // "the day" means nothing before network time
     const day = F.dayNumber(now);
-    names.forEach((name) => {
+    // A source listed twice is fetched once.
+    names.filter((name, i) => names.indexOf(name) === i).forEach((name) => {
       if (fetchedDay[name] === day) return;
       SOURCES[name](day).then((list) => {
         list = list.filter(Boolean);

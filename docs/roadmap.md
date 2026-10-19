@@ -105,6 +105,11 @@ shows an error until it wakes. Bundling the dashboard into the kiosk app removes
       Chicago), NASA's Astronomy Picture of the Day, Earth from the Space Station (NASA Image
       Library) and featured nature photos (Wikimedia Commons), each with a credit line.
       Owner-approved 2026-10-19; no keys
+- [x] Half South Asian: paintings from the Cleveland Museum of Art, the Met and the Art Institute
+      of Chicago; Himalayan, Indian, Nepali and Sri Lankan landscapes from Commons; the
+      subcontinent from the Space Station. Rijksmuseum left out: its new search (no key) returns
+      only IDs, each needing several Linked Art requests, and its South Asian holdings are small.
+      Smithsonian (Freer Gallery) needs an api.data.gov key: a mini PC job
 - [x] Full brightness all the time (owner's choice, 2026-10-19)
 
 ## Phase 3 — Home server

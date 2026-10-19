@@ -35,12 +35,22 @@ export const metro = {
 export const weather = { name: 'Arlington', lat: 38.88, lon: -77.11 };
 
 // Pictures from public collections, shown between your photos with a credit line: every
-// `every`th photo is one of them (0 turns them off). Sources, taken in turn; drop any you don't want:
-//   painting  a public-domain painting of the day (Art Institute of Chicago)
-//   apod      NASA's Astronomy Picture of the Day
-//   earth     Earth photographed from the International Space Station (NASA)
-//   nature    featured landscape, mountain, waterfall and forest photos (Wikimedia Commons)
-export const featured = { every: 4, sources: ['painting', 'apod', 'earth', 'nature'] };
+// `every`th photo is one of them (0 turns them off). Sources are taken in turn; list one twice to
+// see it twice as often, or drop it to stop it:
+//   painting            a public-domain painting of the day (Art Institute of Chicago)
+//   south-asian-art     Mughal, Rajput, Pahari, Kalighat and Himalayan paintings (Cleveland Museum
+//                       of Art, the Met, Art Institute of Chicago)
+//   apod                NASA's Astronomy Picture of the Day
+//   earth               Earth photographed from the International Space Station (NASA)
+//   nature              featured landscape, mountain, waterfall and forest photos (Wikimedia Commons)
+//   south-asian-nature  the Himalayas, India, Nepal, Kerala and Sri Lanka (Wikimedia Commons), and
+//                       the subcontinent from the Space Station (NASA)
+// Half of these are South Asian.
+export const featured = {
+  every: 4,
+  sources: ['south-asian-art', 'nature', 'south-asian-nature', 'painting',
+    'south-asian-art', 'earth', 'south-asian-nature', 'apod'],
+};
 
 export const settings = {
   weekStartsOn: 0,          // 0 = Sunday (like Google Calendar), 1 = Monday

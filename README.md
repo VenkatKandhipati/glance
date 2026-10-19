@@ -30,9 +30,11 @@ keep running for weeks with nobody touching it.
   calendar can be marked quiet: no dots, just one line when something starts today or tomorrow.
 - **Photos.** Your own photos crossfade in the large tile. A script shrinks them to the frame's
   size first, HEIC included, so the frame never decodes a 12-megapixel original. Every fourth
-  picture comes from a public collection, with a credit line: a painting of the day from the Art
-  Institute of Chicago, NASA's Astronomy Picture of the Day, Earth from the Space Station, or a
-  featured nature photo from Wikimedia Commons. None needs a key.
+  picture comes from a public collection, with a credit line, and half of those are South Asian:
+  Mughal, Rajput, Pahari and Himalayan paintings (Cleveland Museum of Art, the Met, Art Institute
+  of Chicago), the Himalayas, India, Nepal and Sri Lanka (Wikimedia Commons). The rest: a painting
+  of the day, NASA's Astronomy Picture of the Day, Earth from the Space Station and nature photos
+  from Commons. None needs a key.
 - **Metro.** Live WMATA arrivals at your station in both directions, with each line's colour. It
   stops asking at night.
 - **Screens.** A tap on the left edge brings out a side bar: **Week** (the next seven days, every
