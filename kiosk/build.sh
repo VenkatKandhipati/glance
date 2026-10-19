@@ -24,7 +24,7 @@ ASSETS=()
 
 "$BT/aapt2" compile --dir res -o build/res.zip
 "$BT/aapt2" link -o build/base.apk -I "$JAR" --manifest AndroidManifest.xml build/res.zip ${ASSETS[@]+"${ASSETS[@]}"} \
-  --java build/gen --min-sdk-version 23 --target-sdk-version 23 --version-code 5 --version-name 0.5
+  --java build/gen --min-sdk-version 23 --target-sdk-version 23 --version-code 6 --version-name 0.6
 
 javac -nowarn -source 8 -target 8 -classpath "$JAR" -d build/classes \
   src/app/glance/kiosk/*.java build/gen/app/glance/kiosk/R.java

@@ -89,3 +89,22 @@ export function demoForecast() {
   const alerts = /[?&]alert(&|$)/.test(location.search) ? [{ event: 'Wind Advisory', severity: 'Minor', ends: at(0, 18) }] : [];
   return { daily, hourly, alerts };
 }
+
+// Twelve weeks of made-up Pomodoro sessions, every one of the last nine days among them, and deep
+// work under way since 8:20.
+export function demoPomodoro() {
+  const cats = ['interview-prep', 'geico', 'geico', 'interview-prep', 'chores', 'learning', 'projects'];
+  const log = [];
+  let s = 7;
+  const rand = (n) => { s = (Math.imul(s, 1103515245) + 12345) >>> 0; return (s >>> 8) % n; };
+  for (let day = -83; day < 0; day++) {
+    const count = day >= -9 ? 2 + rand(4) : rand(6) - 1;
+    for (let k = 0; k < count; k++) {
+      const start = at(day, 9 + k * 2, 30 * rand(2));
+      const done = rand(9) > 0;
+      log.push({ start: start.getTime(), end: start.getTime() + (done ? 45 : 15 + rand(25)) * 60000, cat: cats[rand(cats.length)], done });
+    }
+  }
+  log.push({ start: at(0, 7, 20).getTime(), end: at(0, 8, 5).getTime(), cat: 'geico', done: true });
+  return { saved: 0, cat: 'interview-prep', state: { phase: 'work', start: at(0, 8, 20).getTime(), cat: 'interview-prep' }, log };
+}

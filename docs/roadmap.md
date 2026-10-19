@@ -97,6 +97,9 @@ shows an error until it wakes. Bundling the dashboard into the kiosk app removes
 - [x] Weather warnings on Home: the temperature pill turns red with a warning sign, and the
       greeting's second line names the warning
 - [x] Kiosk icon of Glance's own: a gold G on the tile colour (vector, adaptive on Android 8)
+- [x] Pomodoro: 45 + 15 minutes, a category per session, today and a daily goal, a streak,
+      7 days by category, 12 weeks; survives power cuts; holds off night and the return to Home;
+      log backed up to a file (kiosk 0.6)
 - [ ] Touch calibration, if smaller targets are ever needed
 
 ## Phase 2.7 — Pictures from public collections

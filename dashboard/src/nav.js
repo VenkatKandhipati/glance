@@ -1,6 +1,7 @@
 // Screens and the side bar. The bar stays hidden until a tap on the left edge; it slides in over
 // the screen, and goes again after a few seconds, on a choice, or on a tap anywhere else. Any
-// screen but Home goes back to Home after two minutes with no touch, and the day sheet closes.
+// screen but Home goes back to Home after two minutes with no touch, and the day sheet closes;
+// a screen whose busy() says so (the Pomodoro timer running) stays.
 const BAR_MS = 6000;
 const HOME_MS = 2 * 60000;
 
@@ -10,10 +11,11 @@ const ICONS = {
   week: svg('<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4M8 14h.01M12 14h.01M16 14h.01M8 17.5h.01M12 17.5h.01"/>'),
   transit: svg('<rect x="5" y="3" width="14" height="14" rx="4"/><path d="M5 11h14M9 14h.01M15 14h.01M8 21l2-4M16 21l-2-4"/>'),
   weather: svg('<path d="M8 3v1.5M3.5 8H5M4.8 4.8l1 1M12.2 4.8l-1 1"/><path d="M5.6 11.5a3.5 3.5 0 0 1 6-4"/><path d="M9 20h8a3.2 3.2 0 0 0 .4-6.4 4.4 4.4 0 0 0-8.5 1.2A2.6 2.6 0 0 0 9 20z"/>'),
+  pomodoro: svg('<circle cx="12" cy="13.5" r="7.5"/><path d="M12 9.5v4l2.5 2M9.5 2.5h5M12 2.5V6"/>'),
 };
-const LABELS = { home: 'Home', week: 'Week', transit: 'Transit', weather: 'Weather' };
+const LABELS = { home: 'Home', week: 'Week', transit: 'Transit', weather: 'Weather', pomodoro: 'Pomodoro' };
 
-// screens: { name: { el, show?(), hide?() } }, Home first. sheet: the day sheet.
+// screens: { name: { el, show?(), hide?(), busy?() } }, Home first. sheet: the day sheet.
 export function mountNav(bar, edge, scrim, screens, sheet) {
   const names = Object.keys(screens);
   let current = names[0], lastTouch = Date.now(), barOpenedAt = 0;
@@ -55,7 +57,7 @@ export function mountNav(bar, edge, scrim, screens, sheet) {
     if (bar.classList.contains('is-open') && Date.now() - barOpenedAt > BAR_MS && idle > BAR_MS) closeBar();
     if (idle > HOME_MS) {
       if (sheet.isOpen()) sheet.close();
-      if (current !== names[0]) go(names[0]);
+      if (current !== names[0] && !(screens[current].busy && screens[current].busy())) go(names[0]);
     }
   }, 1000);
 

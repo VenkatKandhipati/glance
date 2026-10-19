@@ -55,6 +55,23 @@ export const featured = {
     'south-asian-art', 'earth'],
 };
 
+// Pomodoro screen: `work` minutes of deep work, then a `break`; `goal` full sessions a day. Each
+// session gets one of `categories` (tap one before, during, or in the break after it). An `id` is
+// what the log keeps, so rename a `name` freely but keep its id; colours follow this order.
+export const pomodoro = {
+  work: 45,
+  break: 15,
+  goal: 4,
+  categories: [
+    { id: 'interview-prep', name: 'Interview prep' },
+    { id: 'geico', name: 'GEICO' },
+    { id: 'chores', name: 'Chores' },
+    { id: 'learning', name: 'Learning' },
+    { id: 'projects', name: 'Projects' },
+    { id: 'other', name: 'Other' },
+  ],
+};
+
 export const settings = {
   weekStartsOn: 0,          // 0 = Sunday (like Google Calendar), 1 = Monday
   photoSeconds: 120,        // how long each photo stays up

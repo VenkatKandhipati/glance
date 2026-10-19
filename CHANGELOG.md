@@ -33,6 +33,11 @@ and versions follow [Semantic Versioning](https://semver.org).
   paintings from the Cleveland Museum of Art. Each is measured on the frame first: only sharp,
   well-sized pictures dark enough for the dashboard are shown (`featured.style`).
 
+- A Pomodoro screen: 45 minutes of deep work and a 15-minute break, each session tagged with a
+  category; today against a daily goal, a streak, the last 7 days by category, 12 weeks and time
+  by category. It survives reloads and power cuts, holds off night and the return to Home while it
+  runs, and keeps a backup of its log in a file (kiosk 0.6, `GlanceFiles`).
+
 ### Changed
 
 - The Metro banner stops asking WMATA at night, and asks again on the tap that wakes the dashboard.

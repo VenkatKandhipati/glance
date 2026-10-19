@@ -2,7 +2,7 @@ package app.glance.kiosk;
 
 // Adapted from wesbos/photo-frame-dashboard (dashboard/kiosk, commit 48b4ab0) with Wes Bos's
 // permission; see CREDITS.md. Changes: Glance's package name and labels, local default URL, the
-// backlight bridge (Backlight.java).
+// backlight bridge (Backlight.java), the file bridge (FileStore.java).
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -155,6 +155,8 @@ public class MainActivity extends Activity {
     // The page turns the screen off at night (GlanceKiosk.setScreenOn); see Backlight.java.
     backlight = new Backlight(this);
     web.addJavascriptInterface(backlight, "GlanceKiosk");
+    // The Pomodoro log's backup file (FileStore.java).
+    web.addJavascriptInterface(new FileStore(this), "GlanceFiles");
     final LocalSite site = new LocalSite(this);
     web.setWebViewClient(new WebViewClient() {
       @Override

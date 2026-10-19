@@ -4,6 +4,7 @@
 // little against burn-in. The kiosk app turns the backlight off (GlanceKiosk.setScreenOn); without
 // it, as in a desktop browser, "off" is just black.
 // onShow(true/false) hears when night comes and goes, so live tiles can stop asking meanwhile.
+// busy() true (the Pomodoro timer running) holds night off until it's done.
 import { settings } from './content.js';
 import { DAYS, MONTHS, clockIsSane, clockParts } from './time.js';
 
@@ -24,7 +25,7 @@ function setScreenOn(on) {
   } catch (e) { /* not in the kiosk, or an older one */ }
 }
 
-export function mountNight(el, onShow) {
+export function mountNight(el, onShow, busy) {
   const cfg = settings.night;
   let idle = 0, mode = null, forced = false;
 
@@ -70,7 +71,7 @@ export function mountNight(el, onShow) {
     const now = new Date();
     // Before network time after a power cut the hour means nothing; stay on the dashboard.
     const want = clockIsSane(now, __BUILT_AT__) ? nightMode(now, cfg) : null;
-    if (!mode && want && idle >= cfg.idleSeconds) show(want);
+    if (!mode && want && idle >= cfg.idleSeconds && !busy()) show(want);
     else if (mode && want && want !== mode) show(want);       // midnight: clock → off
     else if (mode && !want && !forced) hide();                // morning: back on its own
   }, 1000);
@@ -78,7 +79,7 @@ export function mountNight(el, onShow) {
   // A power cut or the 3 a.m. reload during the off hours: stay dark rather than light the room.
   // Otherwise make sure the backlight is on, in case the page went away while it was off.
   const now = new Date();
-  if (clockIsSane(now, __BUILT_AT__) && nightMode(now, cfg) === 'off') show('off');
+  if (clockIsSane(now, __BUILT_AT__) && nightMode(now, cfg) === 'off' && !busy()) show('off');
   else setScreenOn(true);
 
   return {

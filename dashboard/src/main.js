@@ -13,6 +13,7 @@ import { mountNav } from './nav.js';
 import { renderWeek, weekDayAt } from './screens/week.js';
 import { mountTransit } from './screens/transit.js';
 import { renderWeatherScreen } from './screens/weather.js';
+import { mountPomodoro } from './screens/pomodoro.js';
 import { startDiag } from './diag.js';
 import { clockIsSane } from './time.js';
 
@@ -27,13 +28,16 @@ let reloadDue = false, lastServerCheck = 0;
 const sheet = mountSheet($('sheet'), () => events);
 const transit = mountTransit($('transit'));
 const setTrainsAsleep = mountTrains($('trains'), transit.trains);
-const night = mountNight($('night'), setTrainsAsleep);
+// A phase ending brings the Pomodoro screen back (declared below; cues come a second later at most).
+const focus = mountPomodoro($('pomodoro'), () => nav.go('pomodoro'));
+const night = mountNight($('night'), setTrainsAsleep, focus.busy);
 const nextPhoto = startPhotos($('photo'));
 const nav = mountNav($('bar'), $('edge'), $('scrim'), {
   home: { el: $('board') },
   week: { el: $('week'), show: () => renderWeek($('week'), new Date(), events) },
   transit: { el: $('transit'), show: transit.show, hide: transit.hide },
   weather: { el: $('weather'), show: () => renderWeatherScreen($('weather'), new Date(), forecast) },
+  pomodoro: { el: $('pomodoro'), show: focus.show, hide: focus.hide, busy: focus.busy },
 }, sheet);
 
 const weatherNow = (now) => forecast && summarize(forecast.daily, forecast.hourly, now);
@@ -57,6 +61,7 @@ function draw(now) {
   renderCalendar($('cal'), now, events);
   if (nav.current() === 'week') renderWeek($('week'), now, events);
   if (nav.current() === 'weather') renderWeatherScreen($('weather'), now, forecast);
+  focus.update();
 }
 
 function tick() {
@@ -112,4 +117,5 @@ watchWeather((f) => {
   draw(new Date());
 });
 if (DEMO_SCREEN) nav.go(DEMO_SCREEN);
+else if (focus.busy()) nav.go('pomodoro'); // a reload or power cut mid-session: back to the timer
 startDiag();

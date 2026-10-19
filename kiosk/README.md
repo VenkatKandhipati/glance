@@ -32,6 +32,11 @@ showing the Mac's copy while developing.
   root (`su 0`), and writes Android's own brightness back on `setScreenOn(true)` or when it leaves
   the foreground. Touch keeps working with the light off. See
   [`Backlight.java`](src/app/glance/kiosk/Backlight.java).
+- **Files:** `GlanceFiles.read(name)` and `GlanceFiles.write(name, text)` keep small `name.json`
+  files in the app's own folder, written through a synced temporary file so a power cut can't
+  leave half a file. The Pomodoro screen backs its log up there; copy it off with
+  `adb pull /sdcard/Android/data/app.glance.kiosk/files/pomodoro.json`. See
+  [`FileStore.java`](src/app/glance/kiosk/FileStore.java).
 
 ## Commands
 
