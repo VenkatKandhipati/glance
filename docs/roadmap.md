@@ -99,8 +99,25 @@ shows an error until it wakes. Bundling the dashboard into the kiosk app removes
 - [x] Kiosk icon of Glance's own: a gold G on the tile colour (vector, adaptive on Android 8)
 - [ ] Touch calibration, if smaller targets are ever needed
 
+## Phase 2.7 — Pictures from public collections
+
+- [x] Between your photos (every 4th): a public-domain painting of the day (Art Institute of
+      Chicago), NASA's Astronomy Picture of the Day, Earth from the Space Station (NASA Image
+      Library) and featured nature photos (Wikimedia Commons), each with a credit line.
+      Owner-approved 2026-10-19; no keys
+- [x] Full brightness all the time (owner's choice, 2026-10-19)
+
 ## Phase 3 — Home server
 
+Details for every item: [mini-pc.md](mini-pc.md).
+
+- [ ] Serve the page and data from the server; move the WMATA key and calendar addresses off the
+      frame, then regenerate them
+- [ ] Messages to the frame from phones, scripts and agents (whisper, nudge, urgent)
+- [ ] Tasks and groceries from Todoist
+- [ ] Now playing from Spotify, with controls
+- [ ] Recipes
+- [ ] Settings page on the server
 - [ ] Implement `docs/api.md` on the home server; the kiosk loads `http://<server-ip>:<port>/`
 - [ ] News (RSS, thumbnails resized server-side), Spotify recently played, next fixture,
       chores synced across devices

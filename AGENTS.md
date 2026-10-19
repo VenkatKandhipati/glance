@@ -17,9 +17,11 @@ Notes for AI agents and contributors. Read [docs/frame.md](docs/frame.md) before
   blurs or shadows. `npm run build` fails on most of these; don't work around the check.
 - No framework, no runtime dependencies beyond fonts. A new dependency has to earn its weight on
   a Cortex-A35.
-- The frame calls no third-party service except the three the owner approved: WMATA and Google
-  Calendar feeds by their secret addresses (2026-10-16), and the National Weather Service's
-  `api.weather.gov` (2026-10-19, no key); everything else comes from the page's own origin. Secrets live in `dashboard/.env.local` (gitignored) and never in git or the Mac build.
+- The frame calls no third-party service except the ones the owner approved: WMATA and Google
+  Calendar feeds by their secret addresses (2026-10-16); and, with no key, the National Weather
+  Service's `api.weather.gov`, NASA (`api.nasa.gov`, `images-api.nasa.gov` and their image
+  hosts), the Art Institute of Chicago (`api.artic.edu`, `www.artic.edu/iiif`) and Wikimedia
+  Commons (2026-10-19); everything else comes from the page's own origin. Secrets live in `dashboard/.env.local` (gitignored) and never in git or the Mac build.
   See "Network" in docs/frame.md.
 - Animate only `opacity` and `transform`. Update only what changed.
 - No two-finger hold gestures (the kiosk uses one), no `alert()`, no external links.

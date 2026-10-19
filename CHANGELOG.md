@@ -27,6 +27,9 @@ and versions follow [Semantic Versioning](https://semver.org).
 - Weather warnings on Home: the temperature pill turns red with a warning sign and the greeting
   names the warning.
 - Glance's own app icon (kiosk 0.4).
+- Pictures from public collections between your photos, each with a credit line: a painting of
+  the day (Art Institute of Chicago), NASA's Astronomy Picture of the Day, Earth from the Space
+  Station (NASA) and featured nature photos (Wikimedia Commons).
 
 ### Changed
 

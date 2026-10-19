@@ -240,6 +240,27 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   transition: opacity 1.2s ease;
 }
 .photo-img.is-on { opacity: 1; }
+/* paintings and astronomy pictures are shown whole, on the tile's dark ground */
+.photo-img.is-contain { object-fit: contain; }
+/* the credit line for a picture from a public source */
+.photo-cap {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  max-width: calc(100% - 32px);
+  padding: 8px 14px;
+  border-radius: 12px;
+  background: rgba(8, 10, 14, 0.7);
+  color: var(--ink-2);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0;
+  transition: opacity 1.2s ease;
+}
+.photo-cap.is-on { opacity: 1; }
 .photo-empty {
   position: absolute;
   inset: 0;

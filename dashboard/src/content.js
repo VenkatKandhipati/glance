@@ -34,6 +34,14 @@ export const metro = {
 // home works; two decimals (about 1 km) is plenty.
 export const weather = { name: 'Arlington', lat: 38.88, lon: -77.11 };
 
+// Pictures from public collections, shown between your photos with a credit line: every
+// `every`th photo is one of them (0 turns them off). Sources, taken in turn; drop any you don't want:
+//   painting  a public-domain painting of the day (Art Institute of Chicago)
+//   apod      NASA's Astronomy Picture of the Day
+//   earth     Earth photographed from the International Space Station (NASA)
+//   nature    featured landscape, mountain, waterfall and forest photos (Wikimedia Commons)
+export const featured = { every: 4, sources: ['painting', 'apod', 'earth', 'nature'] };
+
 export const settings = {
   weekStartsOn: 0,          // 0 = Sunday (like Google Calendar), 1 = Monday
   photoSeconds: 120,        // how long each photo stays up

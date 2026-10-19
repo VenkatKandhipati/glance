@@ -1,6 +1,7 @@
 # Ideas
 
 A parking lot. Anything here is out of scope until it moves into [roadmap.md](roadmap.md).
+Ideas the owner has picked for the mini PC are written up in [mini-pc.md](mini-pc.md).
 Add new ideas at the bottom of the right section, with a source when there is one.
 
 ## Tiles and data

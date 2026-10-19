@@ -103,7 +103,15 @@ renderer. The kiosk window is up 1.5 s after launch.
 - **Third exception (owner, 2026-10-19): the National Weather Service.** The page asks
   `api.weather.gov` for the forecast at `content.js`'s `weather` spot every 30 minutes, from the
   frame and the Mac's copy alike. No key and nothing secret: it sends CORS headers, so the page
-  calls it directly. No other service goes on the frame.
+  calls it directly.
+- **Public pictures (owner, 2026-10-19).** The photo tile shows pictures from public collections
+  between the owner's photos, fetched once a day with no key: the Art Institute of Chicago
+  (`api.artic.edu`, images from `www.artic.edu/iiif`), NASA (`api.nasa.gov` with the shared
+  `DEMO_KEY`, `images-api.nasa.gov`, images from `apod.nasa.gov` and `images-assets.nasa.gov`)
+  and Wikimedia Commons (`commons.wikimedia.org`, images from `thumb.wikimedia.org`). All send
+  CORS headers; NASA's image library and the Art Institute's API chain to Starfield Services
+  Root G2, the rest to ISRG Root X1, both in the frame's store. Checked from the kiosk's WebView
+  2026-10-19: every API answered and every image loaded. No other service goes on the frame.
 - Trust store: the 2025 firmware ships a store from about 2023 (205 roots, newest March 2023),
   despite the 2020 security patch. It has ISRG Root X1 and X2, Sectigo R46 (WMATA's root), GTS,
   Amazon and DigiCert G2, but no roots from 2024 on, such as ISRG Root YR. A site on Let's
@@ -160,3 +168,5 @@ Record every change with its undo, newest last. All `su 0` commands run through 
 | 2026-10-19 | Power-cut test: unplugged 10 s with the Mac's server off. Booted straight into the kiosk and the dashboard within about a minute, with the right time, trains, calendar, weather and photos | — |
 | 2026-10-19 | Kiosk 0.3 (`npm run frame`): screens, taps, and the backlight bridge. From midnight to 8 a.m. the page asks the app to turn the backlight off; the app writes `0` to `/sys/class/backlight/backlight/brightness` through `su 0` and writes Android's own brightness setting (179) back on a tap or when it leaves the foreground. Checked on the frame: off → `0`, tap → `179` | Tap the screen; if it ever stays dark, `adb shell su 0 sh -c 'echo 179 > /sys/class/backlight/backlight/brightness'`. Undo the feature with `night.off`/`night.on` equal in `content.js`, or an older build |
 | 2026-10-19 | Kiosk 0.4 (`npm run frame`): Glance's own icon, weather warnings on Home | `adb install -r` an older build |
+| 2026-10-19 | Full brightness: `settings put system screen_brightness 255` (was 179), `screen_brightness_mode` 0 (already manual). The night screen-off writes this setting back on a tap | `settings put system screen_brightness 179` |
+| 2026-10-19 | Kiosk with public pictures between the owner's photos (`npm run frame`): the page fetches from the Art Institute of Chicago, NASA and Wikimedia Commons once a day | `featured.every: 0` in `content.js`, or an older build |
