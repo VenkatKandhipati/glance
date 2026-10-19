@@ -4,6 +4,8 @@ import { renderCalendar } from './tiles/calendar.js';
 import { startPhotos } from './tiles/photo.js';
 import { mountTrains } from './tiles/trains.js';
 import { watchCalendars } from './calendars.js';
+import { watchWeather } from './weather.js';
+import { summarize } from './tiles/weather-data.js';
 import { mountNight } from './night.js';
 import { startDiag } from './diag.js';
 import { clockIsSane } from './time.js';
@@ -11,9 +13,11 @@ import { clockIsSane } from './time.js';
 window.__glance = true; // tells the watchdog in index.html that the bundle started
 
 const $ = (id) => document.getElementById(id);
-const updateNight = mountNight($('night'));
+const setTrainsAsleep = mountTrains($('trains'));
+const updateNight = mountNight($('night'), setTrainsAsleep);
 const bootedAt = Date.now();
 let events = []; // Google calendar occurrences, refreshed every 10 minutes
+let forecast = null; // { daily, hourly } from weather.gov, refreshed every 30 minutes
 let reloadDue = false, lastServerCheck = 0;
 
 // Is the server (the Mac) answering? A reload while it's asleep would swap a working dashboard
@@ -30,7 +34,7 @@ function serverUp() {
 // at midnight or when "Next up" moves on).
 function tick() {
   const now = new Date();
-  renderClock($('clock'), now);
+  renderClock($('clock'), now, forecast && summarize(forecast.daily, forecast.hourly, now));
   updateNight(now);
   if (clockIsSane(now, __BUILT_AT__)) renderCalendar($('cal'), now, events);
   // Daily reload from 3 a.m. clears slow leaks and picks up new content and photos. If the server
@@ -56,6 +60,10 @@ watchCalendars((list) => {
   events = list;
   if (clockIsSane(new Date(), __BUILT_AT__)) renderCalendar($('cal'), new Date(), events);
 });
+watchWeather((f) => {
+  forecast = f;
+  const now = new Date();
+  renderClock($('clock'), now, summarize(f.daily, f.hourly, now));
+});
 startPhotos($('photo'));
-mountTrains($('trains'));
 startDiag();

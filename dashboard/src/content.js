@@ -17,9 +17,9 @@ export const calendars = [
   { id: 'duckville', name: 'Duckville', quiet: true },
 ];
 
-// Metro banner along the bottom: live WMATA arrivals for one station, through the Mac's
-// /api/trains (the API key lives in dashboard/.env.local). Station codes: WMATA's jStations list.
-// `group` is the platform track; name each one by where its trains go.
+// Metro banner along the bottom: live WMATA arrivals for one station (the API key lives in
+// dashboard/.env.local), not asked for while the night clock is up. Station codes: WMATA's
+// jStations list. `group` is the platform track; name each one by where its trains go.
 export const metro = {
   station: 'K04',
   name: 'Ballston',
@@ -28,6 +28,10 @@ export const metro = {
     { group: '2', label: 'To Vienna' },
   ],
 };
+
+// Weather on the clock tile, from the National Weather Service (US only, no key). Any spot near
+// home works; two decimals (about 1 km) is plenty.
+export const weather = { lat: 38.88, lon: -77.11 };
 
 export const settings = {
   weekStartsOn: 0,          // 0 = Sunday (like Google Calendar), 1 = Monday

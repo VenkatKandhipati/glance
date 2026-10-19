@@ -68,8 +68,11 @@ shows an error until it wakes. Bundling the dashboard into the kiosk app removes
 
 - [x] Metro banner in place of chores: WMATA arrivals at Ballston (`K04`) through `/api/trains`
       on the Mac's dev/preview server; the key lives in `dashboard/.env.local`
-- [ ] Weather and AQI from Open-Meteo (no key) through a Vite server middleware at `/api/weather`
-      and `/api/air`; the frame still only talks to the Mac
+- [x] Weather on the clock tile from the National Weather Service (`api.weather.gov`, no key),
+      called by the page itself (owner-approved, 2026-10-19): now, today's high and low, and when
+      rain starts if it's coming
+- [x] Metro banner stops asking WMATA while the night clock is up
+- [ ] Air quality (AQI)
 - [ ] `docs/api.md`: one JSON shape per feed, the contract the home server implements later
 - [ ] Cache the last good response on the frame and show it as stale when a fetch fails
 

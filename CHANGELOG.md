@@ -15,6 +15,13 @@ and versions follow [Semantic Versioning](https://semver.org).
 - Live Google Calendar in the calendar tile: dots on busy days, *Next up* with the event's time,
   and quiet calendars (Duckville) reduced to one line for what starts today or tomorrow.
 - The dashboard runs from inside the kiosk app (`npm run frame`), with no Mac.
+- Weather on the clock tile from the National Weather Service: the temperature and sky now,
+  today's high and low, and "rain from 4 pm" when rain is coming.
+
+### Changed
+
+- The Metro banner stops asking WMATA while the night clock is up, and asks again on the tap that
+  wakes the dashboard.
 
 ### Removed
 

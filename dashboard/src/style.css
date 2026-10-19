@@ -103,6 +103,8 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   /* stands in for the mockup's photo; a pre-darkened image can replace it later */
   background: radial-gradient(ellipse at 85% 20%, #1f2838 0%, #10141b 55%, #0b0d12 100%);
 }
+.clock-chips { display: flex; justify-content: space-between; }
+.chip-icon-wx { background: rgba(203, 180, 124, 0.16); color: var(--gold); }
 .clock-time {
   display: flex;
   align-items: baseline;
@@ -125,6 +127,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   line-height: 1;
 }
 .clock-greet b { display: block; font-weight: 400; color: var(--gold); }
+.clock-greet { max-width: 457px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* ------------------------------------------------------------------ calendar */
 .cal {

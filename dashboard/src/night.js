@@ -1,9 +1,10 @@
 // Night clock: a dim red clock on black during the night window once nobody has touched the
 // screen for a while. A tap brings the dashboard back. The clock drifts a little against burn-in.
+// onShow(true/false) hears when it comes up and goes away, so live tiles can stop asking meanwhile.
 import { settings } from './content.js';
 import { DAYS, MONTHS, clockParts } from './time.js';
 
-export function mountNight(el) {
+export function mountNight(el, onShow) {
   const cfg = settings.night;
   let idle = 0;
 
@@ -28,6 +29,7 @@ export function mountNight(el) {
     e.stopPropagation();
     idle = 0;
     el.hidden = true;
+    onShow(false);
   });
 
   setInterval(() => {
@@ -36,8 +38,10 @@ export function mountNight(el) {
     if (el.hidden && idle >= cfg.idleSeconds && inWindow(now)) {
       paint(now);
       el.hidden = false;
+      onShow(true);
     } else if (!el.hidden && !inWindow(now)) {
       el.hidden = true; // morning: back to the dashboard on its own
+      onShow(false);
     }
   }, 1000);
 

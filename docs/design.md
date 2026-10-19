@@ -62,6 +62,9 @@ All in [`dashboard/src/style.css`](../dashboard/src/style.css) as custom propert
   its line's colour. The next train is ink, the two after it muted; arriving or boarding reads
   "Now" in gold. No destinations or units. WMATA line colours: Orange `#ed8b00`, Silver
   `#919d9d`, Red `#bf0d3e`, Blue `#009cde`, Yellow `#ffd100`, Green `#00b140`.
+- **Weather:** a pill at the clock tile's top right (gold-tinted icon chip, "H 65° · L 48°", or
+  "Low 48°" after dark) and the greeting's second line ("62° and mostly sunny"). Without a
+  forecast the line falls back to "Here's your day."
 - **Calendar agenda:** under the month, a quiet calendar's line (small-caps name, then the day in
   gold and the event) and *Next up* (label, title clamped to two lines, gold when-line). Only
   non-quiet calendars and marked dates put dots on the grid.

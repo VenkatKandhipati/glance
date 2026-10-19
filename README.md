@@ -12,15 +12,16 @@ keep running for weeks with nobody touching it.
 
 ## Features
 
-- **Clock and greeting.** A large serif clock with a greeting that follows the day
-  ("Good morning." through "Good night.").
+- **Clock, greeting and weather.** A large serif clock with a greeting that follows the day,
+  then the weather: *62° and mostly sunny*, or *62°, rain from 4 pm* when rain is coming, with
+  today's high and low in a pill. From the National Weather Service, with no key.
 - **Month calendar, live from Google Calendar.** Today highlighted, dots on busy days, and *Next
   up*: your next event with its time (*Train to Washington DC, Mon 19 Oct · 7:01 pm*). A busy group
   calendar can be marked quiet: no dots, just one line when something starts today or tomorrow.
 - **Photos.** Your own photos crossfade in the large tile. A script shrinks them to the frame's
   size first, HEIC included, so the frame never decodes a 12-megapixel original.
-- **Metro.** Live WMATA arrivals at your station in both directions, with each line's colour. The
-  Mac fetches them with your API key, so the key never reaches the frame.
+- **Metro.** Live WMATA arrivals at your station in both directions, with each line's colour. It
+  stops asking while the night clock is up.
 - **Night clock.** After 10 p.m., two idle minutes turn the screen into a dim red clock on black.
   It drifts a few pixels now and then so it doesn't burn in. One tap brings the dashboard back.
 - **Runs unattended.** It reloads itself if it fails to start and once a day at 3 a.m., and it
@@ -53,17 +54,17 @@ The full list, with reasons, is in [docs/frame.md](docs/frame.md).
  Photo frame (Android 8.1)                         Internet
  ┌─────────────────────────────────────┐  HTTPS    ┌──────────────────────┐
  │ Kiosk app (fullscreen WebView, Home)│ ────────▶ │ WMATA: Metro times   │
- │  https://glance.local/ ← from APK   │           └──────────────────────┘
- │  /photos/ ← frame's storage         │
- └─────────────────────────────────────┘
+ │  https://glance.local/ ← from APK   │           │ Google Calendar feeds│
+ │  /photos/ ← frame's storage         │           │ weather.gov forecast │
+ └─────────────────────────────────────┘           └──────────────────────┘
         ▲ npm run frame (USB): build, install, copy photos
  Mac
 ```
 
 The frame boots straight into a fullscreen kiosk app that serves the dashboard from inside itself,
-so it runs with the Mac off; only the Metro banner goes online. The Mac builds it and installs
-updates over USB. Later a home server adds live data (weather, news, music) and takes over the
-WMATA call, so no key lives on the frame; see the [roadmap](docs/roadmap.md).
+so it runs with the Mac off; only trains, calendars and weather go online. The Mac builds it and installs
+updates over USB. Later a home server adds more live data (news, music) and takes over the
+WMATA and calendar calls, so no secret lives on the frame; see the [roadmap](docs/roadmap.md).
 
 ## Getting started
 
