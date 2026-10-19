@@ -54,7 +54,7 @@ The frame only needs the Mac when the page loads; a frame that starts up while t
 shows an error until it wakes. Bundling the dashboard into the kiosk app removes the Mac entirely.
 
 - [x] Fork the kiosk app from wesbos/photo-frame-dashboard into `kiosk/` (moved up to Phase 0,
-      because the stock frame had no kiosk): Glance's own name; own icon still to do
+      because the stock frame had no kiosk): Glance's own name and icon
 - [x] Build the dashboard into the app and serve it to the WebView from inside the app
       (`shouldInterceptRequest` on a fixed `https://glance.local/` origin), so it works with no
       network at all; photos live on the frame's storage, so new ones need no reinstall
@@ -94,8 +94,9 @@ shows an error until it wakes. Bundling the dashboard into the kiosk app removes
       photo → next; the time → night clock
 - [x] Night: red clock 22:00–00:00, backlight fully off 00:00–08:00 (kiosk 0.3, through root)
 - [x] `?demo` mode and README screenshots with nothing personal
-- [ ] Weather warnings on Home, not just the Weather screen
-- [ ] Kiosk icon of Glance's own
+- [x] Weather warnings on Home: the temperature pill turns red with a warning sign, and the
+      greeting's second line names the warning
+- [x] Kiosk icon of Glance's own: a gold G on the tile colour (vector, adaptive on Android 8)
 - [ ] Touch calibration, if smaller targets are ever needed
 
 ## Phase 3 — Home server
@@ -115,6 +116,19 @@ shows an error until it wakes. Bundling the dashboard into the kiosk app removes
     decodes less at each change (each one currently adds a few long frames).
   - A per-photo override (skip, or a fixed focus point) for when detection picks the wrong
     subject; rerun the crops whenever the tile's size changes.
+- [ ] Photos from Google Photos (researched 2026-10-19). Since 31 March 2025 Google's Library API
+      only returns photos an app uploaded itself; reading your library or an album, shared ones
+      included, is gone. What's left:
+  - **Picker API** (official): you pick photos in Google Photos on your phone; the server then has
+    60 minutes to download them, and keeps its own copies. Needs a Google Cloud project, OAuth
+    and a stored refresh token. Not automatic: new photos mean picking again.
+  - **A shared album's public link** (unofficial): the album's web page lists its photos, and
+    Google resizes them on request (`=w1280-h800`). Automatic and keyless, but it can break
+    whenever Google changes that page, and anyone with the link can see the album.
+  - Either way it belongs on the home server, not the frame: the frame would hold an OAuth token
+    to your whole Google account (Picker) or depend on scraping (album link), and it gains
+    nothing over the server downloading, smart-cropping and serving the photos. Start with the
+    album link, behind a small module that the Picker or Immich can replace.
 
 ## Phase 4 — Living with it
 

@@ -107,6 +107,10 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 }
 .clock-chips { display: flex; justify-content: space-between; }
 .chip-icon-wx { background: rgba(203, 180, 124, 0.16); color: var(--gold); }
+/* a weather warning: the alert colours of the Weather screen */
+.chip-alert { background: rgba(191, 13, 62, 0.18); border-color: rgba(242, 167, 184, 0.3); color: #ffd6df; }
+.chip-alert .chip-icon-wx { background: rgba(191, 13, 62, 0.3); color: #f2a7b8; }
+.clock-alert { color: #f2a7b8; }
 .clock-time {
   display: flex;
   align-items: baseline;

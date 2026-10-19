@@ -75,6 +75,10 @@ All in [`dashboard/src/style.css`](../dashboard/src/style.css) as custom propert
   buttons (icon and label), the current screen tinted gold. It slides in and out (transform only).
 - **Day sheet:** a panel over a dimmed screen: the day in serif, 76 px round ‹ › buttons, then each
   event with its time in its calendar's colour and a bar of the same colour.
+- **Weather warning:** the temperature pill turns red (`rgba(191, 13, 62, 0.18)` with `#ffd6df`
+  text and a warning sign), and the greeting's second line names the warning in `#f2a7b8`.
+- **App icon:** a gold (`#cbb47c`) G drawn as one round-capped stroke, like a clock face with a
+  hand at three, on the tile colour `#11151c`.
 - **Touch:** every target is at least 76 px, because the frame reads taps low (docs/frame.md).
 - **No** shadows, blur, gradients that animate, or motion other than photo crossfades, the side
   bar's slide and the night clock's drift.

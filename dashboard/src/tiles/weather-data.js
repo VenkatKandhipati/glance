@@ -135,14 +135,16 @@ export function forecastDays(daily, n) {
 }
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-// Active warnings, watches and advisories from /alerts/active: { event, ends }, soonest-ending
-// first, one per kind.
+// Active warnings, watches and advisories from /alerts/active: { event, ends }, most severe first
+// (then soonest-ending), one per kind.
+const SEVERITY = { Extreme: 0, Severe: 1, Moderate: 2, Minor: 3 };
+const rank = (a) => (a.severity in SEVERITY ? SEVERITY[a.severity] : 4);
 export function activeAlerts(json, now) {
   const seen = {};
   return ((json && json.features) || []).map((f) => f.properties || {})
-    .map((p) => ({ event: p.event || '', ends: p.ends || p.expires ? new Date(p.ends || p.expires) : null }))
+    .map((p) => ({ event: p.event || '', severity: p.severity || '', ends: p.ends || p.expires ? new Date(p.ends || p.expires) : null }))
     .filter((a) => a.event && (!a.ends || a.ends > now) && !seen[a.event] && (seen[a.event] = true))
-    .sort((a, b) => (a.ends || Infinity) - (b.ends || Infinity));
+    .sort((a, b) => rank(a) - rank(b) || (a.ends || Infinity) - (b.ends || Infinity));
 }
 
 // Sunrise and sunset on `day` at lat/lon (NOAA's simplified equations, within a minute or two).

@@ -24,6 +24,9 @@ and versions follow [Semantic Versioning](https://semver.org).
 - The screen goes fully off from midnight to 8 a.m. (kiosk 0.3 turns the backlight off through
   root); a tap wakes it.
 - `?demo` mode, and new README screenshots taken with it.
+- Weather warnings on Home: the temperature pill turns red with a warning sign and the greeting
+  names the warning.
+- Glance's own app icon (kiosk 0.4).
 
 ### Changed
 

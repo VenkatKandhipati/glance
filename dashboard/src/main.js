@@ -51,7 +51,8 @@ function serverUp() {
 // Redraws whatever shows the date or the weather. Each tile only touches the DOM when its markup
 // changed, so this is cheap to call every minute and on every refresh.
 function draw(now) {
-  renderClock($('clock'), now, weatherNow(now));
+  const alerts = forecast && forecast.alerts ? forecast.alerts.filter((a) => !a.ends || a.ends > now) : [];
+  renderClock($('clock'), now, weatherNow(now), alerts[0] || null);
   if (!clockIsSane(now, __BUILT_AT__)) return;
   renderCalendar($('cal'), now, events);
   if (nav.current() === 'week') renderWeek($('week'), now, events);

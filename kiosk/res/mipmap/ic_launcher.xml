@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 6–7: the same G on a rounded tile, as one vector. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp" android:height="48dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+  <path
+      android:pathData="M30,6 H78 A24,24 0 0,1 102,30 V78 A24,24 0 0,1 78,102 H30 A24,24 0 0,1 6,78 V30 A24,24 0 0,1 30,6 Z"
+      android:fillColor="#11151C" />
+  <path
+      android:pathData="M69.56,38.44 A22,22 0 1,0 76,54 H56"
+      android:strokeColor="#CBB47C"
+      android:strokeWidth="7"
+      android:strokeLineCap="round"
+      android:strokeLineJoin="round"
+      android:fillColor="#00000000" />
+</vector>

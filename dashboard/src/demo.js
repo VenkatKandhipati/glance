@@ -1,5 +1,5 @@
 // ?demo: made-up events, trains and weather, and a public-domain photo, for screenshots that show
-// nothing personal (`?demo&screen=week` opens a screen). The clock reads 8:42 am the day after
+// nothing personal (`?demo&screen=week` opens a screen, `?demo&alert` adds a weather warning). The clock reads 8:42 am the day after
 // the build, so screenshots always look the same. Imported first by main.js, before anything
 // reads the time.
 export const DEMO = /[?&]demo(&|=|$)/.test(location.search);
@@ -86,5 +86,6 @@ export function demoForecast() {
     daily.push({ startTime: iso(dayStart), endTime: iso(nightStart), isDaytime: true, temperature: d[0], icon: icon(false, d[2]), probabilityOfPrecipitation: { value: d[4] } });
     daily.push({ startTime: iso(nightStart), endTime: iso(next), isDaytime: false, temperature: d[1], icon: icon(true, d[3]), probabilityOfPrecipitation: { value: d[4] } });
   });
-  return { daily, hourly, alerts: [] };
+  const alerts = /[?&]alert(&|$)/.test(location.search) ? [{ event: 'Wind Advisory', severity: 'Minor', ends: at(0, 18) }] : [];
+  return { daily, hourly, alerts };
 }

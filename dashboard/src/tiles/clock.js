@@ -1,6 +1,7 @@
 // Clock tile: date pill, weather pill (the temperature now), time, greeting with the weather.
-// Redrawn once a minute.
-import { DAYS, MONTHS, clockParts, greeting } from '../time.js';
+// During a weather warning the pill turns red with a warning sign and the greeting's second line
+// names it ("Heat Advisory."); the Weather screen has the rest. Redrawn once a minute.
+import { DAYS, MONTHS, clockParts, esc, greeting } from '../time.js';
 import { weatherLine } from './weather-data.js';
 
 const svg = (body, size) => '<svg width="' + (size || 18) + '" height="' + (size || 18) + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' + body + '</svg>';
@@ -22,16 +23,25 @@ export const ICONS = {
   wind: svg('<path d="M3 9h11a3 3 0 1 0-3-3M3 15h15a3 3 0 1 1-3 3"/>'),
 };
 
-function weatherChip(w) {
-  return '<span class="chip"><span class="chip-icon chip-icon-wx">' + (ICONS[w.icon] || ICONS.cloud) + '</span>' + w.temp + '°</span>';
+export const WARNING = svg('<path d="M12 3l10 18H2z"/><path d="M12 10v4M12 17.5h.01"/>');
+
+function weatherChip(w, alert) {
+  return '<span class="chip' + (alert ? ' chip-alert' : '') + '"><span class="chip-icon chip-icon-wx">' +
+    (alert ? WARNING : ICONS[w.icon] || ICONS.cloud) + '</span>' + w.temp + '°</span>';
 }
 
-// w: summarize()'s weather, or null while there's none to show.
-export function renderClock(el, now, w) {
+function secondLine(w, alert) {
+  if (alert) return '<span class="clock-alert">' + esc(alert.event) + '.</span>';
+  return w ? weatherLine(w) : 'Here’s your day.';
+}
+
+// w: summarize()'s weather, or null while there's none to show. alert: the most severe active
+// weather alert, or null.
+export function renderClock(el, now, w, alert) {
   const { time, ampm } = clockParts(now);
   el.innerHTML =
     '<div class="clock-chips"><span class="chip"><span class="chip-icon">' + CAL_ICON + '</span>' +
-    DAYS[now.getDay()] + ' · ' + now.getDate() + ' ' + MONTHS[now.getMonth()] + '</span>' + (w ? weatherChip(w) : '') + '</div>' +
+    DAYS[now.getDay()] + ' · ' + now.getDate() + ' ' + MONTHS[now.getMonth()] + '</span>' + (w ? weatherChip(w, alert) : '') + '</div>' +
     '<div class="clock-time serif">' + time + '<span class="clock-ampm">' + ampm + '</span></div>' +
-    '<div class="clock-greet serif"><b>' + greeting(now) + '</b>' + (w ? weatherLine(w) : 'Here’s your day.') + '</div>';
+    '<div class="clock-greet serif"><b>' + greeting(now) + '</b>' + secondLine(w, alert) + '</div>';
 }

@@ -2,7 +2,7 @@
 // the next 12 hours, and the week. Active alerts run across the top. Drawn from the forecast the
 // clock tile already has; nothing extra is fetched.
 import { weather } from '../content.js';
-import { ICONS } from '../tiles/clock.js';
+import { ICONS, WARNING } from '../tiles/clock.js';
 import { summarize, nextHours, forecastDays, sunTimes } from '../tiles/weather-data.js';
 import { timeText } from '../tiles/calendar.js';
 import { esc } from '../time.js';
@@ -10,7 +10,6 @@ import { esc } from '../time.js';
 const icon = (name) => ICONS[name] || ICONS.cloud;
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 const hourText = (d) => (d.getHours() % 12 || 12) + (d.getHours() >= 12 ? ' pm' : ' am');
-const ALERT = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l10 18H2z"/><path d="M12 10v4M12 17.5h.01"/></svg>';
 
 export function renderWeatherScreen(el, now, forecast) {
   const w = forecast && summarize(forecast.daily, forecast.hourly, now);
@@ -26,8 +25,8 @@ export function renderWeatherScreen(el, now, forecast) {
     const details = [];
     if (w.wind) details.push('Wind ' + esc(w.wind));
     if (w.humidity !== null) details.push('Humidity ' + w.humidity + '%');
-    const alerts = (forecast.alerts || []).map((a) =>
-      '<li>' + ALERT + '<b>' + esc(a.event) + '</b>' + (a.ends ? '<span>until ' + timeText(a.ends) + '</span>' : '') + '</li>').join('');
+    const alerts = (forecast.alerts || []).filter((a) => !a.ends || a.ends > now).map((a) =>
+      '<li>' + WARNING + '<b>' + esc(a.event) + '</b>' + (a.ends ? '<span>until ' + timeText(a.ends) + '</span>' : '') + '</li>').join('');
     const hours = nextHours(forecast.hourly, now, 12).map((h, i) =>
       '<li><span class="wx-h">' + (i === 0 ? 'Now' : hourText(h.at)) + '</span><span class="wx-i">' + icon(h.icon) + '</span>' +
       '<b>' + h.temp + '°</b><span class="wx-pop">' + (h.pop >= 20 ? h.pop + '%' : '') + '</span></li>').join('');

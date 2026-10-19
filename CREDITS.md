@@ -28,8 +28,8 @@ resized.
 ## Code adapted from other projects
 
 `kiosk/` is adapted from `dashboard/kiosk` in wesbos/photo-frame-dashboard (commit `48b4ab0`),
-with Wes Bos's permission: the app source, manifest, build script, accessibility config and icon.
-Glance changed the package name, labels and default URL.
+with Wes Bos's permission: the app source, manifest, build script and accessibility config.
+Glance changed the package name, labels and default URL, and drew its own icon.
 
 `dashboard/src/diag.js` is adapted from `dashboard/src/diag.js` in huntsyea/kitchen-frame:
 

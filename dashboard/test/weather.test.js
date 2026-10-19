@@ -70,10 +70,11 @@ test('days pair a daytime period with the night after it', () => {
 });
 
 test('alerts: current ones only, one per kind', () => {
-  const f = (event, ends) => ({ properties: { event, ends } });
-  const list = activeAlerts({ features: [f('Heat Advisory', '2026-10-19T20:00:00-04:00'), f('Heat Advisory', '2026-10-19T20:00:00-04:00'),
-    f('Wind Advisory', '2026-10-19T10:00:00-04:00'), f('Flood Watch', null)] }, at(13));
-  assert.deepEqual(list.map((a) => a.event), ['Heat Advisory', 'Flood Watch']);
+  const f = (event, ends, severity) => ({ properties: { event, ends, severity } });
+  const list = activeAlerts({ features: [f('Heat Advisory', '2026-10-19T20:00:00-04:00', 'Moderate'), f('Heat Advisory', '2026-10-19T20:00:00-04:00', 'Moderate'),
+    f('Wind Advisory', '2026-10-19T10:00:00-04:00', 'Minor'), f('Flood Watch', null, 'Moderate'),
+    f('Severe Thunderstorm Warning', '2026-10-19T15:00:00-04:00', 'Severe')] }, at(13));
+  assert.deepEqual(list.map((a) => a.event), ['Severe Thunderstorm Warning', 'Heat Advisory', 'Flood Watch']);
 });
 
 test('sunrise and sunset in Arlington match published times within two minutes', () => {
