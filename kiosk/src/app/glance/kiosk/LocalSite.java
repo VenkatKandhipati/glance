@@ -7,8 +7,12 @@ import android.webkit.WebResourceResponse;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.security.MessageDigest;
+import java.util.regex.Pattern;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -24,7 +28,11 @@ import org.json.JSONArray;
  *   /sdcard/Android/data/app.glance.kiosk/files/photos/ (no permission needed, no reinstall)
  * - /ics?url=<https://calendar.google.com/…> fetches a Google calendar's iCal feed, which the page
  *   can't fetch itself (Google sends no CORS headers). Only that host, only HTTPS.
- * The host only exists inside this WebView; only /ics goes over the network.
+ * - /img?url=<https://…> fetches a picture from a public collection whose host sends no CORS
+ *   headers (Cleveland Museum of Art, NASA's image library), so the page can measure its pixels
+ *   before showing it (dashboard/src/picture-check.js). Only those hosts, only HTTPS. Kept for a
+ *   week in the app's cache folder, so a picture shown many times is downloaded once.
+ * The host only exists inside this WebView; only /ics and /img go over the network.
  */
 final class LocalSite {
   static final String ORIGIN = "https://glance.local/";
@@ -42,10 +50,16 @@ final class LocalSite {
     TYPES.put("jpg", "image/jpeg");
   }
 
+  private static final Pattern IMAGE_HOSTS =
+      Pattern.compile("^https://(openaccess-cdn\\.clevelandart\\.org|images-assets\\.nasa\\.gov)/.*");
+  private static final long IMAGE_MAX_BYTES = 8 << 20;
+  private static final long IMAGE_KEEP_MS = 7 * 24 * 3600 * 1000L;
+
   private final Context context;
 
   LocalSite(Context context) {
     this.context = context;
+    pruneImages();
   }
 
   /** A response for glance.local URLs, or null to let the WebView load anything else itself. */
@@ -54,6 +68,7 @@ final class LocalSite {
     String path = url.getPath() == null ? "/" : url.getPath();
     try {
       if (path.equals("/ics")) return calendar(url.getQueryParameter("url"));
+      if (path.equals("/img")) return image(url.getQueryParameter("url"));
       if (path.equals("/photos/")) return listPhotos();
       if (path.startsWith("/photos/")) return photo(path.substring("/photos/".length()));
       return asset(path.equals("/") ? "/index.html" : path);
@@ -93,6 +108,64 @@ final class LocalSite {
       return respond(502, "text/plain", new ByteArrayInputStream(new byte[0]));
     }
     return respond(200, "text/calendar", c.getInputStream());
+  }
+
+  private File imageDir() {
+    return new File(context.getCacheDir(), "img");
+  }
+
+  private void pruneImages() {
+    File[] files = imageDir().listFiles();
+    if (files == null) return;
+    long cutoff = System.currentTimeMillis() - IMAGE_KEEP_MS;
+    for (File f : files) {
+      if (f.lastModified() < cutoff && !f.delete()) Log.w(MainActivity.TAG, "Could not delete " + f);
+    }
+  }
+
+  // Runs on the WebView's network thread, like calendar().
+  private WebResourceResponse image(String target) throws IOException {
+    if (target == null || !IMAGE_HOSTS.matcher(target).matches()) throw new IOException("not an allowed picture host");
+    File dir = imageDir();
+    if (!dir.isDirectory() && !dir.mkdirs()) throw new IOException("no cache folder");
+    File file = new File(dir, sha1(target) + ".jpg");
+    if (!file.exists()) {
+      HttpURLConnection c = (HttpURLConnection) new URL(target).openConnection();
+      c.setConnectTimeout(10000);
+      c.setReadTimeout(30000);
+      String type = c.getContentType();
+      if (c.getResponseCode() != 200 || type == null || !type.startsWith("image/")
+          || !IMAGE_HOSTS.matcher(c.getURL().toString()).matches()) {
+        Log.w(MainActivity.TAG, "Picture fetch failed: HTTP " + c.getResponseCode() + " " + type);
+        return respond(502, "text/plain", new ByteArrayInputStream(new byte[0]));
+      }
+      File part = new File(dir, file.getName() + ".part");
+      try (InputStream in = c.getInputStream(); OutputStream out = new FileOutputStream(part)) {
+        byte[] buf = new byte[16384];
+        long total = 0;
+        for (int n; (n = in.read(buf)) > 0; ) {
+          total += n;
+          if (total > IMAGE_MAX_BYTES) throw new IOException("picture too large");
+          out.write(buf, 0, n);
+        }
+      } catch (IOException e) {
+        part.delete();
+        throw e;
+      }
+      if (!part.renameTo(file)) throw new IOException("could not save picture");
+    }
+    return respond(200, "image/jpeg", new FileInputStream(file));
+  }
+
+  private static String sha1(String s) throws IOException {
+    try {
+      byte[] d = MessageDigest.getInstance("SHA-1").digest(s.getBytes(StandardCharsets.UTF_8));
+      StringBuilder hex = new StringBuilder();
+      for (byte b : d) hex.append(String.format("%02x", b));
+      return hex.toString();
+    } catch (java.security.NoSuchAlgorithmException e) {
+      throw new IOException(e);
+    }
   }
 
   private WebResourceResponse asset(String path) throws IOException {

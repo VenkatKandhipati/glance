@@ -29,9 +29,9 @@ and versions follow [Semantic Versioning](https://semver.org).
 - Glance's own app icon (kiosk 0.4).
 - Pictures from public collections between your photos, each with a credit line: a painting of
   the day (Art Institute of Chicago), NASA's Astronomy Picture of the Day, Earth from the Space
-  Station (NASA) and featured nature photos (Wikimedia Commons). Half of them are South Asian:
-  paintings from the Cleveland Museum of Art, the Met and the Art Institute of Chicago, and
-  landscapes of the Himalayas, India, Nepal and Sri Lanka.
+  Station (NASA), featured nature photos (Wikimedia Commons, South Asia among them) and
+  paintings from the Cleveland Museum of Art. Each is measured on the frame first: only sharp,
+  well-sized pictures dark enough for the dashboard are shown (`featured.style`).
 
 ### Changed
 

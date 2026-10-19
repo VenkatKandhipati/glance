@@ -24,6 +24,9 @@ showing the Mac's copy while developing.
 - **Offline:** if the page fails to load, a native "Connect to Wi-Fi?" or "Can't reach the
   dashboard" screen covers WebView's error page and the kiosk retries every 5 s.
 - **Remote debugging** (`chrome://inspect`) is on only for a launch with `--ez debug true`.
+- **Pictures:** `/img?url=` fetches a picture from the Cleveland Museum of Art's CDN or NASA's
+  image library (hosts that send no CORS headers) so the page can measure it before showing it;
+  each is kept a week in the app's cache folder. See [`LocalSite.java`](src/app/glance/kiosk/LocalSite.java).
 - **Screen off:** the page can call `GlanceKiosk.setScreenOn(false)` to turn the backlight fully
   off (Android's lowest brightness only dims this panel). The app writes the backlight through
   root (`su 0`), and writes Android's own brightness back on `setScreenOn(true)` or when it leaves

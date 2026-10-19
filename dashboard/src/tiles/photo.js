@@ -45,7 +45,8 @@ function show(el, urls) {
   const picker = createPicker(urls);
   const nextFeatured = startFeatured();
   const layers = [new Image(), new Image()];
-  layers.forEach((img) => { img.className = 'photo-img'; img.alt = ''; el.appendChild(img); });
+  // CORS mode, like picture-check.js's loads, so a picture it measured comes from the cache.
+  layers.forEach((img) => { img.className = 'photo-img'; img.alt = ''; img.crossOrigin = 'anonymous'; el.appendChild(img); });
   // The credit line under a picture from featured-data.js; empty for your own photos.
   const caption = el.appendChild(document.createElement('div'));
   caption.className = 'photo-cap';

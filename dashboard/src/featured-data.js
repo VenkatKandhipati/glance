@@ -1,10 +1,10 @@
-// Pictures from public sources that the photo tile shows between your own photos: the Art
-// Institute of Chicago's public-domain paintings, South Asian paintings from the Cleveland Museum
-// of Art, the Met and the Art Institute, NASA's Astronomy Picture of the Day and its Space Station
-// photos of Earth, and Wikimedia Commons' featured nature photos, of South Asia among others. Each answer
-// becomes { url, caption, fit } items: `fit` is 'contain' for pictures that mustn't be cropped
-// (paintings, astronomy) and 'cover' for photos. Kept free of the DOM and fetch so it can be
-// unit tested.
+// Pictures from public sources that the photo tile shows between your own photos: paintings from
+// the Art Institute of Chicago and the Cleveland Museum of Art (South Asian ones among them), NASA's
+// Astronomy Picture of the Day and its Space Station photos of Earth, and Wikimedia Commons'
+// featured nature photos, of South Asia among others. Each answer becomes { url, caption, fit }
+// candidates: `fit` is 'contain' for pictures that mustn't be cropped (paintings, astronomy) and
+// 'cover' for photos. The frame measures every candidate before showing it (picture-check.js).
+// Kept free of the DOM and fetch so it can be unit tested.
 
 // The same pick all day, a different one each day: a whole-day count from 1970 in local time.
 export function dayNumber(now) {
@@ -24,80 +24,64 @@ export function pickSome(list, n, seed) {
 
 const stripTags = (html) => String(html || '').replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
 
-// ---- Art Institute of Chicago: one public-domain painting a day. Its IIIF server serves any
-// width up to 843 px without a key.
-export const AIC_SEARCH = 'https://api.artic.edu/api/v1/artworks/search?' + [
+// ---- Art Institute of Chicago: public-domain paintings. Its IIIF server serves any width up to
+// 843 px without a key. Its search reaches only the first 1,000 results.
+const q = (parts) => parts.map((p) => p.replace(/\[/g, '%5B').replace(/\]/g, '%5D')).join('&');
+export const AIC_SEARCH = 'https://api.artic.edu/api/v1/artworks/search?' + q([
   'query[bool][must][][term][is_public_domain]=true',
   'query[bool][must][][term][artwork_type_id]=1', // Painting
   'query[bool][must][][exists][field]=image_id',
   'fields=id,title,artist_title,artist_display,date_display,image_id',
-].map((p) => p.replace(/\[/g, '%5B').replace(/\]/g, '%5D')).join('&');
+]);
+// Paintings whose main colour is dark (the museum records each one's dominant colour): about 550,
+// so most of what the frame measures passes its own darkness check.
+export const AIC_DARK_SEARCH = AIC_SEARCH + '&' + q(['query[bool][must][][range][color.l][lt]=45']);
+export const AIC_DARK_PAGES = 45; // of 12
+// Its 53 public-domain paintings from India.
+export const AIC_INDIA_SEARCH = AIC_SEARCH + '&' + q(['query[bool][must][][match][place_of_origin]=India']);
 
-// The `n`th painting with an image on a page of results (wrapping round).
-export function paintingItem(json, n) {
-  const arts = aicItems(json, 'Painting of the day · ', '');
-  return arts.length ? arts[(n || 0) % arts.length] : null;
-}
-
-// Every work with an image on a page of Art Institute results, captioned "<prefix>title, artist,
-// date<suffix>".
-export function aicItems(json, prefix, suffix) {
+// Every work with an image on a page of results, captioned "title, artist, date · Art Institute of
+// Chicago".
+export function aicItems(json) {
   const iiif = (json && json.config && json.config.iiif_url) || 'https://www.artic.edu/iiif/2';
   return ((json && json.data) || []).filter((a) => a.image_id).map((art) => {
     const artist = art.artist_title || String(art.artist_display || '').split('\n')[0].replace(/\s*\(.*$/, '');
     return {
       url: iiif + '/' + art.image_id + '/full/843,/0/default.jpg',
-      caption: prefix + art.title + (artist ? ', ' + artist : '') + (art.date_display ? ', ' + art.date_display : '') + suffix,
+      caption: art.title + (artist ? ', ' + artist : '') + (art.date_display ? ', ' + art.date_display : '') + ' · Art Institute of Chicago',
       fit: 'contain',
     };
   });
 }
 
-// ---- South Asian paintings, from three museums with open-access collections and no key.
+// ---- Cleveland Museum of Art: about 3,900 CC0 paintings with a web image of 900–1,260 px, from
+// every department (European, American, Chinese, Japanese, and over 1,000 from India and the
+// Himalaya). `department` narrows it; the API returns up to 1,000 per query.
 const SOUTH_ASIA = /India|Pakistan|Nepal|Bangladesh|Sri Lanka|Bhutan|Deccan|Mughal|Rajasthan|Rajput|Pahari|Himal|Kashmir|Tibet|Bengal|Gujarat|Punjab/;
+export const CLEVELAND_PAINTINGS = 3900;
+export const CLEVELAND_SOUTH_ASIA = 'Indian and Southeast Asian Art';
 
-// Art Institute of Chicago: its 53 public-domain paintings from India.
-export const AIC_INDIA_SEARCH = AIC_SEARCH + '&' + 'query[bool][must][][match][place_of_origin]=India'.replace(/\[/g, '%5B').replace(/\]/g, '%5D');
-
-// Cleveland Museum of Art: over 1,000 paintings from its Indian and Southeast Asian department
-// (Mughal, Pahari, Rajput, Kalighat, Nepal, Tibet), each with a 900 px web image. CC0.
-export function clevelandUrl(skip) {
-  return 'https://openaccess-api.clevelandart.org/api/artworks/?department=Indian%20and%20Southeast%20Asian%20Art' +
-    '&type=Painting&has_image=1&cc0=1&limit=25&fields=title,culture,creation_date,images&skip=' + skip;
+export function clevelandUrl(skip, limit, department) {
+  return 'https://openaccess-api.clevelandart.org/api/artworks/?type=Painting&has_image=1&cc0=1' +
+    (department ? '&department=' + encodeURIComponent(department) : '') +
+    '&fields=title,culture,creation_date,creators,images&limit=' + limit + '&skip=' + skip;
 }
 
-export function clevelandItems(json) {
+// southAsia: only works whose culture names a South Asian place (the department includes
+// Southeast Asia too).
+export function clevelandItems(json, southAsia) {
   return ((json && json.data) || []).map((a) => {
     const culture = (a.culture || [])[0] || '';
     const web = a.images && a.images.web;
-    if (!web || !web.url || !SOUTH_ASIA.test(culture)) return null; // leave out Southeast Asia
+    if (!web || !web.url || (southAsia && !SOUTH_ASIA.test(culture))) return null;
+    const artist = String(((a.creators || [])[0] || {}).description || '').replace(/\s*\(.*$/, '');
     return {
       url: web.url,
-      caption: a.title + ', ' + culture.replace(/\s*\(.*\)$/, '') + (a.creation_date ? ', ' + a.creation_date : '') + ' · Cleveland Museum of Art',
+      caption: a.title + ', ' + (artist || culture.replace(/\s*\(.*\)$/, '')) + (a.creation_date ? ', ' + a.creation_date : '') +
+        ' · Cleveland Museum of Art',
       fit: 'contain',
     };
   }).filter(Boolean);
-}
-
-// The Met: about 750 Indian paintings in its Asian Art department. The search gives object IDs
-// (v1.1, paginated; v1 was retired in October 2026), and each object its own request.
-export function metSearchUrl(offset) {
-  return 'https://collectionapi.metmuseum.org/public/collection/v1.1/search?departmentId=6&hasImages=true&medium=Paintings&q=India&limit=12&offset=' + offset;
-}
-
-export function metObjectUrl(id) {
-  return 'https://collectionapi.metmuseum.org/public/collection/v1/objects/' + id;
-}
-
-export function metItem(o) {
-  if (!o || !o.isPublicDomain || !/^https:/.test(o.primaryImageSmall || '')) return null;
-  const where = o.culture || o.period || '';
-  return {
-    url: o.primaryImageSmall,
-    caption: o.title + (o.artistDisplayName ? ', ' + o.artistDisplayName : '') + (where ? ', ' + where : '') +
-      (o.objectDate ? ', ' + o.objectDate : '') + ' · The Met',
-    fit: 'contain',
-  };
 }
 
 // ---- NASA Astronomy Picture of the Day (api.nasa.gov). Days with a video are skipped: their
@@ -140,10 +124,13 @@ export function earthItems(json) {
   }).filter(Boolean);
 }
 
-// ---- Wikimedia Commons: featured photos of landscapes, mountains, waterfalls and forests,
-// scaled by Commons to 1280 px wide. Landscape-shaped ones only, so they fill the tile.
+// ---- Wikimedia Commons: featured nature photos, scaled by Commons to 1280 px wide.
+// Landscape-shaped ones only, so they fill the tile. The categories lean towards the dark and
+// the calm (fog, lakes, night skies, caves); sunsets are left out, being mostly bright orange.
 export const COMMONS_CATEGORIES = ['Featured pictures of landscapes', 'Featured pictures of mountains',
-  'Featured pictures of waterfalls', 'Featured pictures of forests'];
+  'Featured pictures of waterfalls', 'Featured pictures of forests', 'Featured pictures of lakes',
+  'Featured pictures of fog', 'Featured pictures of clouds', 'Featured pictures of coasts',
+  'Featured pictures of astronomy', 'Featured pictures of the Milky Way', 'Featured pictures of caves'];
 // Featured and quality photos of South Asia's landscapes and nature (about 430 in all).
 export const COMMONS_SOUTH_ASIA = ['Featured pictures of the Himalayas', 'Featured pictures of the Himalayas of India',
   'Featured pictures of landscapes in India', 'Quality images of nature in India', 'Featured pictures of Nepal',

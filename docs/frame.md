@@ -108,13 +108,17 @@ renderer. The kiosk window is up 1.5 s after launch.
   between the owner's photos, fetched once a day with no key: the Art Institute of Chicago
   (`api.artic.edu`, images from `www.artic.edu/iiif`), NASA (`api.nasa.gov` with the shared
   `DEMO_KEY`, `images-api.nasa.gov`, images from `apod.nasa.gov` and `images-assets.nasa.gov`)
-  and Wikimedia Commons (`commons.wikimedia.org`, images from `thumb.wikimedia.org`). For South
-  Asian art, also the Cleveland Museum of Art (`openaccess-api.clevelandart.org`, images from
-  `openaccess-cdn.clevelandart.org`) and the Met (`collectionapi.metmuseum.org`, images from
-  `images.metmuseum.org`). All send CORS headers. NASA's image library and the Art Institute's API
-  chain to Starfield Services Root G2, the Met to DigiCert Global Root G2, Cleveland to GlobalSign
-  Root CA, the rest to ISRG Root X1; all are in the frame's store. Checked from the kiosk's
-  WebView 2026-10-19: every API answered and every image loaded. No other service goes on the frame.
+  and Wikimedia Commons (`commons.wikimedia.org`, images from `thumb.wikimedia.org`), and the
+  Cleveland Museum of Art (`openaccess-api.clevelandart.org`, images from
+  `openaccess-cdn.clevelandart.org`). NASA's image library and the Art Institute's API chain to
+  Starfield Services Root G2, Cleveland to GlobalSign Root CA, the rest to ISRG Root X1; all are in
+  the frame's store. Checked from the kiosk's WebView 2026-10-19: every API answered and every
+  image loaded. (The Met was tried and dropped: its web images are about 500 px, too small.)
+- **Every public picture is measured before it's shown** (`picture-check.js`, in a worker): sharp
+  at its shown size, big enough, and dark enough for `featured.style`. Reading pixels needs CORS;
+  the Cleveland CDN and NASA's image library send none, so the kiosk fetches those two hosts'
+  pictures itself at `/img?url=` and keeps them a week in its cache folder. Measuring on the page's
+  main thread stalled it for up to 770 ms a picture; in the worker, no long tasks at all. No other service goes on the frame.
 - Trust store: the 2025 firmware ships a store from about 2023 (205 roots, newest March 2023),
   despite the 2020 security patch. It has ISRG Root X1 and X2, Sectigo R46 (WMATA's root), GTS,
   Amazon and DigiCert G2, but no roots from 2024 on, such as ISRG Root YR. A site on Let's
@@ -174,3 +178,4 @@ Record every change with its undo, newest last. All `su 0` commands run through 
 | 2026-10-19 | Full brightness: `settings put system screen_brightness 255` (was 179), `screen_brightness_mode` 0 (already manual). The night screen-off writes this setting back on a tap | `settings put system screen_brightness 179` |
 | 2026-10-19 | Kiosk with public pictures between the owner's photos (`npm run frame`): the page fetches from the Art Institute of Chicago, NASA and Wikimedia Commons once a day | `featured.every: 0` in `content.js`, or an older build |
 | 2026-10-19 | Kiosk with South Asian art and nature in the mix (`npm run frame`): adds the Cleveland Museum of Art and the Met | Drop `south-asian-art` / `south-asian-nature` from `featured.sources`, or an older build |
+| 2026-10-19 | Kiosk 0.5 (`npm run frame`): `/img` picture pass-through with a week's file cache in `/data/data/app.glance.kiosk/cache/img/`; public pictures measured before showing, dark style; the Met dropped | `adb install -r` an older build; `featured.style: 'any'` keeps the quality check only |

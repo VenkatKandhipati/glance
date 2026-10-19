@@ -37,19 +37,22 @@ export const weather = { name: 'Arlington', lat: 38.88, lon: -77.11 };
 // Pictures from public collections, shown between your photos with a credit line: every
 // `every`th photo is one of them (0 turns them off). Sources are taken in turn; list one twice to
 // see it twice as often, or drop it to stop it:
-//   painting            a public-domain painting of the day (Art Institute of Chicago)
-//   south-asian-art     Mughal, Rajput, Pahari, Kalighat and Himalayan paintings (Cleveland Museum
-//                       of Art, the Met, Art Institute of Chicago)
+//   painting            paintings (Art Institute of Chicago, darker ones; Cleveland Museum of Art)
+//   south-asian-art     Mughal, Rajput, Pahari and Himalayan paintings (Cleveland, Art Institute)
 //   apod                NASA's Astronomy Picture of the Day
 //   earth               Earth photographed from the International Space Station (NASA)
-//   nature              featured landscape, mountain, waterfall and forest photos (Wikimedia Commons)
+//   nature              featured photos of landscapes, mountains, lakes, fog, forests, waterfalls,
+//                       coasts, clouds, caves and the night sky (Wikimedia Commons)
 //   south-asian-nature  the Himalayas, India, Nepal, Kerala and Sri Lanka (Wikimedia Commons), and
 //                       the subcontinent from the Space Station (NASA)
-// Half of these are South Asian.
+// The frame measures each one first and shows only sharp, well-sized pictures in `style`:
+//   'dark' (mostly dark, little white, to sit with the navy dashboard), 'blue' (dark and mostly
+//   blue or teal) or 'any'.
 export const featured = {
   every: 4,
-  sources: ['south-asian-art', 'nature', 'south-asian-nature', 'painting',
-    'south-asian-art', 'earth', 'south-asian-nature', 'apod'],
+  style: 'dark',
+  sources: ['painting', 'nature', 'south-asian-nature', 'painting', 'nature', 'apod',
+    'south-asian-art', 'earth'],
 };
 
 export const settings = {

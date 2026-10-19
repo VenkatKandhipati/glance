@@ -1,6 +1,7 @@
 import { defineConfig, loadEnv } from 'vite';
 import { trainsMiddleware, incidentsMiddleware } from './server/trains.mjs';
 import { icsMiddleware } from './server/ics.mjs';
+import { imgMiddleware } from './server/img.mjs';
 
 // Live data the frame can't fetch itself, served from the same origin as the page. Secrets come
 // from dashboard/.env.local (gitignored) and stay on this server: no VITE_ prefix, so Vite never
@@ -9,11 +10,13 @@ function liveData(env) {
   const trains = trainsMiddleware(env.WMATA_API_KEY);
   const incidents = incidentsMiddleware(env.WMATA_API_KEY);
   const ics = icsMiddleware(env);
+  const img = imgMiddleware();
   // No return value: Vite treats a returned function as a post-middleware hook.
   const mount = (server) => {
     server.middlewares.use('/api/trains', trains);
     server.middlewares.use('/api/incidents', incidents);
     server.middlewares.use('/ics', ics);
+    server.middlewares.use('/img', img);
   };
   return { name: 'glance-live-data', configureServer: mount, configurePreviewServer: mount };
 }

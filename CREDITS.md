@@ -31,9 +31,8 @@ collections, each with its own credit line on screen: public-domain paintings fr
 [Astronomy Picture of the Day](https://apod.nasa.gov/) (credits as given by APOD) and Space
 Station photos from the [NASA Image and Video Library](https://images.nasa.gov/), and featured
 photos from [Wikimedia Commons](https://commons.wikimedia.org/) under their authors' licences
-(shown with each). South Asian paintings also come from the open-access collections of the
-[Cleveland Museum of Art](https://www.clevelandart.org/open-access) (CC0) and the
-[Metropolitan Museum of Art](https://metmuseum.github.io/) (public domain). None of them is stored in this repository.
+(shown with each). Paintings also come from the open-access collection of the
+[Cleveland Museum of Art](https://www.clevelandart.org/open-access) (CC0). None of them is stored in this repository.
 
 ## Code adapted from other projects
 
