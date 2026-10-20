@@ -8,7 +8,7 @@
 //   adb pull /sdcard/Android/data/app.glance.kiosk/files/pomodoro.json
 import { pomodoro as cfg, settings } from '../content.js';
 import { DEMO, demoPomodoro } from '../demo.js';
-import { DAYS, clockIsSane, esc } from '../time.js';
+import { DAYS, esc } from '../time.js';
 import { timeText } from '../tiles/calendar.js';
 import * as P from '../pomodoro-data.js';
 
@@ -33,7 +33,7 @@ function load() {
 
 function save(data) {
   if (DEMO) return;
-  data.saved = Date.now();
+  data.saved = Math.max(Date.now(), (data.saved || 0) + 1); // never goes backwards with a wrong clock
   const text = P.pack(data);
   try { localStorage.setItem(KEY, text); } catch (e) { /* full or blocked; the backup still has it */ }
   try { if (window.GlanceFiles) window.GlanceFiles.write(FILE, text); } catch (e) { /* older kiosk */ }
@@ -66,12 +66,16 @@ function catButtons(selected) {
     '<button class="pm-cat pm-k' + i + (c.id === selected ? ' is-on' : '') + '" data-cat="' + esc(c.id) + '"><i></i>' + esc(c.name) + '</button>').join('');
 }
 
-function timerTile(data, now, confirming) {
-  const st = data.state, sane = clockIsSane(new Date(now), __BUILT_AT__);
+function timerTile(data, now, confirming, dropped) {
+  const st = data.state, sane = P.clockTrusted(st, now, __BUILT_AT__);
   const cat = st.phase === 'idle' ? data.cat : st.cat;
   const last = data.log[data.log.length - 1];
   let phase, note, actions;
-  if (st.phase === 'work') {
+  if (st.phase !== 'idle' && !sane) {
+    phase = st.phase === 'work' ? 'Deep work' : 'Break';
+    note = 'Waiting for the time from the network…';
+    actions = st.phase === 'work' ? '<button class="pm-btn' + (confirming ? ' is-confirm' : '') + '" data-act="stop">' + (confirming ? 'Tap again to stop' : 'Stop') + '</button>' : '';
+  } else if (st.phase === 'work') {
     phase = 'Deep work';
     note = (cat ? '<b>' + esc(catName(cat)) + '</b>. ' : '') + 'Tap another to change it.';
     actions = '<button class="pm-btn' + (confirming ? ' is-confirm' : '') + '" data-act="stop">' + (confirming ? 'Tap again to stop' : 'Stop') + '</button>';
@@ -83,7 +87,9 @@ function timerTile(data, now, confirming) {
     actions = '<button class="pm-btn" data-act="skip">End break</button><button class="pm-btn is-go" data-act="start">Start next</button>';
   } else {
     phase = 'Ready';
-    note = sane ? (cat ? 'Next: <b>' + esc(catName(cat)) + '</b>.' : 'Pick what it\'s for, then start.') : 'Waiting for the time from the network…';
+    note = !sane ? 'Waiting for the time from the network…'
+      : dropped ? 'The last session ended while the frame was off, so it wasn\'t logged.'
+      : cat ? 'Next: <b>' + esc(catName(cat)) + '</b>.' : 'Pick what it\'s for, then start.';
     actions = '<button class="pm-btn is-go" data-act="start"' + (sane ? '' : ' disabled') + '>Start ' + cfg.work + ' minutes</button>';
   }
   return '<section class="tile pm-timer is-' + st.phase + '"><div class="pm-flash"></div>' +
@@ -145,12 +151,12 @@ function statsTiles(data, now) {
 
 export function mountPomodoro(el, onCue) {
   const data = load();
-  let visible = false, confirmUntil = 0, offset = -1;
+  let visible = false, confirmUntil = 0, offset = -1, dropped = false;
 
   function render() {
     const now = Date.now();
     const html = '<header class="screen-head"><h1 class="serif">Pomodoro<i>,</i></h1><span>' + cfg.work + ' minutes deep work · ' + cfg.break + ' minutes break</span></header>' +
-      '<div class="pm-body">' + timerTile(data, now, now < confirmUntil) + statsTiles(data, new Date(now)) + '</div>';
+      '<div class="pm-body">' + timerTile(data, now, now < confirmUntil, dropped) + statsTiles(data, new Date(now)) + '</div>';
     if (el.__html !== html) { el.innerHTML = el.__html = html; offset = -1; }
     tickView(now);
   }
@@ -161,10 +167,12 @@ export function mountPomodoro(el, onCue) {
     if (!left) return;
     const end = P.phaseEnd(st, cfg);
     const total = (st.phase === 'break' ? cfg.break : cfg.work) * 60000;
-    const remaining = st.phase === 'idle' ? total : end - now;
-    const text = mmss(remaining);
+    const trusted = P.clockTrusted(st, now, __BUILT_AT__);
+    // An untrusted clock shows no countdown (it would read thousands of minutes) and a full ring.
+    const remaining = st.phase === 'idle' || !trusted ? total : end - now;
+    const text = st.phase !== 'idle' && !trusted ? '––:––' : mmss(remaining);
     if (left.textContent !== text) left.textContent = text;
-    const until = el.querySelector('.pm-until'), u = st.phase === 'idle' ? '' : 'until ' + timeText(new Date(end));
+    const until = el.querySelector('.pm-until'), u = st.phase === 'idle' || !trusted ? '' : 'until ' + timeText(new Date(end));
     if (until.textContent !== u) until.textContent = u;
     const off = Math.round(st.phase === 'idle' ? RING : RING * (1 - Math.min(1, remaining / total)));
     if (off !== offset) { offset = off; el.querySelector('.pm-arc').setAttribute('stroke-dashoffset', String(off)); }
@@ -176,12 +184,16 @@ export function mountPomodoro(el, onCue) {
     if (flash) { flash.classList.remove('is-on'); void flash.offsetWidth; flash.classList.add('is-on'); }
   }
 
+  let wasTrusted = true;
   function step() {
     const now = Date.now();
-    if (!clockIsSane(new Date(now), __BUILT_AT__)) return; // keep the timer as it is until real time arrives
+    const trusted = P.clockTrusted(data.state, now, __BUILT_AT__);
+    if (trusted !== wasTrusted) { wasTrusted = trusted; if (visible) render(); } // network time arrived, or went
+    if (!trusted) return; // keep the timer as it is until real time arrives
     const r = P.advance(data.state, now, cfg);
     if (r.state === data.state) return;
     data.state = r.state;
+    dropped = r.dropped;
     if (r.logged) data.log.push(r.logged);
     save(data);
     if (r.cue && onCue) onCue();
@@ -206,6 +218,7 @@ export function mountPomodoro(el, onCue) {
       const act = a.getAttribute('data-act');
       if (act === 'start') {
         data.state = { phase: 'work', start: now, cat: data.cat || data.state.cat || cats[0].id };
+        dropped = false;
         data.cat = data.state.cat;
         chime(SOUNDS.start);
       } else if (act === 'stop') {
@@ -214,7 +227,7 @@ export function mountPomodoro(el, onCue) {
           confirmUntil = now + CONFIRM_MS;
           setTimeout(render, CONFIRM_MS + 50);
         } else {
-          const r = P.stopWork(data.state, now);
+          const r = P.stopWork(data.state, now, P.clockTrusted(data.state, now, __BUILT_AT__));
           data.state = r.state;
           if (r.logged) data.log.push(r.logged);
           confirmUntil = 0;

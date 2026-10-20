@@ -10,6 +10,9 @@ import { addDays, dayKey, dayStart, daysBetween } from './time.js';
 
 const MIN = 60000;
 const MIN_STOPPED = 1; // a session stopped sooner than this many minutes isn't logged
+// A session counts only if the frame was running within this many minutes of its end. One that
+// ended while the frame was off or unplugged for longer is dropped: nobody saw it finish.
+export const GRACE_MIN = 10;
 
 export const IDLE = { phase: 'idle', start: 0, cat: null };
 
@@ -19,13 +22,22 @@ export function phaseEnd(state, cfg) {
   return 0;
 }
 
-// Moves the timer on to `now`. Returns { state, logged, cue }: `logged` is the session to add to
-// the log (or null) and `cue` 'work-done' or 'break-done' when a phase ended in the last minute.
-// One that ended long ago (the frame was off) still counts, but says nothing.
+// Can the timer go by this clock? Not before network time (the frame reads its firmware date, a
+// year or more back, after a power cut without Wi-Fi), nor while the clock is behind the phase's
+// start; either would show thousands of minutes left.
+export function clockTrusted(state, now, builtAt) {
+  return now >= builtAt && (state.phase === 'idle' || now >= state.start);
+}
+
+// Moves the timer on to `now`. Returns { state, logged, cue, dropped }: `logged` is the session
+// to add to the log (or null), `cue` 'work-done' or 'break-done' when a phase ended in the last
+// minute, and `dropped` true when a session ended more than GRACE_MIN ago and so isn't logged.
+// Call it only when clockTrusted().
 export function advance(state, now, cfg) {
-  let logged = null, cue = null;
+  let logged = null, cue = null, dropped = false;
   if (state.phase === 'work' && now >= phaseEnd(state, cfg)) {
     const end = phaseEnd(state, cfg);
+    if (now - end > GRACE_MIN * MIN) return { state: { phase: 'idle', start: 0, cat: state.cat }, logged, cue, dropped: true };
     logged = { start: state.start, end, cat: state.cat, done: true };
     if (now - end < MIN) cue = 'work-done';
     state = { phase: 'break', start: end, cat: state.cat };
@@ -34,13 +46,14 @@ export function advance(state, now, cfg) {
     if (now - phaseEnd(state, cfg) < MIN) cue = 'break-done';
     state = { phase: 'idle', start: 0, cat: state.cat };
   }
-  return { state, logged, cue };
+  return { state, logged, cue, dropped };
 }
 
 // Stopping deep work early: the minutes so far, unless it had barely begun.
-export function stopWork(state, now) {
+// Stopped by a clock that can't be trusted, it's dropped rather than logged with made-up minutes.
+export function stopWork(state, now, trusted) {
   if (state.phase !== 'work') return { state, logged: null };
-  const logged = now - state.start >= MIN_STOPPED * MIN ? { start: state.start, end: now, cat: state.cat, done: false } : null;
+  const logged = trusted !== false && now - state.start >= MIN_STOPPED * MIN ? { start: state.start, end: now, cat: state.cat, done: false } : null;
   return { state: { phase: 'idle', start: 0, cat: state.cat }, logged };
 }
 

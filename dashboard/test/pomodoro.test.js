@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { IDLE, advance, stopWork, dayTotals, streak, lastDays, weekGrid, categoryTotals, pack, unpack, newer, hoursText } from '../src/pomodoro-data.js';
+import { IDLE, advance, clockTrusted, stopWork, dayTotals, streak, lastDays, weekGrid, categoryTotals, pack, unpack, newer, hoursText } from '../src/pomodoro-data.js';
 
 const cfg = { work: 45, break: 15 };
 const MIN = 60000;
@@ -24,13 +24,37 @@ test('work turns into a break, then the break into idle, with a cue for each', (
   assert.equal(r.cue, 'break-done');
 });
 
-test('after a power cut, a session that ended meanwhile still counts, silently', () => {
+test('a session that ended during a short power cut still counts, silently', () => {
   const start = at(2026, 10, 19, 9);
-  const r = advance({ phase: 'work', start, cat: 'chores' }, start + 3 * 60 * MIN, cfg);
-  assert.equal(r.state.phase, 'idle');
+  const r = advance({ phase: 'work', start, cat: 'chores' }, start + 50 * MIN, cfg);
+  assert.equal(r.state.phase, 'break');
   assert.equal(r.logged.done, true);
   assert.equal(r.logged.end, start + 45 * MIN);
   assert.equal(r.cue, null);
+  assert.equal(r.dropped, false);
+});
+
+test('a session that ended hours before the frame came back is dropped', () => {
+  const start = at(2026, 10, 19, 9);
+  const r = advance({ phase: 'work', start, cat: 'chores' }, start + 5 * 60 * MIN, cfg);
+  assert.equal(r.state.phase, 'idle');
+  assert.equal(r.state.cat, 'chores');
+  assert.equal(r.logged, null);
+  assert.equal(r.dropped, true);
+});
+
+test('the clock is not trusted before network time, or behind the session', () => {
+  const built = at(2026, 10, 19, 0), start = at(2026, 10, 19, 18);
+  const work = { phase: 'work', start, cat: 'other' };
+  assert.equal(clockTrusted(work, at(2025, 9, 28, 6), built), false); // firmware date after a power cut
+  assert.equal(clockTrusted(work, start - 10 * MIN, built), false);
+  assert.equal(clockTrusted(work, start + 10 * MIN, built), true);
+  assert.equal(clockTrusted(IDLE, at(2026, 10, 19, 1), built), true);
+});
+
+test('stopping on an untrusted clock logs nothing', () => {
+  const start = at(2026, 10, 19, 18);
+  assert.equal(stopWork({ phase: 'work', start, cat: 'other' }, start + 20 * MIN, false).logged, null);
 });
 
 test('a reload mid-session resumes it where it was', () => {
