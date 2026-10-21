@@ -1,5 +1,19 @@
 .DS_Store
 *.log
-frames/
+
+# Secrets: real keys live in dashboard/.env.local on your machine, never in git.
+.env
+.env.*
+!.env.example
+
+# Per-machine Claude Code settings.
+.claude/settings.local.json
+
+# Frame reports and backups from scripts/frame-check.sh and frame-backup.sh (serials, MACs, IPs).
+/frames/
+
+# Firmware dumps and kiosk builds.
+*.img
+*.apk
 kiosk/build/
 kiosk/assets/
