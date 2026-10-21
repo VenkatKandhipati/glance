@@ -90,21 +90,22 @@ renderer. The kiosk window is up 1.5 s after launch.
 - Day to day the page comes from **inside the kiosk app** at `https://glance.local/`, a host that
   exists only in its WebView (see below); while developing, from the Mac over plain HTTP by IP
   address (Android 8.1 doesn't resolve `.local` names on the network).
-- **One third-party call, by owner decision (2026-10-16): WMATA.** The frame build calls
+- **Third-party services, each approved by the owner.** Nothing else goes on the frame.
+- **WMATA (2026-10-16).** The frame build calls
   `api.wmata.com` directly with the key baked in at build time, so the Metro banner works with
   the Mac off. Anyone who can reach the frame can read that key (any app can get root), which is
   acceptable for a free, rate-limited key that can be regenerated. Move it to the home server
   when there is one.
-- **Second exception, same decision: Google Calendar.** The frame build carries the secret iCal
+- **Google Calendar (2026-10-16).** The frame build carries the secret iCal
   addresses of three calendars (`CAL_*` in `.env.local`). Google sends no CORS headers, so the
   kiosk fetches them (`/ics?url=`, `calendar.google.com` over HTTPS only) and the page parses them.
   Anyone who reaches the frame can read those addresses, so the events too: if one leaks, Reset
   it in Google Calendar and run `npm run frame`.
-- **Third exception (owner, 2026-10-19): the National Weather Service.** The page asks
+- **The National Weather Service (2026-10-19).** The page asks
   `api.weather.gov` for the forecast at `content.js`'s `weather` spot every 30 minutes, from the
   frame and the Mac's copy alike. No key and nothing secret: it sends CORS headers, so the page
   calls it directly.
-- **Public pictures (owner, 2026-10-19).** The photo tile shows pictures from public collections
+- **Public pictures (2026-10-19).** The photo tile shows pictures from public collections
   between the owner's photos, fetched once a day with no key: the Art Institute of Chicago
   (`api.artic.edu`, images from `www.artic.edu/iiif`), NASA (`api.nasa.gov` with the shared
   `DEMO_KEY`, `images-api.nasa.gov`, images from `apod.nasa.gov` and `images-assets.nasa.gov`)

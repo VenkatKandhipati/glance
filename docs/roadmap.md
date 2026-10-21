@@ -1,9 +1,9 @@
 # Roadmap
 
 Long term, Glance is a **thin frontend**: the frame shows one web page and a home server does all
-the fetching, auth and image work. It starts as a **static dashboard**: everything on screen comes
-from the frame's clock, a content file, your photos, or taps. Each phase keeps the frame talking
-to a single origin we control (see [frame.md](frame.md#network)).
+the fetching, auth and image work. It started as a **static dashboard** and now runs from inside
+the kiosk app with no Mac, calling a few owner-approved services itself
+(see [frame.md](frame.md#network)) until the home server takes those calls over.
 
 Ideas that aren't scheduled yet live in [ideas.md](ideas.md).
 
@@ -42,16 +42,18 @@ One screen, no navigation, no API calls.
 - [ ] Tap-test the night clock by hand; Chrome DevTools with 6× CPU throttle
 - [x] Run on the frame over `adb reverse`; record `?diag` numbers (47 fps = the panel's 47 Hz)
 - [x] Point the kiosk at the Mac's LAN URL; it boots into the dashboard after `adb reboot`
-- [ ] Unplug-and-replug power test; Mac-asleep test; an hour of photos without memory growth
+- [x] Unplug-and-replug power test: back on the dashboard in about a minute (2026-10-19)
+- [x] ~~Mac-asleep test~~: not needed since the dashboard runs inside the kiosk (Phase 1.5)
+- [ ] An hour of photos without memory growth (`?diag`)
 
 **Done when** it runs on the frame with no console errors, photos rotate for an hour without
-memory growing, chores survive a reload, and the frame returns to the dashboard on its own after a
-power cut (while the Mac is serving).
+memory growing, and the frame returns to the dashboard on its own after a power cut. (Chores
+surviving a reload dropped with the chores strip; the Mac is no longer needed.)
 
 ## Phase 1.5 — No Mac needed
 
-The frame only needs the Mac when the page loads; a frame that starts up while the Mac sleeps
-shows an error until it wakes. Bundling the dashboard into the kiosk app removes the Mac entirely.
+Served from the Mac, a frame that started up while the Mac slept showed an error until it
+woke. Bundling the dashboard into the kiosk app removes the Mac entirely.
 
 - [x] Fork the kiosk app from wesbos/photo-frame-dashboard into `kiosk/` (moved up to Phase 0,
       because the stock frame had no kiosk): Glance's own name and icon
@@ -61,10 +63,13 @@ shows an error until it wakes. Bundling the dashboard into the kiosk app removes
 - [x] `npm run frame` on the Mac: build, package and install over ADB in one command
 - [x] Metro banner calls WMATA from the frame (owner-approved exception; key baked in at build)
 - [x] Install on the frame; after `adb reboot` with no Mac server it came back with photos and trains
-- [ ] Real power-cut test (pull the plug) with the Mac off
+- [x] Real power-cut test (pull the plug) with the Mac off (2026-10-19, logged in frame.md)
 - [ ] Build the APK in CI
 
 ## Phase 2 — First live data, via the Mac
+
+The Mac's proxies are still used while developing; on the frame, the page calls the approved
+services itself (Phase 1.5).
 
 - [x] Metro banner in place of chores: WMATA arrivals at Ballston (`K04`) through `/api/trains`
       on the Mac's dev/preview server; the key lives in `dashboard/.env.local`
