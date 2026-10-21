@@ -72,6 +72,14 @@ export const pomodoro = {
   ],
 };
 
+// Telugu screen: the letters to look up at while writing them. It stays up for `stayMinutes` after
+// the last touch on it (then Home and night as usual), and moves up to `shift.px` in each direction
+// once every `shift.minutes` against burn-in; px 0 turns that off.
+export const telugu = {
+  stayMinutes: 45,
+  shift: { px: 4, minutes: 30 },
+};
+
 export const settings = {
   weekStartsOn: 0,          // 0 = Sunday (like Google Calendar), 1 = Monday
   photoSeconds: 120,        // how long each photo stays up

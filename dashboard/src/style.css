@@ -3,6 +3,8 @@
 @import '@fontsource/instrument-serif/400.css';
 @import '@fontsource/instrument-serif/400-italic.css';
 @import '@fontsource-variable/plus-jakarta-sans';
+/* Telugu letters only (the Telugu screen); Latin falls through to the fonts above */
+@import '@fontsource/noto-sans-telugu/telugu-400.css';
 
 :root {
   /* ground + surfaces (taken from the mockup) */
@@ -29,6 +31,8 @@
   /* type */
   --serif: 'Instrument Serif', Georgia, serif;
   --sans: 'Plus Jakarta Sans Variable', 'Plus Jakarta Sans', Roboto, sans-serif;
+  --te: 'Noto Sans Telugu', var(--sans);
+  --te-ink: #c4bcac; /* the Telugu letters: --ink warmer and dimmer, easier on the eye in bulk */
 
   /* shape + space */
   --r: 30px;
@@ -681,6 +685,64 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .sh-title { font-size: 20px; font-weight: 600; line-height: 1.3; }
 .sh-title small { display: block; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mute); }
 .sh-free { padding: 36px 0 44px; text-align: center; font-size: 19px; font-weight: 600; color: var(--mute); }
+
+/* ------------------------------------------------------------------ telugu */
+/* its own layer, so the burn-in shift moves it without repainting; swipes are ours, not a pan */
+.screen.te { will-change: transform; touch-action: none; }
+.te-page { display: flex; flex-direction: column; gap: var(--gap); flex: 1; min-height: 0; }
+.screen-head .te-word { font-family: var(--te); font-size: 26px; font-weight: 400; color: var(--mute); }
+.te-tabs { display: flex; gap: 10px; margin-left: auto; align-self: center; }
+.te-tab {
+  height: 52px;
+  padding: 0 24px;
+  border-radius: var(--r-chip);
+  border: 1px solid var(--chip-line);
+  background: var(--chip);
+  font-size: 17px;
+  font-weight: 650;
+  color: var(--mute);
+}
+.te-tab.is-on { border-color: rgba(203, 180, 124, 0.35); background: rgba(203, 180, 124, 0.14); color: var(--gold); }
+.te-grid { display: flex; flex-direction: column; gap: 10px; flex: 1; min-height: 0; }
+.te-row { display: flex; gap: 10px; flex: 1; min-height: 0; }
+.te-cell {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  border-radius: 22px;
+  border: 1px solid var(--tile-line);
+  background: var(--tile);
+}
+/* the letter and its romanization; beside it, on the second consonant page, a word */
+.te-main { display: flex; flex: 1; flex-direction: column; min-width: 0; }
+/* the space the letter is centred in (screens/telugu.js moves each one so its ink is centred) */
+.te-box { display: flex; flex: 1; align-items: center; justify-content: center; min-height: 0; }
+.te-g { font-family: var(--te); font-size: 116px; line-height: 1; color: var(--te-ink); }
+.te-r { flex: none; height: 46px; font-size: 24px; font-weight: 650; letter-spacing: 0.02em; text-align: center; color: var(--gold); }
+/* the consonants keep five columns on both pages, so every cell is the same size */
+.te-cons .te-cell { flex: none; width: calc((100% - 40px) / 5); }
+.te-cons .te-g { font-size: 100px; }
+.te-cons .te-r { height: 40px; font-size: 21px; }
+/* second consonant page: four to a row; with a word, the letter keeps a fixed column beside it */
+.te-words .te-cell { width: calc((100% - 30px) / 4); align-items: center; }
+.te-words .te-main { align-self: stretch; }
+.te-words .has-ex .te-main { flex: none; width: 150px; }
+.te-ex {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+  height: 96px;
+  padding-left: 18px;
+  border-left: 1px solid var(--tile-line);
+}
+.te-ex-w { font-family: var(--te); font-size: 30px; line-height: 1.25; color: var(--te-ink); }
+.te-ex-r { font-size: 17px; font-weight: 600; color: var(--mute); }
+.te-ex-r b { font-weight: 700; color: var(--gold); }
+.te-ex-m { font-size: 15px; font-weight: 500; color: var(--mute); }
+.bar-te { font-family: var(--te); font-size: 30px; line-height: 30px; height: 30px; }
 
 /* ------------------------------------------------------------------ side bar */
 /* Hidden until a tap on the left edge; the faint handle there says it exists. */

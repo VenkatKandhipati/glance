@@ -12,8 +12,9 @@ const ICONS = {
   transit: svg('<rect x="5" y="3" width="14" height="14" rx="4"/><path d="M5 11h14M9 14h.01M15 14h.01M8 21l2-4M16 21l-2-4"/>'),
   weather: svg('<path d="M8 3v1.5M3.5 8H5M4.8 4.8l1 1M12.2 4.8l-1 1"/><path d="M5.6 11.5a3.5 3.5 0 0 1 6-4"/><path d="M9 20h8a3.2 3.2 0 0 0 .4-6.4 4.4 4.4 0 0 0-8.5 1.2A2.6 2.6 0 0 0 9 20z"/>'),
   pomodoro: svg('<circle cx="12" cy="13.5" r="7.5"/><path d="M12 9.5v4l2.5 2M9.5 2.5h5M12 2.5V6"/>'),
+  telugu: '<span class="bar-te" lang="te">అ</span>',
 };
-const LABELS = { home: 'Home', week: 'Week', transit: 'Transit', weather: 'Weather', pomodoro: 'Pomodoro' };
+const LABELS = { home: 'Home', week: 'Week', transit: 'Transit', weather: 'Weather', pomodoro: 'Pomodoro', telugu: 'Telugu' };
 
 // screens: { name: { el, show?(), hide?(), busy?() } }, Home first. sheet: the day sheet.
 export function mountNav(bar, edge, scrim, screens, sheet) {

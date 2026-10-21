@@ -4,7 +4,8 @@
 // little against burn-in. The kiosk app turns the backlight off (GlanceKiosk.setScreenOn); without
 // it, as in a desktop browser, "off" is just black.
 // onShow(true/false) hears when night comes and goes, so live tiles can stop asking meanwhile.
-// busy() true (the Pomodoro timer running) holds night off until it's done.
+// busy() true (the Pomodoro timer running, or the Telugu screen in use) holds night off until
+// it's done.
 import { settings } from './content.js';
 import { DAYS, MONTHS, clockIsSane, clockParts } from './time.js';
 

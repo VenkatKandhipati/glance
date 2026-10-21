@@ -37,6 +37,10 @@ and versions follow [Semantic Versioning](https://semver.org).
   category; today against a daily goal, a streak, the last 7 days by category, 12 weeks and time
   by category. It survives reloads and power cuts, holds off night and the return to Home while it
   runs, and keeps a backup of its log in a file (kiosk 0.6, `GlanceFiles`).
+- Telugu screen for writing practice: the 16 vowels and 36 consonants with their romanizations,
+  each centred in its box, on three pages (tabs or a swipe), in Noto Sans Telugu bundled with the
+  page. The last eight consonants each have a common word beside them to show how they're said. It stays up for 45
+  minutes after the last touch and steps 4 px every 30 minutes against burn-in.
 - Burn-in shifts for Home: the board steps through nine positions within 6 px of where it belongs,
   one every 10 minutes (`settings.shift` in `content.js`; `px: 0` turns it off).
 - Weather and calendars survive an outage: their last data is saved on the frame, so a reload or
