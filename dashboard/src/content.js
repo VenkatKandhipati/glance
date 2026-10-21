@@ -78,4 +78,6 @@ export const settings = {
   // After `idleSeconds` with no touch: a red clock from `clock` until `off`, then the screen off
   // until `on` (24 h hours). A tap brings the dashboard back.
   night: { clock: 22, off: 0, on: 8, idleSeconds: 120 },
+  // Burn-in: Home moves up to `px` in each direction, one step every `minutes`. px 0 turns it off.
+  shift: { px: 6, minutes: 10 },
 };

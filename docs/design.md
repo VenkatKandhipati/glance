@@ -15,6 +15,8 @@ for ones that don't (calendar, photos). The rest return once the home server exi
 ## Layout
 
 A fixed 1280 × 800 grid (the frame's exact resolution at DPR 1), 20 px outer margin, 16 px gaps.
+Against burn-in the whole board steps up to 6 px in each direction every 10 minutes
+([`shift.js`](../dashboard/src/shift.js)), so the outer margin is never less than 14 px.
 
 ```
 ┌────────────────────────┬─────────────────────────────────┐

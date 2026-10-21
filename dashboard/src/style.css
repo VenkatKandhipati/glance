@@ -64,6 +64,8 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   width: 1280px;
   height: 800px;
   padding: 20px;
+  /* its own layer, so the burn-in shift (shift.js) moves it without repainting */
+  will-change: transform;
 }
 .tile {
   position: relative;

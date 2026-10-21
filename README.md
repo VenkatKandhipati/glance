@@ -56,7 +56,8 @@ keep running for weeks with nobody touching it.
   time brings the night clock now.
 - **Night.** From 10 p.m., two idle minutes turn the screen into a dim red clock on black that
   drifts a few pixels against burn-in. From midnight to 8 a.m. the backlight goes fully off. A
-  tap brings the dashboard back either way.
+  tap brings the dashboard back either way. By day, Home steps a few pixels every 10 minutes so
+  nothing sits on the same pixels all day.
 - **Runs unattended.** It reloads itself if it fails to start and once a day at 3 a.m., and it
   waits out the frame's clock reading 1970 after a power cut.
 

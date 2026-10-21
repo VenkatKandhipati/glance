@@ -165,4 +165,6 @@ Details for every item: [mini-pc.md](mini-pc.md).
 
 ## Phase 4 — Living with it
 
-- [ ] Burn-in shifts for the dashboard, stale-data badges, light theme by day
+- [x] Burn-in shifts for the dashboard: Home steps through a 3 × 3 grid of ±6 px offsets, one step
+      every 10 minutes ([#6](https://github.com/VenkatKandhipati/glance/issues/6))
+- [ ] Stale-data badges, light theme by day
