@@ -14,6 +14,7 @@ import { renderWeek, weekDayAt } from './screens/week.js';
 import { mountTransit } from './screens/transit.js';
 import { renderWeatherScreen } from './screens/weather.js';
 import { mountPomodoro } from './screens/pomodoro.js';
+import { mountTelugu } from './screens/telugu.js';
 import { startDiag } from './diag.js';
 import { clockIsSane } from './time.js';
 import { applyShift } from './shift.js';
@@ -34,7 +35,8 @@ const transit = mountTransit($('transit'));
 const setTrainsAsleep = mountTrains($('trains'), transit.trains);
 // A phase ending brings the Pomodoro screen back (declared below; cues come a second later at most).
 const focus = mountPomodoro($('pomodoro'), () => nav.go('pomodoro'));
-const night = mountNight($('night'), setTrainsAsleep, focus.busy);
+const letters = mountTelugu($('telugu'));
+const night = mountNight($('night'), setTrainsAsleep, () => focus.busy() || letters.busy());
 const nextPhoto = startPhotos($('photo'));
 const nav = mountNav($('bar'), $('edge'), $('scrim'), {
   home: { el: $('board') },
@@ -42,6 +44,7 @@ const nav = mountNav($('bar'), $('edge'), $('scrim'), {
   transit: { el: $('transit'), show: transit.show, hide: transit.hide },
   weather: { el: $('weather'), show: () => { const now = new Date(); renderWeatherScreen($('weather'), now, forecast, weatherAge(now)); } },
   pomodoro: { el: $('pomodoro'), show: focus.show, hide: focus.hide, busy: focus.busy },
+  telugu: { el: $('telugu'), show: letters.show, hide: letters.hide, busy: letters.busy },
 }, sheet);
 
 const weatherNow = (now) => forecast && summarize(forecast.daily, forecast.hourly, now);
@@ -75,6 +78,7 @@ function tick() {
   const now = new Date();
   draw(now);
   if (!DEMO) applyShift($('board'), now, settings.shift); // demo screenshots stay put
+  letters.update(now);
   night.update(now);
   // Daily reload from 3 a.m. clears slow leaks and picks up new content and photos. If the server
   // is asleep it keeps the page running and checks again every 10 minutes.

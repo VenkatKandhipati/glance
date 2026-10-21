@@ -14,6 +14,8 @@ train board or the forecast.
 
 ![Pomodoro screen: a 45-minute timer with categories, today's count, the streak, the last 7 days, 12 weeks and time by category](docs/images/pomodoro.png)
 
+![Telugu screen: the consonants as the five vargas and the other eleven, each with its romanization](docs/images/telugu.png)
+
 <sub>Screenshots from the frame in demo mode (`?demo`): made-up events and trains, and a
 public-domain photo of the Tidal Basin by the National Park Service.</sub>
 
@@ -51,6 +53,11 @@ keep running for weeks with nobody touching it.
   picks it up where it was; while it runs, the frame stays on it and night waits. Each phase ends
   with a chime and a gold pulse. Stopping early takes two taps and is logged as stopped, not as a
   full session. The log is kept on the frame, with a backup file that `adb pull` can copy off.
+- **Telugu.** The 16 vowels and 36 consonants as a chart to look up at while writing them on
+  paper, each with its romanization (kathalu's) under it. Vowels on one page in their families,
+  consonants on the other as the five vargas plus the rest; the tabs or a swipe switch pages. It
+  stays up for 45 minutes after the last touch, so writing doesn't send it Home, and moves 4 px
+  once every half hour against burn-in.
 - **Taps on Home.** A day on the month, or *Next up*, opens that day's events (‹ › step through
   days). The weather opens Weather, the Metro banner opens Transit, the photo moves on, and the
   time brings the night clock now.
@@ -141,7 +148,7 @@ dashboard/              the web app
     main.js             minute tick, daily reload, wiring
     content.js          the file you edit: dates, Metro station, timings
     tiles/              clock, calendar, photo, Metro
-    screens/            Week, Transit, Weather, Pomodoro
+    screens/            Week, Transit, Weather, Pomodoro, Telugu
     nav.js, sheet.js    side bar; one day's events
     demo.js             ?demo: made-up data for screenshots
     night.js            night clock and screen off
