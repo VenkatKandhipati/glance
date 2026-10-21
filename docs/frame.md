@@ -141,6 +141,26 @@ and their list (`/photos/`) from storage. Nothing depends on the Mac or the LAN;
 needs internet. Changing content, photos or design means running `npm run frame` again with the
 frame on USB.
 
+**Careful:** `npm run frame` makes the frame's photos match `dashboard/photos/` on the Mac it runs
+on, removing any the Mac doesn't have. From a Mac without your photos, build with
+`npm run frame:build` and install with `adb install -r kiosk/build/glance-kiosk.apk` instead.
+
+**Trying a change on the frame.** The owner judges changes on the frame, not on the Mac: sizes,
+colours and touch feel different on its screen. So once a change to `dashboard/` or `kiosk/` passes
+the checks, put that branch's build on the frame (USB connected) without asking first:
+
+1. Check `adb shell getprop ro.build.fingerprint` starts with `rockchip/rk3326_go/`.
+2. Back up the Pomodoro log off-repo:
+   `adb pull /sdcard/Android/data/app.glance.kiosk/files/pomodoro.json <scratch dir>/`.
+3. `cd dashboard && npm run frame:build`, then `adb install -r kiosk/build/glance-kiosk.apk` and
+   `adb shell am start -n app.glance.kiosk/.MainActivity --es url https://glance.local/`. Not
+   `npm run frame` unless that Mac has all the photos (see above).
+4. Check the photo count is unchanged, open the changed screen with `adb shell input tap`, and
+   compare `adb exec-out screencap -p` with the Mac's screenshot.
+5. Add a row to the table below, naming the branch or PR; the undo is a rebuild from `main`.
+
+If the PR is then changed or closed, put `main`'s build back the same way.
+
 **Developing: from the Mac.** Over USB:
 
 ```sh
@@ -181,3 +201,8 @@ Record every change with its undo, newest last. All `su 0` commands run through 
 | 2026-10-19 | Kiosk with South Asian art and nature in the mix (`npm run frame`): adds the Cleveland Museum of Art and the Met | Drop `south-asian-art` / `south-asian-nature` from `featured.sources`, or an older build |
 | 2026-10-19 | Kiosk 0.5 (`npm run frame`): `/img` picture pass-through with a week's file cache in `/data/data/app.glance.kiosk/cache/img/`; public pictures measured before showing, dark style; the Met dropped | `adb install -r` an older build; `featured.style: 'any'` keeps the quality check only |
 | 2026-10-19 | Kiosk 0.6 (`npm run frame`): `GlanceFiles` bridge; the Pomodoro log's backup in `/sdcard/Android/data/app.glance.kiosk/files/pomodoro.json` | `adb install -r` an older build; the file can be deleted with `adb shell rm` (the page keeps its own copy) |
+| 2026-10-21 | Kiosk 0.6 rebuilt from main with stale-data badges (#5) and burn-in shifts (#6): `npm run frame:build`, then `adb install -r kiosk/build/glance-kiosk.apk` and `am start … --es url https://glance.local/`. Not `npm run frame`: the Mac it was built on had no photos, and the sync would have removed all 40 from the frame. `dashboard/.env.local` was recreated on that Mac from the values in the installed app. Same signing key, app data and photos kept; the Pomodoro log was backed up first. The page now also stores `glance-weather` and `glance-calendars` | `adb install -r` the previous 0.6 APK (kept off-repo); `shift.px: 0` in `content.js` turns the shift off |
+| 2026-10-21 | Kiosk 0.6 rebuilt from the `11-telugu-screen` branch (PR #13, not yet merged) for the owner to try the Telugu screen: the same `npm run frame:build` and `adb install -r` as above, Pomodoro log backed up first; 40 photos and app data kept. Checked on the frame with `screencap`: the Telugu screen draws in the bundled Noto Sans Telugu, matching the Mac | Rebuild from `main` with `npm run frame:build` and `adb install -r kiosk/build/glance-kiosk.apk` |
+| 2026-10-21 | Kiosk 0.6 rebuilt again from `11-telugu-screen` (PR #13, second round: centred letters, three pages, softer letter colour), the same way. 40 photos kept; on all three pages every letter sits where the Mac draws it, offset only by the burn-in shift | Rebuild from `main` with `npm run frame:build` and `adb install -r kiosk/build/glance-kiosk.apk` |
+| 2026-10-21 | Kiosk 0.6 rebuilt from `11-telugu-screen` (PR #13, third round: a word beside each later consonant, dimmer letters), the same way. 40 photos kept; Consonants 2 matches the Mac's screenshot to within 1 px | Rebuild from `main` with `npm run frame:build` and `adb install -r kiosk/build/glance-kiosk.apk` |
+| 2026-10-21 | Kiosk 0.6 rebuilt from `11-telugu-screen` (PR #13, fourth round: words for the last eight consonants only), the same way. 40 photos kept; Consonants 2 matches the Mac's screenshot to within 1 px | Rebuild from `main` with `npm run frame:build` and `adb install -r kiosk/build/glance-kiosk.apk` |
