@@ -1,5 +1,6 @@
 // Telugu screen: the vowels and consonants as a chart to look up at while writing them on paper.
 // Three pages, the vowels and the consonants over two; the tabs or a swipe move between them.
+// The second consonant page has room to spare, so each letter there gets a common word beside it.
 //
 // Writing means not touching the frame, so the screen stays up (no going Home, no night clock)
 // for content.js `telugu.stayMinutes` after the last touch on it. While it's up it steps a few
@@ -7,19 +8,23 @@
 import { telugu as cfg } from '../content.js';
 import { DEMO } from '../demo.js';
 import { applyShift } from '../shift.js';
-import { VOWEL_ROWS, CONSONANT_PAGES } from '../telugu-letters.js';
+import { VOWEL_ROWS, CONSONANT_PAGES, WORDS } from '../telugu-letters.js';
 
 const SWIPE_PX = 80;
 const FONT = 'Noto Sans Telugu';
 
-const cell = (l) => '<div class="te-cell"><span class="te-box"><span class="te-g" lang="te">' + l[0] +
-  '</span></span><span class="te-r">' + l[1] + '</span></div>';
+// A word beside the letter, where there is one: the word, its romanization with the letter's
+// sound in gold, and what it means.
+const word = (w) => !w ? '' : '<span class="te-ex"><span class="te-ex-w" lang="te">' + w[0] + '</span>' +
+  '<span class="te-ex-r">' + w[1].replace(/\*([^*]+)\*/, '<b>$1</b>') + '</span><span class="te-ex-m">' + w[2] + '</span></span>';
+const cell = (l) => '<div class="te-cell"><span class="te-main"><span class="te-box"><span class="te-g" lang="te">' + l[0] +
+  '</span></span><span class="te-r">' + l[1] + '</span></span>' + word(WORDS[l[0]]) + '</div>';
 const rows = (list) => list.map((r) => '<div class="te-row">' + r.map(cell).join('') + '</div>').join('');
 
 const PAGES = [
   { tab: 'Vowels', title: 'Vowels', te: 'అచ్చులు', cls: 'te-vowels', rows: VOWEL_ROWS },
   { tab: 'Consonants 1', title: 'Consonants', te: 'హల్లులు', cls: 'te-cons', rows: CONSONANT_PAGES[0] },
-  { tab: 'Consonants 2', title: 'Consonants', te: 'హల్లులు', cls: 'te-cons', rows: CONSONANT_PAGES[1] },
+  { tab: 'Consonants 2', title: 'Consonants', te: 'హల్లులు', cls: 'te-cons te-words', rows: CONSONANT_PAGES[1] },
 ];
 
 // Letters sit very differently in their em box (a mark above, a tail below, a wide or narrow

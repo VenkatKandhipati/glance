@@ -1,8 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { VOWEL_ROWS, VARGAS, OTHER_ROWS, CONSONANT_PAGES } from '../src/telugu-letters.js';
+import { VOWEL_ROWS, VARGAS, OTHERS, CONSONANT_PAGES, WORDS } from '../src/telugu-letters.js';
 
-const vowels = VOWEL_ROWS.flat(), consonants = VARGAS.flat().concat(OTHER_ROWS.flat());
+const vowels = VOWEL_ROWS.flat(), consonants = VARGAS.flat().concat(OTHERS);
 
 test('the 16 vowels and 36 consonants, each once', () => {
   assert.equal(vowels.length, 16);
@@ -30,5 +30,16 @@ test('the consonant pages hold every consonant once, four rows of at most five e
   for (const page of CONSONANT_PAGES) {
     assert.equal(page.length, 4);
     for (const row of page) assert.ok(row.length <= 5);
+  }
+});
+
+test('every letter on the second consonant page has a word that contains it', () => {
+  const second = CONSONANT_PAGES[1].flat().map((l) => l[0]);
+  assert.deepEqual(Object.keys(WORDS).sort(), second.slice().sort());
+  for (const letter of second) {
+    const [word, roman, meaning] = WORDS[letter];
+    assert.ok(word.includes(letter), letter + ' in ' + word);
+    assert.match(roman, /^[^*]*\*[^*]+\*[^*]*$/, 'one marked sound in ' + roman);
+    assert.ok(meaning.length > 0);
   }
 });

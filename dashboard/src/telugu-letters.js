@@ -20,11 +20,32 @@ export const VARGAS = [
 ];
 
 // The other eleven: the semivowels, the sibilants and h, then the last three.
-export const OTHER_ROWS = [
-  [['య', 'ya'], ['ర', 'ra'], ['ల', 'la'], ['వ', 'va']],
-  [['శ', 'śa'], ['ష', 'ṣa'], ['స', 'sa'], ['హ', 'ha']],
-  [['ళ', 'ḷa'], ['క్ష', 'kṣa'], ['ఱ', 'ṟa']],
-];
+export const OTHERS = [['య', 'ya'], ['ర', 'ra'], ['ల', 'la'], ['వ', 'va'], ['శ', 'śa'], ['ష', 'ṣa'],
+  ['స', 'sa'], ['హ', 'ha'], ['ళ', 'ḷa'], ['క్ష', 'kṣa'], ['ఱ', 'ṟa']];
 
-// The consonants over two pages of four rows: the first four vargas; then the fifth and the rest.
-export const CONSONANT_PAGES = [VARGAS.slice(0, 4), VARGAS.slice(4).concat(OTHER_ROWS)];
+// A common word for each consonant on the second page, to hear how it's said: the word, its
+// romanization with the letter's sound between *s, and what it means. Most start with the letter;
+// ష ళ క్ష ఱ hardly ever do, so theirs have it inside.
+export const WORDS = {
+  'ప': ['పండు', '*p*aṇḍu', 'fruit'],
+  'ఫ': ['ఫలం', '*ph*alaṁ', 'fruit'],
+  'బ': ['బడి', '*b*aḍi', 'school'],
+  'భ': ['భయం', '*bh*ayaṁ', 'fear'],
+  'మ': ['మనిషి', '*m*aniṣi', 'person'],
+  'య': ['యాత్ర', '*y*ātra', 'journey'],
+  'ర': ['రాజు', '*r*āju', 'king'],
+  'ల': ['లడ్డు', '*l*aḍḍu', 'laddu'],
+  'వ': ['వాన', '*v*āna', 'rain'],
+  'శ': ['శాంతి', '*ś*ānti', 'peace'],
+  'ష': ['భాష', 'bhā*ṣ*a', 'language'],
+  'స': ['సబ్బు', '*s*abbu', 'soap'],
+  'హ': ['హంస', '*h*aṁsa', 'swan'],
+  'ళ': ['కళ్ళు', 'ka*ḷḷ*u', 'eyes'],
+  'క్ష': ['పక్షి', 'pa*kṣ*i', 'bird'],
+  'ఱ': ['గుఱ్ఱం', 'gu*ṟṟ*aṁ', 'horse'],
+};
+
+// The consonants over two pages of four rows: the first four vargas; then the fifth varga and the
+// rest, four to a row so each letter has room for its word.
+const rest = VARGAS[4].concat(OTHERS);
+export const CONSONANT_PAGES = [VARGAS.slice(0, 4), [0, 4, 8, 12].map((i) => rest.slice(i, i + 4))];
