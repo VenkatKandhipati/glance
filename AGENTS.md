@@ -69,6 +69,7 @@ bash kiosk/build.sh        # when kiosk/ changes; needs JDK 17 and the Android S
 
 ## How to work
 
+0. The workflow skills in ../hq/skills (`/intake`, `/ship`, `/after-merge`, `/file-idea`, `/preview`) run the steps below; these rules still apply when they're not used.
 1. Work from a GitHub Issue. Run `gh issue view <n>` first.
 2. Branch: `<n>-short-slug`.
 3. Plan in the conversation before editing. For size L, post the plan as an issue comment.
