@@ -74,7 +74,7 @@ export const time = {
     { id: 'geico', name: 'GEICO', focus: true },
     { id: 'learning', name: 'Masters', focus: true },
     { id: 'projects', name: 'Projects', focus: true },
-    { id: 'chores', name: 'Chores' },
+    { id: 'chores', name: 'Chores', focus: true },
     { id: 'bathroom', name: 'Bathroom' },
     { id: 'scrolling', name: 'Doom scrolling' },
     { id: 'break', name: 'Break' },

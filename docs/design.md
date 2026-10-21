@@ -93,7 +93,8 @@ All in [`dashboard/src/style.css`](../dashboard/src/style.css) as custom propert
   (76 px). A category tap tracks it; there is no mode switch. The start button is filled gold;
   Pomodoro "Stop" turns red-tinted and asks for a second tap. A phase ending pulses the tile gold
   (opacity only). Categories take nine colours in `content.js` order: gold, violet, rose, sky
-  (the focus ones), then teal, slate, orange `#e8a26a`, sage and grey. On the right: Today (hours of
+  and teal (the focus ones, Chores included), then slate, orange `#e8a26a`, sage and grey. On
+  the right: Today (hours of
   focus of the goal, a dot an hour, half-filled from 30 minutes, time at the desk), Streak (days
   with an hour of focus), All time (hours of focus); the last 7 days as stacked bars by category, focus at the bottom, each day's focus hours
   above, with a dashed goal line; today's timeline as a 34 px strip of
