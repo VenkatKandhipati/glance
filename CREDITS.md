@@ -17,7 +17,28 @@
 - **[pangoleen/ormarch-picture-frame](https://github.com/pangoleen/ormarch-picture-frame)**: keep a
   recovery path, and record every change to the frame with its undo.
 
+## Images
+
+`dashboard/public/demo/tidal-basin.jpg`, shown only in demo mode and in the README screenshots, is
+*Thomas Jefferson Memorial at National Mall & Memorial Parks* by the National Park Service, a work
+of the US federal government in the public domain
+([Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Thomas_Jefferson_Memorial_at_National_Mall_%26_Memorial_Parks_(8379c484-3e98-4b64-b994-b2addf6c8c22).jpg)),
+resized.
+
+Between the owner's photos, the frame shows pictures it fetches each day from public
+collections, each with its own credit line on screen: public-domain paintings from the
+[Art Institute of Chicago](https://www.artic.edu/open-access), NASA's
+[Astronomy Picture of the Day](https://apod.nasa.gov/) (credits as given by APOD) and Space
+Station photos from the [NASA Image and Video Library](https://images.nasa.gov/), and featured
+photos from [Wikimedia Commons](https://commons.wikimedia.org/) under their authors' licences
+(shown with each). Paintings also come from the open-access collection of the
+[Cleveland Museum of Art](https://www.clevelandart.org/open-access) (CC0). None of them is stored in this repository.
+
 ## Code adapted from other projects
+
+`kiosk/` is adapted from `dashboard/kiosk` in wesbos/photo-frame-dashboard (commit `48b4ab0`),
+with Wes Bos's permission: the app source, manifest, build script and accessibility config.
+Glance changed the package name, labels and default URL, and drew its own icon.
 
 `dashboard/src/diag.js` is adapted from `dashboard/src/diag.js` in huntsyea/kitchen-frame:
 

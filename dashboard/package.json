@@ -7,8 +7,10 @@
     "dev": "vite --host",
     "build": "vite build && node scripts/check-compat.mjs",
     "preview": "vite preview --host",
-    "test": "node --test test/*.test.js",
-    "photos": "node scripts/photos.mjs"
+    "test": "TZ=America/New_York node --test test/*.test.js",
+    "photos": "node scripts/photos.mjs",
+    "frame:build": "node scripts/frame.mjs",
+    "frame": "node scripts/frame.mjs --install"
   },
   "devDependencies": {
     "vite": "^8.3.4"
@@ -17,7 +19,7 @@
     "@fontsource-variable/plus-jakarta-sans": "^5.3.0",
     "@fontsource/instrument-serif": "^5.3.0"
   },
-  "description": "Static home dashboard for a hacked 10.1\" Android photo frame (WebView 107, 1280x800).",
+  "description": "Static home dashboard for a hacked 10.1\" Android photo frame (WebView 106, 1280x800).",
   "license": "MIT",
   "engines": {
     "node": ">=22"

@@ -28,10 +28,10 @@ REPORT="$ROOT_DIR/frames/check-$(date +%Y%m%d-%H%M%S).txt"
 sh_()  { adb shell "$1" 2>&1 | tr -d '\r'; }
 prop() { printf '%-32s %s\n' "$1" "$(sh_ "getprop $1")"; }
 
-# Root: SuperSU-style `su -c <cmd>` on most RK3126 frames, `su 0 <cmd>` on some others.
+# Root: `su 0 <cmd>` on this RK3326 frame (`su -c` fails there); SuperSU-style `su -c` on others.
 SU=none
-if sh_ "su -c id" | grep -q 'uid=0'; then SU=c
-elif sh_ "su 0 id" | grep -q 'uid=0'; then SU=0
+if sh_ "su 0 id" | grep -q 'uid=0'; then SU=0
+elif sh_ "su -c id" | grep -q 'uid=0'; then SU=c
 fi
 root() {
   case $SU in
@@ -54,7 +54,7 @@ root() {
   prop ro.build.version.sdk
   prop ro.build.version.security_patch
   prop ro.serialno
-  echo "Expected for this frame: fingerprint starting 'rockchip/rk312x/rk312x:6.0.1', SDK 23."
+  echo "Expected for this frame: fingerprint starting 'rockchip/rk3326_go/rk3326_go:8.1.0', SDK 27."
   echo
   echo "== Screen (want 1280x800 and density 160)"
   sh_ "wm size"
@@ -78,13 +78,13 @@ root() {
   done
   echo
   echo "== Kiosk app"
-  if sh_ "pm list packages" | grep -q 'com.wesbos.homehq'; then
-    echo "com.wesbos.homehq installed"
-    sh_ "dumpsys package com.wesbos.homehq" | grep -m1 versionName | sed 's/^ *//'
+  if sh_ "pm list packages" | grep -q 'app.glance.kiosk'; then
+    echo "app.glance.kiosk installed"
+    sh_ "dumpsys package app.glance.kiosk" | grep -m1 versionName | sed 's/^ *//'
     echo "Saved settings (look for the dashboard URL):"
-    root "cat /data/data/com.wesbos.homehq/shared_prefs/*.xml"
+    root "cat /data/data/app.glance.kiosk/shared_prefs/*.xml"
   else
-    echo "com.wesbos.homehq not installed. Other likely kiosk/browser apps:"
+    echo "app.glance.kiosk not installed. Other likely kiosk/browser apps:"
     sh_ "pm list packages" | grep -iE 'kiosk|homehq|frame|browser|firefox|lightning|launcher' | sed 's/^package://'
   fi
   echo
@@ -92,7 +92,7 @@ root() {
   sh_ "dumpsys window windows" | grep -E 'mCurrentFocus|mFocusedApp' | sed 's/^ *//'
   echo
   echo "== Default Home app"
-  root "grep -A3 '<preferred-activities' /data/system/users/0/package-restrictions.xml"
+  sh_ "cmd package resolve-activity --brief -c android.intent.category.HOME -a android.intent.action.MAIN" | tail -1
   echo
   echo "== Apps you (or a previous owner) installed"
   sh_ "pm list packages -3" | sed 's/^package://' | sort
@@ -107,7 +107,7 @@ root() {
   prop persist.sys.timezone
   echo
   echo "== Let's Encrypt roots in the system trust store (informational)"
-  sh_ "ls /system/etc/security/cacerts" | grep -E '6187b673|8794b4e3' || echo "none (expected on stock Android 6)"
+  sh_ "ls /system/etc/security/cacerts" | grep -E '6187b673|8794b4e3' || echo "none"
 } | tee "$REPORT"
 
 echo

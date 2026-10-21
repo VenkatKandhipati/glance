@@ -4,3 +4,6 @@ dist/
 photos/*
 !photos/README.md
 .photos-resized/
+# Local secrets: never commit (see .env.example).
+.env*.local
+dist-frame/

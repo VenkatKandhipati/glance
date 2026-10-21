@@ -1,0 +1,4 @@
+<resources>
+    <!-- The dashboard's tile colour (in dashboard/src/style.css). -->
+    <color name="icon_background">#11151C</color>
+</resources>

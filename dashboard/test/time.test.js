@@ -27,9 +27,11 @@ test('days between ignores the time of day', () => {
   assert.equal(daysBetween(at(9, 0), new Date(2026, 9, 20)), 6);
 });
 
-test('a 1970 clock (no network time yet) is not trusted', () => {
-  assert.equal(clockIsSane(new Date(0)), false);
-  assert.equal(clockIsSane(at(9, 0)), true);
+test('a clock from before the build (no network time yet) is not trusted', () => {
+  const builtAt = new Date(2026, 9, 14, 8, 0).getTime();
+  assert.equal(clockIsSane(new Date(0), builtAt), false);
+  assert.equal(clockIsSane(new Date(2025, 8, 28, 3, 32), builtAt), false); // firmware build date
+  assert.equal(clockIsSane(at(9, 0), builtAt), true);
 });
 
 test('escapes HTML', () => {
