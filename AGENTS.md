@@ -11,7 +11,7 @@ Notes for AI agents and contributors. Read [docs/frame.md](docs/frame.md) before
 - Decisions: [docs/decisions.md](docs/decisions.md). Append one dated line for any non-obvious
   choice.
 - Runbook: [docs/connect-the-frame.md](docs/connect-the-frame.md) (setup, troubleshooting) and
-  [docs/frame.md#serving-the-page-from-the-mac](docs/frame.md#serving-the-page-from-the-mac)
+  [docs/frame.md#how-the-page-gets-onto-the-frame](docs/frame.md#how-the-page-gets-onto-the-frame)
   (run it on the frame).
 - Direction: [docs/roadmap.md](docs/roadmap.md). Work itself lives in GitHub Issues.
 - Cross-project context: ../hq/PORTFOLIO.md
@@ -38,8 +38,9 @@ Notes for AI agents and contributors. Read [docs/frame.md](docs/frame.md) before
   hosts), the Art Institute of Chicago (`api.artic.edu`, `www.artic.edu/iiif`), the Cleveland
   Museum of Art (`openaccess-api.clevelandart.org` and its CDN) and Wikimedia Commons
   (2026-10-19); everything else comes from the page's own origin. The kiosk's `/img` fetches
-  pictures only from the Cleveland CDN and `images-assets.nasa.gov`. Secrets live in `dashboard/.env.local` (gitignored) and never in git or the Mac build.
-  See "Network" in docs/frame.md.
+  pictures only from the Cleveland CDN and `images-assets.nasa.gov`. Secrets live in
+  `dashboard/.env.local` (gitignored) and never in git or the Mac build. See "Network" in
+  docs/frame.md.
 - Animate only `opacity` and `transform`. Update only what changed.
 - No two-finger hold gestures (the kiosk uses one), no `alert()`, no external links.
 - Wrap every `localStorage` access in `try`/`catch`.

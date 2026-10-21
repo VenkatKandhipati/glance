@@ -74,8 +74,8 @@ with a single blur. Glance treats that as a design constraint rather than a bug 
   every build and in CI, and fails on CSS and JS the frame can't run.
 - **No framework.** Plain ES modules; each tile renders a string of HTML and only the clock
   updates every minute.
-- **Nothing from the internet at runtime.** Fonts are bundled, photos are pre-sized, and the
-  frame only ever talks to one origin on the LAN.
+- **Bundled, not fetched.** Fonts and the page come from inside the kiosk app and photos are
+  pre-sized; the only network calls are to a short list of approved services (docs/frame.md).
 - **A `?diag` overlay** shows fps, long frames, DOM size, decoded image megapixels and heap on the
   device itself.
 
@@ -89,13 +89,14 @@ The full list, with reasons, is in [docs/frame.md](docs/frame.md).
  │ Kiosk app (fullscreen WebView, Home)│ ────────▶ │ WMATA: Metro times   │
  │  https://glance.local/ ← from APK   │           │ Google Calendar feeds│
  │  /photos/ ← frame's storage         │           │ weather.gov forecast │
- └─────────────────────────────────────┘           └──────────────────────┘
+ └─────────────────────────────────────┘           │ public-domain images │
+                                                   └──────────────────────┘
         ▲ npm run frame (USB): build, install, copy photos
  Mac
 ```
 
 The frame boots straight into a fullscreen kiosk app that serves the dashboard from inside itself,
-so it runs with the Mac off; only trains, calendars and weather go online. The Mac builds it and installs
+so it runs with the Mac off; only trains, calendars, weather and public pictures go online. The Mac builds it and installs
 updates over USB. Later a home server adds more live data (news, music) and takes over the
 WMATA and calendar calls, so no secret lives on the frame; see the [roadmap](docs/roadmap.md).
 
