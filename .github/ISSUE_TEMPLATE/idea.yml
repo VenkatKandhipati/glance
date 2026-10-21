@@ -1,0 +1,35 @@
+name: Idea
+description: Capture an idea in under 30 seconds. Triage happens later.
+labels: ["inbox"]
+body:
+  - type: input
+    id: what
+    attributes:
+      label: What
+      description: One sentence.
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why
+      description: The problem or payoff.
+    validations:
+      required: false
+  - type: textarea
+    id: done-when
+    attributes:
+      label: Done when
+      description: A check you could test. Optional at capture, required before `ready`.
+    validations:
+      required: false
+  - type: dropdown
+    id: size
+    attributes:
+      label: Size guess
+      options:
+        - S
+        - M
+        - L
+    validations:
+      required: false

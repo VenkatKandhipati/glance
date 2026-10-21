@@ -105,6 +105,8 @@ scripts/
   frame-check.sh        read-only report of the frame over ADB
 docs/
   roadmap.md            phases, from static dashboard to home server
+  architecture.md       data model and key flows, with links to the rest
+  decisions.md          dated one-line decisions and why
   design.md             design language: layout, tokens, type
   frame.md              the hardware, its browser's limits, serving and setup
   connect-the-frame.md  step-by-step: Mac setup, USB connection, checks, first run

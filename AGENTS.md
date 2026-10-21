@@ -3,6 +3,21 @@
 Notes for AI agents and contributors. Read [docs/frame.md](docs/frame.md) before changing
 `dashboard/`.
 
+## Where things are
+
+- Architecture: [docs/architecture.md](docs/architecture.md) for the data model and key flows; it
+  links to the hardware, network and layout notes in frame.md and design.md. Read before
+  structural changes.
+- Decisions: [docs/decisions.md](docs/decisions.md). Append one dated line for any non-obvious
+  choice.
+- Runbook: [docs/connect-the-frame.md](docs/connect-the-frame.md) (setup, troubleshooting) and
+  [docs/frame.md#serving-the-page-from-the-mac](docs/frame.md#serving-the-page-from-the-mac)
+  (run it on the frame).
+- Direction: [docs/roadmap.md](docs/roadmap.md). Work itself lives in GitHub Issues.
+- Cross-project context: ../hq/PORTFOLIO.md
+- About me and past lessons: read ../hq/wiki/index.md, then ../hq/wiki/projects/glance.md
+  (TODO: not written yet).
+
 ## Target
 
 - Akimart ZN-DP1002 with an **RK3126** board: Android 6.0.1, WebView 107, Mali-400, 1 GB RAM,
@@ -39,3 +54,23 @@ Notes for AI agents and contributors. Read [docs/frame.md](docs/frame.md) before
 ```sh
 cd dashboard && npm test && npm run build
 ```
+
+## How to work
+
+1. Work from a GitHub Issue. Run `gh issue view <n>` first.
+2. Branch: `<n>-short-slug`.
+3. Plan in the conversation before editing. For size L, post the plan as an issue comment.
+4. The checks above must pass before you open a PR.
+5. PR body includes "Closes #<n>" and the docs checkbox answered.
+6. If you change the shape of `content.js`, what's stored on the frame, how the page is served,
+   or the frame itself, update docs/ in the same PR.
+7. If you think of a new idea, file it as an Issue labeled inbox, add it to the board
+   (`gh project item-add 1 --owner VenkatKandhipati --url <issue-url>`), and keep going on the
+   current task. If I approve it in this session, relabel it ready and work it on its own branch
+   and PR.
+
+## Never
+
+- Commit `.env` or any secret value.
+- Push to main or merge your own PR.
+- Start work on an issue that isn't labeled ready.

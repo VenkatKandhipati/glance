@@ -1,0 +1,6 @@
+{
+  "permissions": {
+    "additionalDirectories": ["../hq"],
+    "allow": ["Read(../hq/**)"]
+  }
+}
