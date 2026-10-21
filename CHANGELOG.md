@@ -39,6 +39,10 @@ and versions follow [Semantic Versioning](https://semver.org).
   runs, and keeps a backup of its log in a file (kiosk 0.6, `GlanceFiles`).
 - Burn-in shifts for Home: the board steps through nine positions within 6 px of where it belongs,
   one every 10 minutes (`settings.shift` in `content.js`; `px: 0` turns it off).
+- Weather and calendars survive an outage: their last data is saved on the frame, so a reload or
+  power cut without Wi-Fi still shows it, and an age badge ("3 h old") appears on the weather
+  pill, the Weather screen and the calendar tile once a refresh is overdue. `?demo&stale` shows
+  the badges.
 
 ### Changed
 

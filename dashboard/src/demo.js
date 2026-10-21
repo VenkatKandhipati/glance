@@ -1,9 +1,11 @@
 // ?demo: made-up events, trains and weather, and a public-domain photo, for screenshots that show
-// nothing personal (`?demo&screen=week` opens a screen, `?demo&alert` adds a weather warning). The clock reads 8:42 am the day after
+// nothing personal (`?demo&screen=week` opens a screen, `?demo&alert` adds a weather warning, `?demo&stale` shows stale badges). The clock reads 8:42 am the day after
 // the build, so screenshots always look the same. Imported first by main.js, before anything
 // reads the time.
 export const DEMO = /[?&]demo(&|=|$)/.test(location.search);
 export const DEMO_SCREEN = DEMO ? new URLSearchParams(location.search).get('screen') : null;
+// `?demo&stale`: weather and calendars as if Wi-Fi had been down for a few hours.
+export const DEMO_STALE = DEMO && /[?&]stale(&|$)/.test(location.search);
 
 if (DEMO) {
   const Real = Date;

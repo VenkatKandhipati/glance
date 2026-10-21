@@ -79,7 +79,9 @@ services itself (Phase 1.5).
 - [x] Metro banner stops asking WMATA at night
 - [ ] Air quality (AQI)
 - [ ] `docs/api.md`: one JSON shape per feed, the contract the home server implements later
-- [ ] Cache the last good response on the frame and show it as stale when a fetch fails
+- [x] Cache the last good response on the frame and show it as stale when a fetch fails: weather
+      and calendars are saved on the frame and get an age badge when overdue; Metro times already
+      said "Times from N min ago" ([#5](https://github.com/VenkatKandhipati/glance/issues/5))
 
 ## Phase 2.5 — Live calendar
 
@@ -167,4 +169,5 @@ Details for every item: [mini-pc.md](mini-pc.md).
 
 - [x] Burn-in shifts for the dashboard: Home steps through a 3 × 3 grid of ±6 px offsets, one step
       every 10 minutes ([#6](https://github.com/VenkatKandhipati/glance/issues/6))
-- [ ] Stale-data badges, light theme by day
+- [x] Stale-data badges ([#5](https://github.com/VenkatKandhipati/glance/issues/5))
+- [ ] Light theme by day
