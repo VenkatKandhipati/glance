@@ -44,7 +44,7 @@ const nav = mountNav($('bar'), $('edge'), $('scrim'), {
   week: { el: $('week'), show: () => renderWeek($('week'), new Date(), events) },
   transit: { el: $('transit'), show: transit.show, hide: transit.hide },
   weather: { el: $('weather'), show: () => { const now = new Date(); renderWeatherScreen($('weather'), now, forecast, weatherAge(now)); } },
-  pomodoro: { el: $('pomodoro'), show: focus.show, hide: focus.hide, busy: focus.busy },
+  pomodoro: { el: $('pomodoro'), show: focus.show, hide: focus.hide, busy: focus.stay },
   telugu: { el: $('telugu'), show: letters.show, hide: letters.hide, busy: letters.busy },
 }, sheet);
 
@@ -133,5 +133,5 @@ watchWeather((f) => {
   draw(new Date());
 });
 if (DEMO_SCREEN) nav.go(DEMO_SCREEN);
-else if (focus.busy()) nav.go('pomodoro'); // a reload or power cut mid-session: back to the timer
+else if (focus.stay()) nav.go('pomodoro'); // a reload or power cut mid-session: back to the timer
 startDiag();

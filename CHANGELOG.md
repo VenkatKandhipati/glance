@@ -9,9 +9,11 @@ and versions follow [Semantic Versioning](https://semver.org).
 
 - Time tracking on the Pomodoro screen, now called Time: tap a category to track what you're doing
   at the desk (another switches, Stop ends it), or start a Pomodoro as before. Nine categories,
-  focus and not (doom scrolling, bathroom, break…). The insights count tracked desk time: today
-  with its focus share, the last 7 days by category, today's timeline (in place of 12 weeks) and
-  the week by category. What's running shows on Home; a tracker with no touch for 2 hours stops
+  focus and not (doom scrolling, bathroom, break…). The daily goal is 4 hours of focus: focus
+  time tracked, and an hour for each full Pomodoro with its break. The insights count tracked desk
+  time: today's focus hours against the goal, the last 7 days by category with focus hours, today's timeline (in place of 12 weeks) and
+  the week by category. What's running shows on Home, and the frame stays on Time while anything
+  runs; a tracker with no touch for 2 hours stops
   at the last touch. The log moves to format v2; the existing Pomodoro log carries over.
 - Metro banner in place of the chores strip: live WMATA arrivals at Ballston in both directions,
   through `/api/trains` on the Mac, which holds the API key.

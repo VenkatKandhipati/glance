@@ -100,6 +100,18 @@ export function liveEntry(state, now) {
   return { start: state.start, end: now, cat: state.cat, done: false, kind: state.phase === 'track' ? 'track' : undefined, live: true };
 }
 
+// A full Pomodoro counts as its work and its break: an hour at the desk with 45 + 15. Returns the
+// log with each full Pomodoro's end moved on by `breakMin`, but never past the next entry's
+// start (a break cut short) or `now` (a break still running). Entries in log order.
+export function withBreaks(log, breakMin, now) {
+  return log.map((s, i) => {
+    if (!s.done || s.kind === 'track') return s;
+    const next = log[i + 1];
+    const end = Math.min(s.end + breakMin * MIN, next ? Math.max(s.end, next.start) : Infinity, Math.max(s.end, now));
+    return end === s.end ? s : Object.assign({}, s, { end });
+  });
+}
+
 // The minutes of an entry that fall within [from, to).
 function within(s, from, to) {
   return Math.max(0, Math.round((Math.min(s.end, to) - Math.max(s.start, from)) / MIN));

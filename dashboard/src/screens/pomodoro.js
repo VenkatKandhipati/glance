@@ -6,8 +6,9 @@
 //
 // The timer is kept as timestamps (pomodoro-data.js), so a reload or a power cut picks it up where
 // it was. While a Pomodoro runs, the frame stays on this screen and night waits (main.js asks
-// busy()); tracking lets both go on as usual, and stops by itself at the last touch once nobody
-// has touched the frame for `autoStopHours`. Each Pomodoro phase ends with a chime and a gold
+// busy()); while tracking it stays on this screen too (stay()), but night comes as usual, and the
+// tracker stops by itself at the last touch once nobody has touched the frame for `autoStopHours`.
+// The day's goal is hours of focus: a full Pomodoro counts as an hour, its break included. Each Pomodoro phase ends with a chime and a gold
 // pulse, and brings this screen back if you'd left it. The log lives in localStorage and, in the
 // kiosk, in a backup file that adb can pull (both still named for the Pomodoro screen it grew from):
 //   adb pull /sdcard/Android/data/app.glance.kiosk/files/pomodoro.json
@@ -39,11 +40,8 @@ const upText = (ms) => {
   return (h ? h + ':' + (m < 10 ? '0' : '') : '') + m + ':' + (r < 10 ? '0' : '') + r;
 };
 const pct = (part, whole) => Math.round(part / whole * 100) + '%';
-// 3 h 20 m in the big serif numbers: "3h 20m"
-const bigTime = (mins) => {
-  const h = Math.floor(mins / 60), m = mins % 60;
-  return (h ? h + '<i>h</i> ' : '') + (h && !m ? '' : m + '<i>m</i>');
-};
+// Hours of focus against the goal: 3, or 2.5 to a tenth.
+const hoursOf = (mins) => String(Math.round(mins / 6) / 10);
 const hourLabel = (h) => (h % 12 || 12) + (h % 24 < 12 ? ' am' : ' pm');
 
 // ---- storage: localStorage, plus the kiosk's backup file when there is one
@@ -156,23 +154,26 @@ function todayTile(view, now, today) {
 }
 
 function statsTiles(data, now, live) {
-  const view = live ? data.log.concat(live) : data.log;
+  // Everything at the desk, what's running included, each full Pomodoro with its break.
+  const view = P.withBreaks(live ? data.log.concat(live) : data.log, cfg.break, +now);
   const today = P.dayTotals(view, now, isFocus);
   const run = P.streak(data.log, now);
   const all = data.log.reduce((n, s) => n + (s.done ? 1 : 0), 0);
   const allMin = view.reduce((n, s) => n + P.minutes(s), 0);
+  // one dot an hour: full, half from 30 minutes in
   let dots = '';
-  for (let i = 0; i < Math.max(cfg.goal, today.done); i++) dots += '<i class="' + (i < today.done ? 'is-done' : '') + '"></i>';
+  const full = Math.floor(today.focus / 60), half = today.focus % 60 >= 30;
+  for (let i = 0; i < Math.max(cfg.goalHours, full + (half ? 1 : 0)); i++) dots += '<i class="' + (i < full ? 'is-done' : i === full && half ? 'is-half' : '') + '"></i>';
 
   const days = P.lastDays(view, now, 7, isFocus);
-  const goalMin = cfg.goal * cfg.work;
+  const goalMin = cfg.goalHours * 60;
   const top = Math.max(goalMin * 1.25, Math.max.apply(null, days.map((d) => d.minutes)));
   const order = cats.map((c) => c.id);
   const bars = days.map((d, i) => {
     // focus categories first, at the bottom, so the goal line reads against them
     const ids = Object.keys(d.byCat).sort((a, b) => (order.indexOf(a) + 99) % 99 - (order.indexOf(b) + 99) % 99);
     const segs = ids.map((id) => '<i class="' + kClass(id) + '" style="height:' + (d.byCat[id] / top * 100).toFixed(1) + '%"></i>').join('');
-    return '<li' + (i === 6 ? ' class="is-today"' : '') + '><span class="pm-n">' + (d.done || '') + '</span>' +
+    return '<li' + (i === 6 ? ' class="is-today"' : '') + '><span class="pm-n">' + (d.focus >= 3 ? hoursOf(d.focus) : '') + '</span>' +
       '<span class="pm-bar">' + segs + '</span><span class="pm-d">' + (i === 6 ? 'Today' : DAYS[d.day.getDay()].slice(0, 3)) + '</span></li>';
   }).join('');
 
@@ -186,14 +187,13 @@ function statsTiles(data, now, live) {
 
   return '<div class="pm-stats">' +
     '<div class="pm-top">' +
-    '<section class="tile pm-stat"><h2>Today</h2><b class="serif">' + bigTime(today.minutes) + '</b>' +
-    '<div class="pm-dots">' + dots + '</div><span>' + today.done + ' of ' + cfg.goal +
-    (today.minutes ? ' · ' + pct(today.focus, today.minutes) + ' focus' : ' Pomodoros') + '</span></section>' +
+    '<section class="tile pm-stat"><h2>Today · focus</h2><b class="serif">' + hoursOf(today.focus) + '<i> of ' + cfg.goalHours + ' h</i></b>' +
+    '<div class="pm-dots">' + dots + '</div><span>' + (today.minutes ? P.hoursText(today.minutes) + ' at the desk' : 'Nothing tracked yet') + '</span></section>' +
     '<section class="tile pm-stat"><h2>Streak</h2><b class="serif">' + run.current + '<i> day' + (run.current === 1 ? '' : 's') + '</i></b>' +
     '<span>' + (run.current && !run.today ? 'One today keeps it going' : 'Best ' + run.best + ' day' + (run.best === 1 ? '' : 's')) + '</span></section>' +
     '<section class="tile pm-stat"><h2>All time</h2><b class="serif">' + all + '<i> Pomodoros</i></b><span>' + (allMin ? P.hoursText(allMin) + ' at the desk' : 'Your first one starts here') + '</span></section>' +
     '</div>' +
-    '<section class="tile pm-week"><h2>Last 7 days at the desk</h2><ul style="--goal:' + (goalMin / top * 100).toFixed(1) + '%">' + bars + '</ul></section>' +
+    '<section class="tile pm-week"><h2>Last 7 days at the desk<span>hours of focus</span></h2><ul style="--goal:' + (goalMin / top * 100).toFixed(1) + '%">' + bars + '</ul></section>' +
     '<div class="pm-bottom">' + todayTile(view, now, today) +
     '<section class="tile pm-split"><h2>By category · 7 days' + (week ? '<span>' + pct(weekFocus, week) + ' focus</span>' : '') + '</h2><ul>' + rows + '</ul></section>' +
     '</div></div>';
@@ -356,7 +356,9 @@ export function mountPomodoro(el, onCue) {
     hide() { visible = false; },
     // Called every minute: the stats and "Today" move on with the date.
     update() { if (visible) render(); },
+    // A Pomodoro holds the screen and night off; tracking holds only the screen.
     busy() { return data.state.phase === 'work' || data.state.phase === 'break'; },
+    stay() { return data.state.phase !== 'idle'; },
     // What's running, for Home: { name, k, text } or null.
     running() {
       const st = data.state, now = Date.now();

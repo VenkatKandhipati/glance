@@ -605,6 +605,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .pm-dots { display: flex; gap: 6px; margin-top: 12px; }
 .pm-dots i { width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgba(203, 180, 124, 0.4); }
 .pm-dots i.is-done { border-color: var(--gold-fill); background: var(--gold-fill); }
+.pm-dots i.is-half { border-color: var(--gold-fill); background: linear-gradient(90deg, var(--gold-fill) 50%, transparent 50%); }
 .pm-dots + span { margin-top: auto; }
 
 .pm-week { display: flex; flex-direction: column; flex: 1; min-height: 0; padding: 20px 24px 16px; }
@@ -629,7 +630,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 
 .pm-bottom { display: grid; grid-template-columns: 330px 1fr; gap: var(--gap); flex: none; height: 232px; }
 .pm-today, .pm-split { padding: 20px 24px; }
-.pm-split h2 span, .pm-today h2 span { float: right; letter-spacing: 0.04em; text-transform: none; color: var(--gold); }
+.pm-split h2 span, .pm-today h2 span, .pm-week h2 span { float: right; letter-spacing: 0.04em; text-transform: none; color: var(--gold); }
 /* today's timeline: blocks by category on a strip of the hours, today by category under it */
 .pm-strip { position: relative; height: 34px; margin-top: 16px; border-radius: 8px; background: rgba(255, 255, 255, 0.05); overflow: hidden; }
 .pm-strip i { position: absolute; top: 0; bottom: 0; min-width: 2px; background: var(--k); border-right: 1px solid var(--tile); }

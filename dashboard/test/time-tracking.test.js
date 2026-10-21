@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { IDLE, advance, startTrack, stopTrack, autoStop, liveEntry, dayTotals, dayBlocks, categoryTotals, lastDays, streak, pack, unpack } from '../src/pomodoro-data.js';
+import { IDLE, advance, startTrack, stopTrack, autoStop, liveEntry, withBreaks, dayTotals, dayBlocks, categoryTotals, lastDays, streak, pack, unpack } from '../src/pomodoro-data.js';
 
 const MIN = 60000, H = 60 * MIN;
 const at = (y, mo, d, h, m) => new Date(y, mo - 1, d, h || 0, m || 0).getTime();
@@ -119,4 +119,23 @@ test('tracked entries, the tracking state, the last touch and the auto-stop note
     auto: { cat: 'geico', at: t9 - 2 * H, until: t9 },
   };
   assert.deepEqual(unpack(pack(data)), data);
+});
+
+test('a full Pomodoro counts as an hour with its break; 2 of them and an hour tracked make 3 h of focus', () => {
+  const p = (h) => ({ start: at(2026, 10, 21, h), end: at(2026, 10, 21, h, 45), cat: 'geico', done: true });
+  const log = [p(9), p(10), { start: at(2026, 10, 21, 13), end: at(2026, 10, 21, 14), cat: 'geico', done: false, kind: 'track' }];
+  const t = dayTotals(withBreaks(log, 15, at(2026, 10, 21, 20)), new Date(t9), isFocus);
+  assert.equal(t.focus, 180);
+  assert.equal(t.done, 2);
+});
+
+test('the break counted for a Pomodoro stops at whatever came next, at now, and only for full ones', () => {
+  const full = { start: t9, end: t9 + 45 * MIN, cat: 'geico', done: true };
+  const next = { start: t9 + 50 * MIN, end: t9 + 70 * MIN, cat: 'scrolling', done: false, kind: 'track' };
+  assert.equal(withBreaks([full, next], 15, t9 + 5 * H)[0].end, t9 + 50 * MIN); // break cut short
+  assert.equal(withBreaks([full], 15, t9 + 52 * MIN)[0].end, t9 + 52 * MIN); // break still running
+  assert.equal(withBreaks([full], 15, t9 + 5 * H)[0].end, t9 + 60 * MIN);
+  const stopped = Object.assign({}, full, { done: false });
+  assert.equal(withBreaks([stopped], 15, t9 + 5 * H)[0], stopped);
+  assert.equal(withBreaks([next], 15, t9 + 5 * H)[0], next);
 });

@@ -1,7 +1,7 @@
 // Screens and the side bar. The bar stays hidden until a tap on the left edge; it slides in over
 // the screen, and goes again after a few seconds, on a choice, or on a tap anywhere else. Any
 // screen but Home goes back to Home after two minutes with no touch, and the day sheet closes;
-// a screen whose busy() says so (a Pomodoro running) stays.
+// a screen whose busy() says so (Time, while it times or tracks) stays.
 const BAR_MS = 6000;
 const HOME_MS = 2 * 60000;
 
