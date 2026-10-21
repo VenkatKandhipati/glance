@@ -1,6 +1,7 @@
 // Telugu screen: the vowels and consonants as a chart to look up at while writing them on paper.
 // Three pages, the vowels and the consonants over two; the tabs or a swipe move between them.
-// The second consonant page has room to spare, so each letter there gets a common word beside it.
+// The second consonant page has room to spare, so its last eight letters, the hardest to say, each
+// get a common word beside them.
 //
 // Writing means not touching the frame, so the screen stays up (no going Home, no night clock)
 // for content.js `telugu.stayMinutes` after the last touch on it. While it's up it steps a few
@@ -17,7 +18,7 @@ const FONT = 'Noto Sans Telugu';
 // sound in gold, and what it means.
 const word = (w) => !w ? '' : '<span class="te-ex"><span class="te-ex-w" lang="te">' + w[0] + '</span>' +
   '<span class="te-ex-r">' + w[1].replace(/\*([^*]+)\*/, '<b>$1</b>') + '</span><span class="te-ex-m">' + w[2] + '</span></span>';
-const cell = (l) => '<div class="te-cell"><span class="te-main"><span class="te-box"><span class="te-g" lang="te">' + l[0] +
+const cell = (l) => '<div class="te-cell' + (WORDS[l[0]] ? ' has-ex' : '') + '"><span class="te-main"><span class="te-box"><span class="te-g" lang="te">' + l[0] +
   '</span></span><span class="te-r">' + l[1] + '</span></span>' + word(WORDS[l[0]]) + '</div>';
 const rows = (list) => list.map((r) => '<div class="te-row">' + r.map(cell).join('') + '</div>').join('');
 

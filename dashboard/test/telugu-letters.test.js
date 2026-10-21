@@ -33,10 +33,10 @@ test('the consonant pages hold every consonant once, four rows of at most five e
   }
 });
 
-test('every letter on the second consonant page has a word that contains it', () => {
-  const second = CONSONANT_PAGES[1].flat().map((l) => l[0]);
-  assert.deepEqual(Object.keys(WORDS).sort(), second.slice().sort());
-  for (const letter of second) {
+test('each of the last eight consonants has a word that contains it', () => {
+  const last = consonants.slice(-8).map((l) => l[0]);
+  assert.deepEqual(Object.keys(WORDS).sort(), last.slice().sort());
+  for (const letter of last) {
     const [word, roman, meaning] = WORDS[letter];
     assert.ok(word.includes(letter), letter + ' in ' + word);
     assert.match(roman, /^[^*]*\*[^*]+\*[^*]*$/, 'one marked sound in ' + roman);

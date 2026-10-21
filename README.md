@@ -14,7 +14,7 @@ train board or the forecast.
 
 ![Pomodoro screen: a 45-minute timer with categories, today's count, the streak, the last 7 days, 12 weeks and time by category](docs/images/pomodoro.png)
 
-![Telugu screen: the later consonants, each with its romanization and a common word that has its sound](docs/images/telugu.png)
+![Telugu screen: the later consonants with their romanizations, the last eight each beside a common word that has its sound](docs/images/telugu.png)
 
 <sub>Screenshots from the frame in demo mode (`?demo`): made-up events and trains, and a
 public-domain photo of the Tidal Basin by the National Park Service.</sub>
@@ -56,8 +56,8 @@ keep running for weeks with nobody touching it.
 - **Telugu.** The 16 vowels and 36 consonants as a chart to look up at while writing them on
   paper, each centred in its box with its romanization (kathalu's) under it. Three pages: the
   vowels in their families, then the consonants over two (four vargas; then the fifth and the
-  rest, each beside a common word that has its sound, like పక్షి *pakṣi*, bird); the tabs or a
-  swipe move between them. It stays up for 45 minutes after the last touch, so
+  rest, the last eight each beside a common word that has its sound, like పక్షి *pakṣi*, bird);
+  the tabs or a swipe move between them. It stays up for 45 minutes after the last touch, so
   writing doesn't send it Home, and moves 4 px once every half hour against burn-in.
 - **Taps on Home.** A day on the month, or *Next up*, opens that day's events (‹ › step through
   days). The weather opens Weather, the Metro banner opens Transit, the photo moves on, and the

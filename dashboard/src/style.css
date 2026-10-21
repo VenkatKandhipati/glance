@@ -723,9 +723,10 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .te-cons .te-cell { flex: none; width: calc((100% - 40px) / 5); }
 .te-cons .te-g { font-size: 100px; }
 .te-cons .te-r { height: 40px; font-size: 21px; }
-/* second consonant page: four to a row, the letter in a fixed column and its word beside it */
+/* second consonant page: four to a row; with a word, the letter keeps a fixed column beside it */
 .te-words .te-cell { width: calc((100% - 30px) / 4); align-items: center; }
-.te-words .te-main { flex: none; width: 150px; align-self: stretch; }
+.te-words .te-main { align-self: stretch; }
+.te-words .has-ex .te-main { flex: none; width: 150px; }
 .te-ex {
   display: flex;
   flex: 1;
