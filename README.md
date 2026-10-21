@@ -46,21 +46,19 @@ keep running for weeks with nobody touching it.
   outages) and **Weather** (now, the next 12 hours, the week, sunrise and sunset, and any
   warnings). Two idle minutes bring back Home.
 - **Time.** What you're doing at the desk, on a screen of its own. Tap a category to track it
-  (recruiting, GEICO, doom scrolling, bathroom…; edit them in `content.js`), another to switch,
-  Stop to end it; or start a Pomodoro: 45 minutes of deep work, then a 15-minute break. One thing
-  runs at a time, and a Pomodoro started while tracking takes over from it. Beside the timer, all
-  counted against time at the desk: today's hours of focus against a goal of 4 (focus time
-  tracked, and an hour for each full Pomodoro, its break included), the streak (days with at least
-  an hour of focus, weekends included), all-time focus hours, the last 7 days by category with each
-  day's focus hours, today's timeline and where the week's time went. What's running shows on Home in
-  place of the greeting. The timer is kept as timestamps, so a reload or a power cut picks it up
-  where it was; while anything runs, the frame stays on it, and while a Pomodoro runs night waits
-  too. A tracker left with
-  no touch on the frame for 2 hours stops at the last touch (one tap counts the rest). Tracking
-  doom scrolling or a break chimes and flashes orange every 10 minutes as a nudge to stop. Each
-  Pomodoro phase ends with a chime and a gold pulse; stopping one early takes two taps and is
-  logged as stopped. The log is kept on the frame, with a backup file that `adb pull` can copy
-  off.
+  (recruiting, GEICO, doom scrolling, bathroom…; edit them in `content.js`), another to switch, Stop
+  to end it; or start a Pomodoro: 45 minutes of deep work, then a 15-minute break. One thing runs at
+  a time, and a Pomodoro started while tracking takes over from it. Beside the timer, all counted
+  against time at the desk: today's hours of focus against a goal of 4 (focus time tracked, and an
+  hour for each full Pomodoro, its break included), the streak (days with at least an hour of focus,
+  weekends included), all-time focus hours, the last 7 days by category with each day's focus hours,
+  today's timeline and where the week's time went. What's running shows on Home in place of the
+  greeting. The timer is kept as timestamps, so a reload or a power cut picks it up where it was;
+  while anything runs, the frame stays on it, and while a Pomodoro runs night waits too. A tracker
+  left with no touch on the frame for 2 hours stops at the last touch (one tap counts the rest).
+  Tracking doom scrolling or a break chimes and flashes orange every 10 minutes as a nudge to stop.
+  Each Pomodoro phase ends with a chime and a gold pulse; stopping one early takes two taps and is
+  logged as stopped. The log is kept on the frame, with a backup file that `adb pull` can copy off.
 - **Telugu.** The 16 vowels and 36 consonants as a chart to look up at while writing them on
   paper, each centred in its box with its romanization (kathalu's) under it. Three pages: the
   vowels in their families, then the consonants over two (four vargas; then the fifth and the

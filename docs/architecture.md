@@ -13,9 +13,9 @@ and holds only what isn't written down yet.
 ## Data model
 
 Settings live in `dashboard/src/content.js`, each export commented in place: `dates`,
-`calendars`, `metro`, `weather`, `featured` (public pictures), `time` (the Time screen), `telugu` and `settings` (week
-start, photo time, night hours). Secrets (the WMATA key, `CAL_<ID>` calendar addresses) live in
-`dashboard/.env.local` only.
+`calendars`, `metro`, `weather`, `featured` (public pictures), `time` (the Time screen), `telugu`
+and `settings` (week start, photo time, night hours). Secrets (the WMATA key, `CAL_<ID>` calendar
+addresses) live in `dashboard/.env.local` only.
 
 Stored on the frame:
 
