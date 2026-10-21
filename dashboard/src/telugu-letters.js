@@ -19,10 +19,12 @@ export const VARGAS = [
   [['ప', 'pa'], ['ఫ', 'pha'], ['బ', 'ba'], ['భ', 'bha'], ['మ', 'ma']],
 ];
 
-// The other eleven, three to a row.
+// The other eleven: the semivowels, the sibilants and h, then the last three.
 export const OTHER_ROWS = [
-  [['య', 'ya'], ['ర', 'ra'], ['ల', 'la']],
-  [['వ', 'va'], ['శ', 'śa'], ['ష', 'ṣa']],
-  [['స', 'sa'], ['హ', 'ha'], ['ళ', 'ḷa']],
-  [['క్ష', 'kṣa'], ['ఱ', 'ṟa']],
+  [['య', 'ya'], ['ర', 'ra'], ['ల', 'la'], ['వ', 'va']],
+  [['శ', 'śa'], ['ష', 'ṣa'], ['స', 'sa'], ['హ', 'ha']],
+  [['ళ', 'ḷa'], ['క్ష', 'kṣa'], ['ఱ', 'ṟa']],
 ];
+
+// The consonants over two pages of four rows: the first four vargas; then the fifth and the rest.
+export const CONSONANT_PAGES = [VARGAS.slice(0, 4), VARGAS.slice(4).concat(OTHER_ROWS)];

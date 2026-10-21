@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { VOWEL_ROWS, VARGAS, OTHER_ROWS } from '../src/telugu-letters.js';
+import { VOWEL_ROWS, VARGAS, OTHER_ROWS, CONSONANT_PAGES } from '../src/telugu-letters.js';
 
 const vowels = VOWEL_ROWS.flat(), consonants = VARGAS.flat().concat(OTHER_ROWS.flat());
 
@@ -22,4 +22,13 @@ test('five vargas of five, ending in their nasals', () => {
   assert.equal(VARGAS.length, 5);
   for (const row of VARGAS) assert.equal(row.length, 5);
   assert.deepEqual(VARGAS.map((r) => r[4][0]), ['ఙ', 'ఞ', 'ణ', 'న', 'మ']);
+});
+
+test('the consonant pages hold every consonant once, four rows of at most five each', () => {
+  const paged = CONSONANT_PAGES.flat(2).map((l) => l[0]);
+  assert.deepEqual(paged, consonants.map((l) => l[0]));
+  for (const page of CONSONANT_PAGES) {
+    assert.equal(page.length, 4);
+    for (const row of page) assert.ok(row.length <= 5);
+  }
 });

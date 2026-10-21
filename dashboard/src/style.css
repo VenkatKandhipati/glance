@@ -32,6 +32,7 @@
   --serif: 'Instrument Serif', Georgia, serif;
   --sans: 'Plus Jakarta Sans Variable', 'Plus Jakarta Sans', Roboto, sans-serif;
   --te: 'Noto Sans Telugu', var(--sans);
+  --te-ink: #ddd6c8; /* the Telugu letters: --ink a step warmer and dimmer, easier on the eye in bulk */
 
   /* shape + space */
   --r: 30px;
@@ -702,29 +703,25 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   color: var(--mute);
 }
 .te-tab.is-on { border-color: rgba(203, 180, 124, 0.35); background: rgba(203, 180, 124, 0.14); color: var(--gold); }
-.te-vowels, .te-vargas, .te-others { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
-.te-vowels { flex: 1; min-height: 0; }
-.te-cons { display: flex; gap: 28px; flex: 1; min-height: 0; }
-.te-vargas { flex: 5; }
-.te-others { flex: 3; }
+.te-grid { display: flex; flex-direction: column; gap: 10px; flex: 1; min-height: 0; }
 .te-row { display: flex; gap: 10px; flex: 1; min-height: 0; }
-.te-others .te-row { display: grid; grid-template-columns: repeat(3, 1fr); }
 .te-cell {
   display: flex;
   flex: 1;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
   min-width: 0;
   border-radius: 22px;
   border: 1px solid var(--tile-line);
   background: var(--tile);
 }
-.te-g { font-family: var(--te); font-size: 116px; line-height: 1; color: var(--ink); }
-.te-r { margin-top: 10px; font-size: 24px; font-weight: 650; letter-spacing: 0.02em; color: var(--gold); }
-.te-cons .te-g { font-size: 84px; }
-.te-cons .te-r { margin-top: 12px; font-size: 19px; }
-.te-others .te-r { margin-top: 18px; }
+/* the space the letter is centred in (screens/telugu.js moves each one so its ink is centred) */
+.te-box { display: flex; flex: 1; align-items: center; justify-content: center; min-height: 0; }
+.te-g { font-family: var(--te); font-size: 116px; line-height: 1; color: var(--te-ink); }
+.te-r { flex: none; height: 46px; font-size: 24px; font-weight: 650; letter-spacing: 0.02em; text-align: center; color: var(--gold); }
+/* the consonants keep five columns on both pages, so every cell is the same size */
+.te-cons .te-cell { flex: none; width: calc((100% - 40px) / 5); }
+.te-cons .te-g { font-size: 100px; }
+.te-cons .te-r { height: 40px; font-size: 21px; }
 .bar-te { font-family: var(--te); font-size: 30px; line-height: 30px; height: 30px; }
 
 /* ------------------------------------------------------------------ side bar */
