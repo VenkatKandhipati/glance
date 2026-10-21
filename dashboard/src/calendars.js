@@ -1,12 +1,17 @@
 // Fetches the Google calendars in content.js every 10 minutes and reports their occurrences from
 // yesterday to two months out. The Mac's copy asks its /ics?cal=; the frame build asks the kiosk
-// app (/ics?url=) with addresses baked in at build time. A calendar that fails keeps its last copy.
+// app (/ics?url=) with addresses baked in at build time. A calendar that fails keeps its last copy,
+// saved on the frame so a reload during an outage keeps it too. onChange also gets when the oldest
+// of those copies arrived, for the tile's "stale" badge.
 import { calendars } from './content.js';
 import { parseIcs, occurrences } from './ics.js';
 import { addDays, clockIsSane, dayStart } from './time.js';
-import { DEMO, demoEvents } from './demo.js';
+import { DEMO, DEMO_STALE, demoEvents } from './demo.js';
+import { save, load, reviveEvents } from './stale.js';
 
 const POLL_MS = 10 * 60000;
+const KEY = 'glance-calendars';
+const KEEP_MS = 7 * 864e5; // a saved copy older than this isn't shown after a reload
 
 function feedUrl(cal) {
   if (!__FRAME__) return '/ics?cal=' + encodeURIComponent(cal.id);
@@ -15,8 +20,26 @@ function feedUrl(cal) {
 }
 
 export function watchCalendars(onChange) {
-  if (DEMO) { onChange(demoEvents()); return; }
-  const latest = {}; // calendar id → occurrences
+  if (DEMO) { onChange(demoEvents(), Date.now() - (DEMO_STALE ? 2 * 3600e3 : 0)); return; }
+  const latest = {}; // calendar id → { at, list } (at: when it arrived, frame clock)
+  const report = () => {
+    const ats = calendars.map((c) => latest[c.id] && latest[c.id].at).filter(Boolean);
+    onChange([].concat.apply([], calendars.map((c) => (latest[c.id] ? latest[c.id].list : []))),
+      ats.length ? Math.min.apply(null, ats) : 0);
+  };
+
+  // Shown at once, before network time or Wi-Fi arrive.
+  // Each calendar keeps its own arrival time, so one that's been failing for a week is dropped.
+  const saved = load(KEY, Date.now(), KEEP_MS);
+  if (saved) {
+    Object.keys(saved.data).forEach((id) => {
+      const c = saved.data[id];
+      if (c && c.at && Date.now() - c.at <= KEEP_MS && Array.isArray(c.list)) {
+        latest[id] = { at: c.at, list: reviveEvents(c.list) };
+      }
+    });
+    if (Object.keys(latest).length) report();
+  }
 
   function poll() {
     const now = new Date();
@@ -31,10 +54,13 @@ export function watchCalendars(onChange) {
         .then((r) => (r.ok ? r.text() : ''))
         .then((text) => {
           if (text.indexOf('BEGIN:VCALENDAR') < 0) return;
-          latest[cal.id] = occurrences(parseIcs(text), from, to).map((o) =>
-            Object.assign(o, { quiet: !!cal.quiet, calendar: cal.name || cal.id, calId: cal.id }));
+          latest[cal.id] = { at: Date.now(), list: occurrences(parseIcs(text), from, to).map((o) =>
+            Object.assign(o, { quiet: !!cal.quiet, calendar: cal.name || cal.id, calId: cal.id })) };
         }, () => {});
-    })).then(() => onChange([].concat.apply([], calendars.map((c) => latest[c.id] || []))));
+    })).then(() => {
+      save(KEY, latest, Date.now());
+      report();
+    });
   }
 
   poll();

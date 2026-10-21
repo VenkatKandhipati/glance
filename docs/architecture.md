@@ -23,6 +23,8 @@ Stored on the frame:
 | --- | --- |
 | `localStorage` `glance-pictures` | Verdicts on public pictures already measured (up to 3,000), so each is measured once |
 | `localStorage` `glance-diag` | `?diag` overlay on or off |
+| `localStorage` `glance-weather` | The last forecast that arrived and when, shown after a reload during an outage (up to 7 days) |
+| `localStorage` `glance-calendars` | Each calendar's last occurrences and when they arrived (up to 7 days) |
 | `localStorage` `glance-pomodoro` | The Pomodoro timer and session log (format in `src/pomodoro-data.js`) |
 | `/sdcard/Android/data/app.glance.kiosk/files/pomodoro.json` | The same, as a backup written by the kiosk (`GlanceFiles`) |
 | `/sdcard/Android/data/app.glance.kiosk/files/photos/` | Your photos, resized, pushed by `npm run frame` |

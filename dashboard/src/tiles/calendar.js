@@ -112,7 +112,8 @@ export function dayAtGrid(now, width, x, y) {
 
 // Draws the tile; only touches the DOM when something visible changed, so it's cheap to call
 // every minute and whenever the calendars refresh.
-export function renderCalendar(el, now, events) {
+// stale: the calendars' age once they're overdue ("2 h old"), or null.
+export function renderCalendar(el, now, events, stale) {
   events = events || [];
   const today = dayStart(now);
   const first = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -150,7 +151,7 @@ export function renderCalendar(el, now, events) {
   const html =
     '<div class="cal-side">' +
     '<div class="cal-month serif">' + MONTHS[today.getMonth()] + '<i>,</i></div>' +
-    '<div class="cal-year">' + today.getFullYear() + '</div>' +
+    '<div class="cal-year">' + today.getFullYear() + (stale ? '<span class="stale">Calendar ' + stale + '</span>' : '') + '</div>' +
     '<div class="cal-agenda">' + quietHtml + nextHtml + '</div></div>' +
     '<div class="cal-grid">' + grid + '</div>';
   if (el.__html !== html) el.innerHTML = el.__html = html;

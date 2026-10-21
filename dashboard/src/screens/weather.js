@@ -11,7 +11,8 @@ const icon = (name) => ICONS[name] || ICONS.cloud;
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 const hourText = (d) => (d.getHours() % 12 || 12) + (d.getHours() >= 12 ? ' pm' : ' am');
 
-export function renderWeatherScreen(el, now, forecast) {
+// stale: the forecast's age once it's overdue, or null.
+export function renderWeatherScreen(el, now, forecast, stale) {
   const w = forecast && summarize(forecast.daily, forecast.hourly, now);
   let html;
   if (!w) {
@@ -35,7 +36,8 @@ export function renderWeatherScreen(el, now, forecast) {
       '<span class="wx-words">' + esc(cap(d.words)) + '</span>' +
       '<span class="wx-hl"><b>' + (d.high !== null ? d.high + '°' : '') + '</b>' + (d.low !== null ? d.low + '°' : '') + '</span>' +
       '<span class="wx-pop">' + (d.pop >= 20 ? d.pop + '% rain' : '') + '</span></li>').join('');
-    html = '<header class="screen-head"><h1 class="serif">Weather<i>,</i></h1><span>' + esc(weather.name || '') + '</span></header>' +
+    html = '<header class="screen-head"><h1 class="serif">Weather<i>,</i></h1><span>' + esc(weather.name || '') +
+      (stale ? '<span class="stale">Forecast ' + stale + '</span>' : '') + '</span></header>' +
       (alerts ? '<ul class="wx-alerts">' + alerts + '</ul>' : '') +
       '<div class="wx-top">' +
       '<section class="tile wx-now"><div class="wx-big"><span class="wx-i">' + icon(w.icon) + '</span>' +

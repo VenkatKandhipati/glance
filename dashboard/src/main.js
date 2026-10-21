@@ -18,13 +18,15 @@ import { startDiag } from './diag.js';
 import { clockIsSane } from './time.js';
 import { applyShift } from './shift.js';
 import { settings } from './content.js';
+import { ageText, WEATHER_STALE_MS, CALENDAR_STALE_MS } from './stale.js';
 
 window.__glance = true; // tells the watchdog in index.html that the bundle started
 
 const $ = (id) => document.getElementById(id);
 const bootedAt = Date.now();
 let events = []; // Google calendar occurrences, refreshed every 10 minutes
-let forecast = null; // { daily, hourly, alerts } from weather.gov, refreshed every 30 minutes
+let eventsAt = 0; // when the oldest calendar's copy arrived
+let forecast = null; // { daily, hourly, alerts, at } from weather.gov, refreshed every 30 minutes
 let reloadDue = false, lastServerCheck = 0;
 
 const sheet = mountSheet($('sheet'), () => events);
@@ -38,11 +40,14 @@ const nav = mountNav($('bar'), $('edge'), $('scrim'), {
   home: { el: $('board') },
   week: { el: $('week'), show: () => renderWeek($('week'), new Date(), events) },
   transit: { el: $('transit'), show: transit.show, hide: transit.hide },
-  weather: { el: $('weather'), show: () => renderWeatherScreen($('weather'), new Date(), forecast) },
+  weather: { el: $('weather'), show: () => { const now = new Date(); renderWeatherScreen($('weather'), now, forecast, weatherAge(now)); } },
   pomodoro: { el: $('pomodoro'), show: focus.show, hide: focus.hide, busy: focus.busy },
 }, sheet);
 
 const weatherNow = (now) => forecast && summarize(forecast.daily, forecast.hourly, now);
+// The forecast's age once it's overdue ("3 h old"), or null; none before network time.
+const weatherAge = (now) =>
+  (forecast && clockIsSane(now, __BUILT_AT__) ? ageText(forecast.at, +now, WEATHER_STALE_MS) : null);
 
 // Is the server (the Mac) answering? A reload while it's asleep would swap a working dashboard
 // for the kiosk's "Can't reach the dashboard" screen, so the daily reload waits until it answers.
@@ -58,11 +63,11 @@ function serverUp() {
 // changed, so this is cheap to call every minute and on every refresh.
 function draw(now) {
   const alerts = forecast && forecast.alerts ? forecast.alerts.filter((a) => !a.ends || a.ends > now) : [];
-  renderClock($('clock'), now, weatherNow(now), alerts[0] || null);
+  renderClock($('clock'), now, weatherNow(now), alerts[0] || null, weatherAge(now));
   if (!clockIsSane(now, __BUILT_AT__)) return;
-  renderCalendar($('cal'), now, events);
+  renderCalendar($('cal'), now, events, ageText(eventsAt, +now, CALENDAR_STALE_MS));
   if (nav.current() === 'week') renderWeek($('week'), now, events);
-  if (nav.current() === 'weather') renderWeatherScreen($('weather'), now, forecast);
+  if (nav.current() === 'weather') renderWeatherScreen($('weather'), now, forecast, weatherAge(now));
   focus.update();
 }
 
@@ -111,8 +116,9 @@ $('week').addEventListener('click', (e) => {
 // then the tick above redraws it as soon as the real date arrives.
 renderCalendar($('cal'), new Date());
 schedule();
-watchCalendars((list) => {
+watchCalendars((list, at) => {
   events = list;
+  eventsAt = at;
   draw(new Date());
 });
 watchWeather((f) => {

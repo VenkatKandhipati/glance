@@ -113,6 +113,9 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .chip-alert { background: rgba(191, 13, 62, 0.18); border-color: rgba(242, 167, 184, 0.3); color: #ffd6df; }
 .chip-alert .chip-icon-wx { background: rgba(191, 13, 62, 0.3); color: #f2a7b8; }
 .clock-alert { color: #f2a7b8; }
+/* the forecast couldn't be refreshed: grey icon, its age after the temperature */
+.chip-stale .chip-icon-wx { background: rgba(255, 255, 255, 0.06); color: var(--mute); }
+.chip-age { margin-left: 10px; font-size: 14px; font-weight: 600; color: var(--mute); }
 .clock-time {
   display: flex;
   align-items: baseline;
@@ -154,6 +157,19 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .cal-month { font-size: 40px; line-height: 1; }
 .cal-month i { color: var(--gold); }
 .cal-year { margin-top: 4px; font-size: 15px; font-weight: 600; color: var(--mute); }
+/* a feed that couldn't be refreshed: its age, small and quiet (calendar, Weather screen) */
+.stale {
+  display: inline-block;
+  margin-left: 10px;
+  padding: 2px 9px;
+  border: 1px solid var(--chip-line);
+  border-radius: 999px;
+  background: var(--chip);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-2);
+  vertical-align: 1px;
+}
 /* Duckville's line, then "Next up", pinned to the bottom of the column */
 .cal-agenda { margin-top: auto; }
 .cal-label {

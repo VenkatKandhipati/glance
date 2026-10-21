@@ -25,9 +25,11 @@ export const ICONS = {
 
 export const WARNING = svg('<path d="M12 3l10 18H2z"/><path d="M12 10v4M12 17.5h.01"/>');
 
-function weatherChip(w, alert) {
-  return '<span class="chip' + (alert ? ' chip-alert' : '') + '"><span class="chip-icon chip-icon-wx">' +
-    (alert ? WARNING : ICONS[w.icon] || ICONS.cloud) + '</span>' + w.temp + '°</span>';
+// stale: "3 h old" when the forecast couldn't be refreshed, else null.
+function weatherChip(w, alert, stale) {
+  return '<span class="chip' + (alert ? ' chip-alert' : '') + (stale ? ' chip-stale' : '') + '"><span class="chip-icon chip-icon-wx">' +
+    (alert ? WARNING : ICONS[w.icon] || ICONS.cloud) + '</span>' + w.temp + '°' +
+    (stale ? '<span class="chip-age">' + stale + '</span>' : '') + '</span>';
 }
 
 function secondLine(w, alert) {
@@ -36,12 +38,12 @@ function secondLine(w, alert) {
 }
 
 // w: summarize()'s weather, or null while there's none to show. alert: the most severe active
-// weather alert, or null.
-export function renderClock(el, now, w, alert) {
+// weather alert, or null. stale: the forecast's age once it's overdue, or null.
+export function renderClock(el, now, w, alert, stale) {
   const { time, ampm } = clockParts(now);
   el.innerHTML =
     '<div class="clock-chips"><span class="chip"><span class="chip-icon">' + CAL_ICON + '</span>' +
-    DAYS[now.getDay()] + ' · ' + now.getDate() + ' ' + MONTHS[now.getMonth()] + '</span>' + (w ? weatherChip(w, alert) : '') + '</div>' +
+    DAYS[now.getDay()] + ' · ' + now.getDate() + ' ' + MONTHS[now.getMonth()] + '</span>' + (w ? weatherChip(w, alert, stale) : '') + '</div>' +
     '<div class="clock-time serif">' + time + '<span class="clock-ampm">' + ampm + '</span></div>' +
     '<div class="clock-greet serif"><b>' + greeting(now) + '</b>' + secondLine(w, alert) + '</div>';
 }
