@@ -58,13 +58,16 @@ export const featured = {
 // Time screen: what you're doing at the desk. Tap a category to track it (another switches, Stop
 // ends it), or start a Pomodoro: `work` minutes of deep work, then a `break`. `goalHours` is a
 // day's goal in hours of focus: focus time tracked, and an hour for each full Pomodoro (its break
-// included). A tracker with no touch on the frame for `autoStopHours` stops by itself at the last
-// touch. `focus` categories count as focus in the insights. An `id` is what the log
+// included); a streak day has at least `streakHours` of focus. Tracking one of
+// `remind.categories` chimes and flashes every `remind.minutes` as a nudge to stop. A tracker
+// with no touch on the frame for `autoStopHours` stops by itself at the last touch. `focus` categories count as focus in the insights. An `id` is what the log
 // keeps, so rename a `name` freely but keep its id; colours follow this order.
 export const time = {
   work: 45,
   break: 15,
   goalHours: 4,
+  streakHours: 1,
+  remind: { categories: ['scrolling', 'break'], minutes: 10 },
   autoStopHours: 2,
   categories: [
     { id: 'interview-prep', name: 'Recruiting', focus: true },

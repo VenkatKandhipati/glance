@@ -8,6 +8,8 @@
 // it was. While a Pomodoro runs, the frame stays on this screen and night waits (main.js asks
 // busy()); while tracking it stays on this screen too (stay()), but night comes as usual, and the
 // tracker stops by itself at the last touch once nobody has touched the frame for `autoStopHours`.
+// Every number is about focus: the focus categories' time, a full Pomodoro counting as an hour
+// with its break. Tracking doom scrolling or a break chimes and flashes every 10 minutes.
 // The day's goal is hours of focus: a full Pomodoro counts as an hour, its break included. Each Pomodoro phase ends with a chime and a gold
 // pulse, and brings this screen back if you'd left it. The log lives in localStorage and, in the
 // kiosk, in a backup file that adb can pull (both still named for the Pomodoro screen it grew from):
@@ -40,8 +42,9 @@ const upText = (ms) => {
   return (h ? h + ':' + (m < 10 ? '0' : '') : '') + m + ':' + (r < 10 ? '0' : '') + r;
 };
 const pct = (part, whole) => Math.round(part / whole * 100) + '%';
-// Hours of focus against the goal: 3, or 2.5 to a tenth.
-const hoursOf = (mins) => String(Math.round(mins / 6) / 10);
+// Hours of focus: 3, or 2.5 to a tenth under 10 hours; 143 above.
+const hoursOf = (mins) => String(mins < 600 ? Math.round(mins / 6) / 10 : Math.round(mins / 60));
+const REMIND = cfg.remind || { categories: [], minutes: 0 };
 const hourLabel = (h) => (h % 12 || 12) + (h % 24 < 12 ? ' am' : ' pm');
 
 // ---- storage: localStorage, plus the kiosk's backup file when there is one
@@ -81,7 +84,7 @@ function chime(notes) {
   } catch (e) { /* no audio here */ }
 }
 
-const SOUNDS = { start: [523.25], 'work-done': [523.25, 659.25, 783.99], 'break-done': [783.99, 659.25] };
+const SOUNDS = { start: [523.25], 'work-done': [523.25, 659.25, 783.99], 'break-done': [783.99, 659.25], nudge: [659.25, 523.25, 659.25] };
 
 // ---- drawing
 function catButtons(on) {
@@ -109,6 +112,10 @@ function timerTile(data, now, confirming, dropped) {
       ? 'Logged ' + P.minutes(last) + ' m of <b>' + esc(catName(last.cat)) + '</b>. Tap another to change it.'
       : 'Stand up, stretch, look far away.';
     actions = '<button class="pm-btn" data-act="skip">End break</button><button class="pm-btn is-go" data-act="start">Start next</button>';
+  } else if (st.phase === 'track' && P.nudges(st, now, REMIND.categories, REMIND.minutes)) {
+    phase = 'Tracking';
+    note = '<b class="pm-nudge">' + Math.floor((now - st.start) / 60000) + ' minutes of ' + esc(catName(st.cat).toLowerCase()) + '.</b> Time to get back to it?';
+    actions = stop(false) + startPomodoro;
   } else if (st.phase === 'track') {
     phase = 'Tracking';
     note = '<b>' + esc(catName(st.cat)) + '</b>. Tap another to switch, or make it a Pomodoro.';
@@ -157,9 +164,9 @@ function statsTiles(data, now, live) {
   // Everything at the desk, what's running included, each full Pomodoro with its break.
   const view = P.withBreaks(live ? data.log.concat(live) : data.log, cfg.break, +now);
   const today = P.dayTotals(view, now, isFocus);
-  const run = P.streak(data.log, now);
-  const all = data.log.reduce((n, s) => n + (s.done ? 1 : 0), 0);
+  const run = P.streak(view, now, P.focusDays(view, isFocus, cfg.streakHours * 60));
   const allMin = view.reduce((n, s) => n + P.minutes(s), 0);
+  const allFocus = view.reduce((n, s) => n + (isFocus(s) ? P.minutes(s) : 0), 0);
   // one dot an hour: full, half from 30 minutes in
   let dots = '';
   const full = Math.floor(today.focus / 60), half = today.focus % 60 >= 30;
@@ -190,8 +197,8 @@ function statsTiles(data, now, live) {
     '<section class="tile pm-stat"><h2>Today · focus</h2><b class="serif">' + hoursOf(today.focus) + '<i> of ' + cfg.goalHours + ' h</i></b>' +
     '<div class="pm-dots">' + dots + '</div><span>' + (today.minutes ? P.hoursText(today.minutes) + ' at the desk' : 'Nothing tracked yet') + '</span></section>' +
     '<section class="tile pm-stat"><h2>Streak</h2><b class="serif">' + run.current + '<i> day' + (run.current === 1 ? '' : 's') + '</i></b>' +
-    '<span>' + (run.current && !run.today ? 'One today keeps it going' : 'Best ' + run.best + ' day' + (run.best === 1 ? '' : 's')) + '</span></section>' +
-    '<section class="tile pm-stat"><h2>All time</h2><b class="serif">' + all + '<i> Pomodoros</i></b><span>' + (allMin ? P.hoursText(allMin) + ' at the desk' : 'Your first one starts here') + '</span></section>' +
+    '<span>' + (run.current && !run.today ? cfg.streakHours + ' h today keeps it going' : 'Best ' + run.best + ' day' + (run.best === 1 ? '' : 's')) + '</span></section>' +
+    '<section class="tile pm-stat"><h2>All time · focus</h2><b class="serif">' + hoursOf(allFocus) + '<i> h</i></b><span>' + (allMin ? P.hoursText(allMin) + ' at the desk' : 'Your first hour starts here') + '</span></section>' +
     '</div>' +
     '<section class="tile pm-week"><h2>Last 7 days at the desk<span>hours of focus</span></h2><ul style="--goal:' + (goalMin / top * 100).toFixed(1) + '%">' + bars + '</ul></section>' +
     '<div class="pm-bottom">' + todayTile(view, now, today) +
@@ -245,7 +252,25 @@ export function mountPomodoro(el, onCue) {
   function cue(name) {
     chime(SOUNDS[name]);
     const flash = el.querySelector('.pm-flash');
-    if (flash) { flash.classList.remove('is-on'); void flash.offsetWidth; flash.classList.add('is-on'); }
+    if (flash) {
+      flash.classList.remove('is-on');
+      flash.classList.toggle('is-nudge', name === 'nudge');
+      void flash.offsetWidth;
+      flash.classList.add('is-on');
+    }
+  }
+
+  // Doom scrolling or a break: a chime and an orange pulse every few minutes, and back to this
+  // screen. Only for reminders earned while watching: none for the time a reload or switch skipped.
+  let nudgeFor = null, nudged = 0;
+  function remind(now) {
+    const st = data.state, n = P.nudges(st, now, REMIND.categories, REMIND.minutes), key = st.start + ':' + st.cat;
+    if (key !== nudgeFor) { nudgeFor = key; nudged = n; return; }
+    if (n <= nudged) return;
+    nudged = n;
+    if (onCue) onCue();
+    render();
+    cue('nudge');
   }
 
   let wasTrusted = true;
@@ -256,7 +281,7 @@ export function mountPomodoro(el, onCue) {
     if (!trusted) return; // keep the timer as it is until real time arrives
     if (data.state.phase === 'track') {
       const a = P.autoStop(data.state, now, data.touch, AUTO_MS);
-      if (!a) return;
+      if (!a) { remind(now); return; }
       data.auto = { cat: data.state.cat, start: data.state.start, at: a.at, until: a.until };
       data.state = a.state;
       if (a.logged) data.log.push(a.logged);

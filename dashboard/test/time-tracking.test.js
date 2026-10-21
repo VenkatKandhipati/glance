@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { IDLE, advance, startTrack, stopTrack, autoStop, liveEntry, withBreaks, dayTotals, dayBlocks, categoryTotals, lastDays, streak, pack, unpack } from '../src/pomodoro-data.js';
+import { IDLE, advance, startTrack, stopTrack, autoStop, liveEntry, withBreaks, focusDays, nudges, dayTotals, dayBlocks, categoryTotals, lastDays, streak, pack, unpack } from '../src/pomodoro-data.js';
 
 const MIN = 60000, H = 60 * MIN;
 const at = (y, mo, d, h, m) => new Date(y, mo - 1, d, h || 0, m || 0).getTime();
@@ -138,4 +138,31 @@ test('the break counted for a Pomodoro stops at whatever came next, at now, and 
   const stopped = Object.assign({}, full, { done: false });
   assert.equal(withBreaks([stopped], 15, t9 + 5 * H)[0], stopped);
   assert.equal(withBreaks([next], 15, t9 + 5 * H)[0], next);
+});
+
+test('the streak counts days with an hour of focus, from Pomodoros or tracking alike', () => {
+  const d = (day, h, m, cat, kind) => ({ start: at(2026, 10, day, h), end: at(2026, 10, day, h) + m * MIN, cat, done: !kind && m === 45, kind });
+  const log = withBreaks([
+    d(18, 9, 45, 'geico'), // a full Pomodoro: an hour with its break
+    d(19, 9, 60, 'interview-prep', 'track'), // an hour tracked
+    d(20, 9, 50, 'geico', 'track'), // 50 minutes: not enough
+    d(20, 11, 120, 'scrolling', 'track'), // not focus
+    d(21, 9, 30, 'geico', 'track'), d(21, 14, 30, 'learning', 'track'), // two halves make an hour
+  ], 15, at(2026, 10, 21, 20));
+  const isF = (s) => s.cat !== 'scrolling' && s.cat !== 'break';
+  const days = focusDays(log, isF, 60);
+  assert.deepEqual(Object.keys(days).sort(), ['2026-10-18', '2026-10-19', '2026-10-21']);
+  const r = streak(log, new Date(at(2026, 10, 21, 20)), days);
+  assert.deepEqual([r.current, r.best, r.today], [1, 2, true]);
+});
+
+test('doom scrolling and breaks earn a reminder every 10 minutes; nothing else does', () => {
+  const cats = ['scrolling', 'break'];
+  const s = { phase: 'track', start: t9, cat: 'scrolling' };
+  assert.equal(nudges(s, t9 + 9 * MIN, cats, 10), 0);
+  assert.equal(nudges(s, t9 + 10 * MIN, cats, 10), 1);
+  assert.equal(nudges(s, t9 + 35 * MIN, cats, 10), 3);
+  assert.equal(nudges({ phase: 'track', start: t9, cat: 'geico' }, t9 + H, cats, 10), 0);
+  assert.equal(nudges({ phase: 'work', start: t9, cat: 'break' }, t9 + H, cats, 10), 0);
+  assert.equal(nudges(s, t9 + H, cats, 0), 0);
 });

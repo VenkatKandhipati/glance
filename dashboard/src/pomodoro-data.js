@@ -90,6 +90,13 @@ export function autoStop(state, now, touchedAt, afterMs) {
   return Object.assign(stopTrack(state, last, true), { at: last, until: last + afterMs });
 }
 
+// How many reminders a tracker in one of `cats` (doom scrolling, a break) has earned: one each
+// `everyMin` minutes. 0 for anything else. The screen chimes when the number goes up.
+export function nudges(state, now, cats, everyMin) {
+  if (state.phase !== 'track' || !everyMin || cats.indexOf(state.cat) < 0) return 0;
+  return Math.max(0, Math.floor((now - state.start) / (everyMin * MIN)));
+}
+
 export const minutes = (s) => Math.round((s.end - s.start) / MIN);
 
 // What's running now as an entry of its own (`live`), for today's numbers; null when idle or on
@@ -154,10 +161,25 @@ function doneDays(log) {
   return days;
 }
 
-// { current, best } in days. Today without a session yet doesn't break the streak: it runs
-// until yesterday, and today can still extend it.
-export function streak(log, now) {
-  const days = doneDays(log);
+// Days with at least `minMinutes` of focus (split at midnight), as a set of day keys.
+export function focusDays(log, isFocus, minMinutes) {
+  const by = {};
+  log.forEach((s) => {
+    if (!isFocus(s)) return;
+    for (let day = dayStart(new Date(s.start)); day.getTime() < s.end; day = addDays(day, 1)) {
+      const m = within(s, day.getTime(), addDays(day, 1).getTime());
+      if (m) { const k = dayKey(day); by[k] = (by[k] || 0) + m; }
+    }
+  });
+  const days = {};
+  Object.keys(by).forEach((k) => { if (by[k] >= minMinutes) days[k] = true; });
+  return days;
+}
+
+// { current, best } in days: days with a full Pomodoro, or the days given (focusDays). Today
+// without one yet doesn't break the streak: it runs until yesterday, and today can still extend it.
+export function streak(log, now, given) {
+  const days = given || doneDays(log);
   let current = 0;
   let d = days[dayKey(now)] ? dayStart(now) : addDays(dayStart(now), -1);
   while (days[dayKey(d)]) { current++; d = addDays(d, -1); }

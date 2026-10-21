@@ -1,5 +1,5 @@
 // ?demo: made-up events, trains and weather, and a public-domain photo, for screenshots that show
-// nothing personal (`?demo&screen=week` opens a screen, `?demo&alert` adds a weather warning, `?demo&stale` shows stale badges; the Time screen takes `&work`, `&idle` and `&auto`). The clock reads 8:42 am the day after
+// nothing personal (`?demo&screen=week` opens a screen, `?demo&alert` adds a weather warning, `?demo&stale` shows stale badges; the Time screen takes `&work`, `&idle`, `&auto` and `&nudge`). The clock reads 8:42 am the day after
 // the build, so screenshots always look the same. Imported first by main.js, before anything
 // reads the time.
 export const DEMO = /[?&]demo(&|=|$)/.test(location.search);
@@ -115,9 +115,10 @@ export function demoPomodoro() {
   log.push({ start: at(0, 8, 5).getTime(), end: at(0, 8, 14).getTime(), cat: 'break', done: false, kind: 'track' });
   log.push({ start: at(0, 8, 14).getTime(), end: at(0, 8, 21).getTime(), cat: 'scrolling', done: false, kind: 'track' });
   // `?demo&work` shows a Pomodoro running, `&idle` nothing, `&auto` a tracker that stopped by
-  // itself; otherwise tracking
+  // itself, `&nudge` 21 minutes of doom scrolling; otherwise tracking
   const q = (k) => new RegExp('[?&]' + k + '(&|$)').test(location.search);
   const state = q('work') ? { phase: 'work', start: at(0, 8, 21).getTime(), cat: 'interview-prep' }
+    : q('nudge') ? { phase: 'track', start: at(0, 8, 21).getTime(), cat: 'scrolling' }
     : q('idle') || q('auto') ? { phase: 'idle', start: 0, cat: 'scrolling' }
     : { phase: 'track', start: at(0, 8, 21).getTime(), cat: 'projects' };
   const auto = q('auto') ? { cat: 'scrolling', start: at(0, 8, 14).getTime(), at: at(0, 8, 21).getTime(), until: at(0, 10, 21).getTime() } : null;
