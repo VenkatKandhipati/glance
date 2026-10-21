@@ -1,4 +1,4 @@
-import { DEMO_SCREEN } from './demo.js'; // first: in ?demo it sets the clock before anything reads it
+import { DEMO, DEMO_SCREEN } from './demo.js'; // first: in ?demo it sets the clock before anything reads it
 import './style.css';
 import { renderClock } from './tiles/clock.js';
 import { renderCalendar, dayAtGrid } from './tiles/calendar.js';
@@ -16,6 +16,8 @@ import { renderWeatherScreen } from './screens/weather.js';
 import { mountPomodoro } from './screens/pomodoro.js';
 import { startDiag } from './diag.js';
 import { clockIsSane } from './time.js';
+import { applyShift } from './shift.js';
+import { settings } from './content.js';
 
 window.__glance = true; // tells the watchdog in index.html that the bundle started
 
@@ -67,6 +69,7 @@ function draw(now) {
 function tick() {
   const now = new Date();
   draw(now);
+  if (!DEMO) applyShift($('board'), now, settings.shift); // demo screenshots stay put
   night.update(now);
   // Daily reload from 3 a.m. clears slow leaks and picks up new content and photos. If the server
   // is asleep it keeps the page running and checks again every 10 minutes.

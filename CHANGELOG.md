@@ -37,6 +37,8 @@ and versions follow [Semantic Versioning](https://semver.org).
   category; today against a daily goal, a streak, the last 7 days by category, 12 weeks and time
   by category. It survives reloads and power cuts, holds off night and the return to Home while it
   runs, and keeps a backup of its log in a file (kiosk 0.6, `GlanceFiles`).
+- Burn-in shifts for Home: the board steps through nine positions within 6 px of where it belongs,
+  one every 10 minutes (`settings.shift` in `content.js`; `px: 0` turns it off).
 
 ### Changed
 
