@@ -53,8 +53,12 @@ Notes for AI agents and contributors. Read [docs/frame.md](docs/frame.md) before
 ## The frame itself
 
 - Reads over ADB are fine. Ask the owner before anything that writes to the frame (installing
-  apps, changing settings, `/system`, the Home app) and record each change with its undo in
+  other apps, changing settings, `/system`, the Home app) and record each change with its undo in
   docs/frame.md.
+- One standing exception: once a change to `dashboard/` or `kiosk/` passes the checks, install that
+  branch's build of the kiosk app on the frame without asking, so the owner can try it there
+  rather than on the Mac. Follow "Trying a change on the frame" in
+  [docs/frame.md](docs/frame.md#how-the-page-gets-onto-the-frame) and log it there.
 - Root is `su 0 <cmd>`; `su -c` fails on this board. Check `ro.build.fingerprint` starts with
   `rockchip/rk3326_go/` before any write.
 - Don't put the frame on the internet with the vendor updaters enabled, and don't turn on ADB over
@@ -72,7 +76,8 @@ bash kiosk/build.sh        # when kiosk/ changes; needs JDK 17 and the Android S
 1. Work from a GitHub Issue. Run `gh issue view <n>` first.
 2. Branch: `<n>-short-slug`.
 3. Plan in the conversation before editing. For size L, post the plan as an issue comment.
-4. The checks above must pass before you open a PR.
+4. The checks above must pass before you open a PR. Then put the build on the frame (see "The
+   frame itself") and say what to look at there.
 5. PR body includes "Closes #<n>" and the docs checkbox answered.
 6. If you change the shape of `content.js`, what's stored on the frame, how the page is served,
    or the frame itself, update docs/ in the same PR.
