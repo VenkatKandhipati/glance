@@ -1,7 +1,7 @@
 // Screens and the side bar. The bar stays hidden until a tap on the left edge; it slides in over
 // the screen, and goes again after a few seconds, on a choice, or on a tap anywhere else. Any
 // screen but Home goes back to Home after two minutes with no touch, and the day sheet closes;
-// a screen whose busy() says so (the Pomodoro timer running) stays.
+// a screen whose busy() says so (Time, while it times or tracks) stays.
 const BAR_MS = 6000;
 const HOME_MS = 2 * 60000;
 
@@ -14,7 +14,7 @@ const ICONS = {
   pomodoro: svg('<circle cx="12" cy="13.5" r="7.5"/><path d="M12 9.5v4l2.5 2M9.5 2.5h5M12 2.5V6"/>'),
   telugu: '<span class="bar-te" lang="te">అ</span>',
 };
-const LABELS = { home: 'Home', week: 'Week', transit: 'Transit', weather: 'Weather', pomodoro: 'Pomodoro', telugu: 'Telugu' };
+const LABELS = { home: 'Home', week: 'Week', transit: 'Transit', weather: 'Weather', pomodoro: 'Time', telugu: 'Telugu' };
 
 // screens: { name: { el, show?(), hide?(), busy?() } }, Home first. sheet: the day sheet.
 export function mountNav(bar, edge, scrim, screens, sheet) {

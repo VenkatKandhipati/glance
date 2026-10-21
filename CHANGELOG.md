@@ -7,6 +7,15 @@ and versions follow [Semantic Versioning](https://semver.org).
 
 ### Added
 
+- Time tracking on the Pomodoro screen, now called Time: tap a category to track what you're doing
+  at the desk (another switches, Stop ends it), or start a Pomodoro as before. Nine categories,
+  focus and not (doom scrolling, bathroom, break…). Every number counts focus: the daily goal is
+  4 hours of it (focus time tracked, and an hour for each full Pomodoro with its break), shown on
+  Today and above each of the last 7 days; the streak counts days with an hour of focus; all time
+  counts hours of focus. Today's timeline replaces 12 weeks. What's running shows on Home, and the
+  frame stays on Time while anything runs. Tracking doom scrolling or a break chimes and flashes
+  every 10 minutes; a tracker with no touch for 2 hours stops at the last touch. The log moves to
+  format v2; the existing Pomodoro log carries over.
 - Metro banner in place of the chores strip: live WMATA arrivals at Ballston in both directions,
   through `/api/trains` on the Mac, which holds the API key.
 - Glance's own kiosk app (`kiosk/`, adapted from wesbos/photo-frame-dashboard) and

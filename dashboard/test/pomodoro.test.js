@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { IDLE, advance, clockTrusted, stopWork, dayTotals, streak, lastDays, weekGrid, categoryTotals, pack, unpack, newer, hoursText } from '../src/pomodoro-data.js';
+import { IDLE, advance, clockTrusted, stopWork, dayTotals, streak, lastDays, categoryTotals, pack, unpack, newer, hoursText } from '../src/pomodoro-data.js';
 
 const cfg = { work: 45, break: 15 };
 const MIN = 60000;
@@ -126,16 +126,6 @@ test('the last days run oldest first and end today', () => {
   assert.deepEqual(days[6].byCat, { chores: 45 });
 });
 
-test('the week grid ends this week and leaves the days to come empty', () => {
-  // Mon 19 Oct 2026, weeks from Sunday
-  const g = weekGrid([full(2026, 10, 19, 9), full(2026, 10, 19, 11), full(2026, 10, 5, 9)], new Date(2026, 9, 19, 20), 12, 0);
-  assert.equal(g.cols.length, 12);
-  assert.equal(g.first.getDay(), 0);
-  const last = g.cols[11];
-  assert.deepEqual(last, [0, 2, null, null, null, null, null]);
-  assert.equal(g.cols[9][1], 1); // Mon 5 Oct
-});
-
 test('category totals cover the last n days, biggest first', () => {
   const log = [full(2026, 10, 19, 9, 'geico'), full(2026, 10, 18, 9, 'chores'), full(2026, 10, 18, 11, 'chores'), full(2026, 10, 1, 9, 'geico')];
   assert.deepEqual(categoryTotals(log, new Date(2026, 9, 19, 20), 7), [{ cat: 'chores', minutes: 90 }, { cat: 'geico', minutes: 45 }]);
@@ -145,7 +135,7 @@ test('the log survives packing; unreadable or newer data is refused', () => {
   const data = { saved: 5, state: IDLE, cat: 'geico', log: [full(2026, 10, 19, 9), { start: at(2026, 10, 19, 14), end: at(2026, 10, 19, 14, 20), cat: 'chores', done: false }] };
   assert.deepEqual(unpack(pack(data)), data);
   assert.equal(unpack('not json'), null);
-  assert.equal(unpack('{"v":2,"log":[]}'), null);
+  assert.equal(unpack('{"v":3,"log":[]}'), null);
   assert.equal(newer(unpack(pack(data)), null).saved, 5);
   assert.equal(newer({ saved: 5 }, { saved: 9 }).saved, 9);
 });

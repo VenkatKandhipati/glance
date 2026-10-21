@@ -33,17 +33,18 @@ let reloadDue = false, lastServerCheck = 0;
 const sheet = mountSheet($('sheet'), () => events);
 const transit = mountTransit($('transit'));
 const setTrainsAsleep = mountTrains($('trains'), transit.trains);
-// A phase ending brings the Pomodoro screen back (declared below; cues come a second later at most).
+// A Pomodoro phase ending brings the Time screen back (declared below; cues come a second later
+// at most).
 const focus = mountPomodoro($('pomodoro'), () => nav.go('pomodoro'));
 const letters = mountTelugu($('telugu'));
 const night = mountNight($('night'), setTrainsAsleep, () => focus.busy() || letters.busy());
 const nextPhoto = startPhotos($('photo'));
 const nav = mountNav($('bar'), $('edge'), $('scrim'), {
-  home: { el: $('board') },
+  home: { el: $('board'), show: () => draw(new Date()) }, // what's running on Time shows at once
   week: { el: $('week'), show: () => renderWeek($('week'), new Date(), events) },
   transit: { el: $('transit'), show: transit.show, hide: transit.hide },
   weather: { el: $('weather'), show: () => { const now = new Date(); renderWeatherScreen($('weather'), now, forecast, weatherAge(now)); } },
-  pomodoro: { el: $('pomodoro'), show: focus.show, hide: focus.hide, busy: focus.busy },
+  pomodoro: { el: $('pomodoro'), show: focus.show, hide: focus.hide, busy: focus.stay },
   telugu: { el: $('telugu'), show: letters.show, hide: letters.hide, busy: letters.busy },
 }, sheet);
 
@@ -66,7 +67,7 @@ function serverUp() {
 // changed, so this is cheap to call every minute and on every refresh.
 function draw(now) {
   const alerts = forecast && forecast.alerts ? forecast.alerts.filter((a) => !a.ends || a.ends > now) : [];
-  renderClock($('clock'), now, weatherNow(now), alerts[0] || null, weatherAge(now));
+  renderClock($('clock'), now, weatherNow(now), alerts[0] || null, weatherAge(now), focus.running());
   if (!clockIsSane(now, __BUILT_AT__)) return;
   renderCalendar($('cal'), now, events, ageText(eventsAt, +now, CALENDAR_STALE_MS));
   if (nav.current() === 'week') renderWeek($('week'), now, events);
@@ -96,9 +97,11 @@ function schedule() {
 }
 
 // ---- taps on Home
-// The clock's time: night now. The rest of the clock tile (the weather): the Weather screen.
+// The clock's time: night now. What's running on the Time screen: Time. The rest of the clock tile
+// (the weather): the Weather screen.
 $('clock').addEventListener('click', (e) => {
   if (e.target.closest('.clock-time')) night.now();
+  else if (e.target.closest('.clock-run')) nav.go('pomodoro');
   else nav.go('weather');
 });
 // A day on the month grid: that day. Anywhere else on the tile ("Next up"): today.
@@ -130,5 +133,5 @@ watchWeather((f) => {
   draw(new Date());
 });
 if (DEMO_SCREEN) nav.go(DEMO_SCREEN);
-else if (focus.busy()) nav.go('pomodoro'); // a reload or power cut mid-session: back to the timer
+else if (focus.stay()) nav.go('pomodoro'); // a reload or power cut mid-session: back to the timer
 startDiag();
