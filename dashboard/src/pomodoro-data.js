@@ -1,11 +1,14 @@
-// The Pomodoro screen's model: a timer kept as timestamps (so a reload or a power cut resumes it),
-// the session log, and the numbers the screen draws from it. No DOM, no storage: unit tested.
+// The Time screen's model: time at the desk, as one log of entries. A Pomodoro is a tracked block
+// that counts down; plain tracking counts up. The timer is kept as timestamps (so a reload or a
+// power cut resumes it); the numbers the screen draws come from the log. No DOM, no storage: unit
+// tested.
 //
-//   state  { phase: 'idle' | 'work' | 'break', start: ms, cat }   start: when the phase began
-//   log    [{ start, end, cat, done }]                             one per deep-work session
+//   state  { phase: 'idle' | 'work' | 'break' | 'track', start: ms, cat }   start: when it began
+//   log    [{ start, end, cat, done, kind? }]   kind 'track' for tracked time; none for a Pomodoro
 //
-// A session belongs to the day it started on. `done` is a full session; a stopped one keeps the
-// minutes it ran. A streak day is any day with at least one full session, weekends included.
+// One thing runs at a time, so entries never overlap. `done` is a full Pomodoro; a stopped one
+// keeps the minutes it ran. Pomodoros count on the day they started; minutes are split at
+// midnight. A streak day is any day with at least one full Pomodoro, weekends included.
 import { addDays, dayKey, dayStart, daysBetween } from './time.js';
 
 const MIN = 60000;
@@ -15,6 +18,7 @@ const MIN_STOPPED = 1; // a session stopped sooner than this many minutes isn't 
 export const GRACE_MIN = 10;
 
 export const IDLE = { phase: 'idle', start: 0, cat: null };
+const idle = (cat) => ({ phase: 'idle', start: 0, cat });
 
 export function phaseEnd(state, cfg) {
   if (state.phase === 'work') return state.start + cfg.work * MIN;
@@ -57,20 +61,78 @@ export function stopWork(state, now, trusted) {
   return { state: { phase: 'idle', start: 0, cat: state.cat }, logged };
 }
 
+// ---- tracking: one tap starts a category, another switches to the next, Stop ends it.
+// Each returns { state, logged }; an entry under a minute isn't logged, nor one timed by a clock
+// that can't be trusted.
+function trackEntry(state, end, trusted) {
+  return trusted !== false && end - state.start >= MIN_STOPPED * MIN
+    ? { start: state.start, end, cat: state.cat, done: false, kind: 'track' } : null;
+}
+
+export function startTrack(state, cat, now, trusted) {
+  if (state.phase === 'work' || state.phase === 'break') return { state, logged: null }; // a Pomodoro owns the timer
+  if (state.phase === 'track' && state.cat === cat) return { state, logged: null };
+  const logged = state.phase === 'track' ? trackEntry(state, now, trusted) : null;
+  return { state: { phase: 'track', start: now, cat }, logged };
+}
+
+export function stopTrack(state, now, trusted) {
+  if (state.phase !== 'track') return { state, logged: null };
+  return { state: idle(state.cat), logged: trackEntry(state, now, trusted) };
+}
+
+// A tracker nobody has touched the frame for in `afterMs` was most likely forgotten: it stops at
+// the last touch. Returns null while it should keep going.
+export function autoStop(state, now, touchedAt, afterMs) {
+  if (state.phase !== 'track' || !afterMs) return null;
+  const last = Math.max(touchedAt || 0, state.start);
+  if (now - last <= afterMs) return null;
+  return Object.assign(stopTrack(state, last, true), { at: last, until: last + afterMs });
+}
+
 export const minutes = (s) => Math.round((s.end - s.start) / MIN);
 
-// One day: full sessions, stopped ones, minutes of deep work, and minutes by category.
-export function dayTotals(log, day) {
-  const key = dayKey(day);
-  const out = { done: 0, stopped: 0, minutes: 0, byCat: {} };
+// What's running now as an entry of its own (`live`), for today's numbers; null when idle or on
+// a break.
+export function liveEntry(state, now) {
+  if (state.phase !== 'work' && state.phase !== 'track') return null;
+  if (now <= state.start) return null;
+  return { start: state.start, end: now, cat: state.cat, done: false, kind: state.phase === 'track' ? 'track' : undefined, live: true };
+}
+
+// The minutes of an entry that fall within [from, to).
+function within(s, from, to) {
+  return Math.max(0, Math.round((Math.min(s.end, to) - Math.max(s.start, from)) / MIN));
+}
+
+const everyFocus = () => true;
+
+// One day: full and stopped Pomodoros (on the day they started), minutes at the desk and of them
+// focus (split at midnight), and minutes by category. isFocus(entry) says which minutes are focus.
+export function dayTotals(log, day, isFocus) {
+  const focus = isFocus || everyFocus;
+  const from = dayStart(day).getTime(), to = addDays(dayStart(day), 1).getTime();
+  const out = { done: 0, stopped: 0, minutes: 0, focus: 0, byCat: {} };
   log.forEach((s) => {
-    if (dayKey(new Date(s.start)) !== key) return;
-    if (s.done) out.done++;
-    else out.stopped++;
-    out.minutes += minutes(s);
-    out.byCat[s.cat] = (out.byCat[s.cat] || 0) + minutes(s);
+    if (s.kind !== 'track' && !s.live && s.start >= from && s.start < to) {
+      if (s.done) out.done++;
+      else out.stopped++;
+    }
+    const m = within(s, from, to);
+    if (!m) return;
+    out.minutes += m;
+    if (focus(s)) out.focus += m;
+    out.byCat[s.cat] = (out.byCat[s.cat] || 0) + m;
   });
   return out;
+}
+
+// One day's entries in order, cut to the day: [{ start, end, cat, live }], for a timeline.
+export function dayBlocks(log, day) {
+  const from = dayStart(day).getTime(), to = addDays(dayStart(day), 1).getTime();
+  return log.filter((s) => s.end > from && s.start < to)
+    .map((s) => ({ start: Math.max(s.start, from), end: Math.min(s.end, to), cat: s.cat, live: !!s.live }))
+    .sort((a, b) => a.start - b.start);
 }
 
 // Days with a full session, as a set of day keys.
@@ -98,69 +160,64 @@ export function streak(log, now) {
   return { current, best: Math.max(best, current), today: !!days[dayKey(now)] };
 }
 
-// The last `n` days, oldest first: { day, done, minutes, byCat }.
-export function lastDays(log, now, n) {
+// The last `n` days, oldest first: { day, done, minutes, focus, byCat }.
+export function lastDays(log, now, n, isFocus) {
   const out = [];
   for (let i = n - 1; i >= 0; i--) {
     const day = addDays(dayStart(now), -i);
-    out.push(Object.assign({ day }, dayTotals(log, day)));
+    out.push(Object.assign({ day }, dayTotals(log, day, isFocus)));
   }
   return out;
 }
 
-// `weeks` columns of 7 days, the last one this week, starting on `weekStartsOn` (0 Sunday): each
-// cell the day's full sessions, or null for days still to come.
-export function weekGrid(log, now, weeks, weekStartsOn) {
-  const counts = {};
-  log.forEach((s) => { if (s.done) { const k = dayKey(new Date(s.start)); counts[k] = (counts[k] || 0) + 1; } });
-  const today = dayStart(now);
-  const back = (today.getDay() - weekStartsOn + 7) % 7;
-  const first = addDays(today, -back - 7 * (weeks - 1));
-  const cols = [];
-  for (let w = 0; w < weeks; w++) {
-    const col = [];
-    for (let i = 0; i < 7; i++) {
-      const day = addDays(first, w * 7 + i);
-      col.push(day > today ? null : counts[dayKey(day)] || 0);
-    }
-    cols.push(col);
-  }
-  return { first, cols };
-}
-
 // Minutes by category over the last `n` days, biggest first: [{ cat, minutes }].
 export function categoryTotals(log, now, n) {
-  const from = addDays(dayStart(now), -(n - 1)).getTime();
+  const from = addDays(dayStart(now), -(n - 1)).getTime(), to = addDays(dayStart(now), 1).getTime();
   const by = {};
-  log.forEach((s) => { if (s.start >= from) by[s.cat] = (by[s.cat] || 0) + minutes(s); });
+  log.forEach((s) => { const m = within(s, from, to); if (m) by[s.cat] = (by[s.cat] || 0) + m; });
   return Object.keys(by).map((cat) => ({ cat, minutes: by[cat] })).sort((a, b) => b.minutes - a.minutes);
 }
 
-// ---- storage format: compact, versioned. Each session is [start in seconds, minutes, cat, done].
-export const VERSION = 1;
+// ---- storage format: compact, versioned. Each entry is [start in seconds, seconds, cat, flag],
+// flag 1 a full Pomodoro, 0 a stopped one, 2 tracked time. Version 1 (Pomodoros only) reads as is.
+// `touch` is the last touch while tracking, so a power cut can't hide a forgotten tracker; `auto`
+// is the note about one that stopped by itself.
+export const VERSION = 2;
+
+const FLAG = (s) => (s.kind === 'track' ? 2 : s.done ? 1 : 0);
 
 export function pack(data) {
-  return JSON.stringify({
+  const out = {
     v: VERSION,
     saved: data.saved,
     state: data.state,
     cat: data.cat,
-    log: data.log.map((s) => [Math.round(s.start / 1000), Math.round((s.end - s.start) / 1000), s.cat, s.done ? 1 : 0]),
-  });
+    log: data.log.map((s) => [Math.round(s.start / 1000), Math.round((s.end - s.start) / 1000), s.cat, FLAG(s)]),
+  };
+  if (data.touch) out.touch = data.touch;
+  if (data.auto) out.auto = data.auto;
+  return JSON.stringify(out);
 }
 
 // null for anything unreadable or from a newer version.
 export function unpack(text) {
   let raw;
   try { raw = JSON.parse(text); } catch (e) { return null; }
-  if (!raw || raw.v !== VERSION || !Array.isArray(raw.log)) return null;
-  const state = raw.state && /^(idle|work|break)$/.test(raw.state.phase) ? raw.state : IDLE;
-  return {
+  if (!raw || (raw.v !== 1 && raw.v !== VERSION) || !Array.isArray(raw.log)) return null;
+  const state = raw.state && /^(idle|work|break|track)$/.test(raw.state.phase) ? raw.state : IDLE;
+  const out = {
     saved: raw.saved || 0,
     state,
     cat: raw.cat || null,
-    log: raw.log.map((s) => ({ start: s[0] * 1000, end: (s[0] + s[1]) * 1000, cat: s[2], done: s[3] === 1 })),
+    log: raw.log.map((s) => {
+      const e = { start: s[0] * 1000, end: (s[0] + s[1]) * 1000, cat: s[2], done: s[3] === 1 };
+      if (s[3] === 2) e.kind = 'track';
+      return e;
+    }),
   };
+  if (raw.touch) out.touch = raw.touch;
+  if (raw.auto) out.auto = raw.auto;
+  return out;
 }
 
 // Of two saved copies (the page's own and the kiosk's backup file), the newer one.

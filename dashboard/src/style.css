@@ -143,6 +143,8 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 }
 .clock-greet b { display: block; font-weight: 400; color: var(--gold); }
 .clock-greet { max-width: 457px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* what the Time screen is running, in the greeting's place: its category's dot, then the time */
+.clock-run i { display: inline-block; width: 16px; height: 16px; margin: 0 14px 6px 2px; border-radius: 50%; background: var(--k); vertical-align: middle; }
 
 /* ------------------------------------------------------------------ calendar */
 .cal {
@@ -528,29 +530,36 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 /* categories, in content.js order: the calendar colours, then sky and grey */
 .pm-k0 { --k: #cbb47c; --kb: rgba(203, 180, 124, 0.16); }
 .pm-k1 { --k: #b4a6ff; --kb: rgba(180, 166, 255, 0.16); }
-.pm-k2 { --k: #7cc6b8; --kb: rgba(124, 198, 184, 0.16); }
-.pm-k3 { --k: #e69a9a; --kb: rgba(230, 154, 154, 0.16); }
-.pm-k4 { --k: #78b9e6; --kb: rgba(120, 185, 230, 0.16); }
-.pm-k5 { --k: #858a95; --kb: rgba(133, 138, 149, 0.16); }
+.pm-k2 { --k: #e69a9a; --kb: rgba(230, 154, 154, 0.16); }
+.pm-k3 { --k: #78b9e6; --kb: rgba(120, 185, 230, 0.16); }
+.pm-k4 { --k: #7cc6b8; --kb: rgba(124, 198, 184, 0.16); }
+.pm-k5 { --k: #8fa3c4; --kb: rgba(143, 163, 196, 0.16); }
+.pm-k6 { --k: #e8a26a; --kb: rgba(232, 162, 106, 0.16); }
+.pm-k7 { --k: #a9c48a; --kb: rgba(169, 196, 138, 0.16); }
+.pm-k8 { --k: #858a95; --kb: rgba(133, 138, 149, 0.16); }
 .pm-body { flex: 1; min-height: 0; display: grid; grid-template-columns: 500px 1fr; gap: var(--gap); }
 .pm-timer { display: flex; flex-direction: column; padding: 22px 26px 24px; }
 .pm-timer.is-work { background: var(--tile-blue); }
 .pm-phase { color: var(--mute); }
 .pm-timer.is-work .pm-phase { color: var(--gold); }
 .pm-timer.is-break .pm-phase { color: #7cc6b8; }
-.pm-ring { position: relative; align-self: center; width: 280px; height: 280px; margin-top: 10px; }
-.pm-ring svg { width: 280px; height: 280px; }
+.pm-timer.is-track .pm-phase { color: var(--ink-2); }
+.pm-ring { position: relative; align-self: center; width: 240px; height: 240px; margin-top: 6px; }
+.pm-ring svg { width: 240px; height: 240px; }
 .pm-track { fill: none; stroke: rgba(255, 255, 255, 0.06); stroke-width: 10; }
 .pm-arc { fill: none; stroke: var(--gold); stroke-width: 10; stroke-linecap: round; }
 .pm-timer.is-break .pm-arc { stroke: #7cc6b8; }
+/* tracking: the ring fills once an hour, in the category's colour */
+.pm-timer.is-track .pm-arc { stroke: var(--k); }
 .pm-timer.is-idle .pm-arc { display: none; } /* a round cap on an empty arc would still draw a dot */
 .pm-clock { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.pm-left { font-size: 92px; line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.pm-left { font-size: 84px; line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
 .pm-timer.is-idle .pm-left { color: var(--ink-2); }
+.pm-left.is-long { font-size: 62px; } /* 1:02:10 */
 .pm-until { height: 20px; margin-top: 6px; font-size: 16px; font-weight: 600; color: var(--mute); }
-.pm-note { height: 44px; margin-top: 12px; font-size: 16px; font-weight: 500; line-height: 1.35; color: var(--mute); text-align: center; }
+.pm-note { height: 44px; margin-top: 10px; font-size: 16px; font-weight: 500; line-height: 1.35; color: var(--mute); text-align: center; }
 .pm-note b { font-weight: 650; color: var(--ink); }
-.pm-cats { display: grid; grid-template-columns: repeat(3, 1fr); grid-auto-rows: 76px; gap: 10px; margin-top: 12px; }
+.pm-cats { display: grid; grid-template-columns: repeat(3, 1fr); grid-auto-rows: 64px; gap: 10px; margin-top: 10px; }
 .pm-cat {
   display: flex;
   align-items: center;
@@ -619,17 +628,20 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .pm-week li.is-today .pm-d { color: var(--gold); }
 
 .pm-bottom { display: grid; grid-template-columns: 330px 1fr; gap: var(--gap); flex: none; height: 232px; }
-.pm-grid, .pm-split { padding: 20px 24px; }
-.pm-cal { display: flex; gap: 4px; margin-top: 14px; }
-.pm-dow, .pm-wk { display: flex; flex-direction: column; gap: 4px; }
-.pm-dow i { width: 16px; height: 18px; font-size: 11px; font-style: normal; font-weight: 700; line-height: 18px; color: var(--mute); }
-.pm-wk i { width: 18px; height: 18px; border-radius: 5px; background: rgba(255, 255, 255, 0.05); }
-.pm-wk i.l1 { background: rgba(203, 180, 124, 0.25); }
-.pm-wk i.l2 { background: rgba(203, 180, 124, 0.45); }
-.pm-wk i.l3 { background: rgba(203, 180, 124, 0.7); }
-.pm-wk i.l4 { background: var(--gold-fill); }
-.pm-wk i.is-future { background: none; }
-.pm-wk i.is-today { outline: 2px solid var(--ink); outline-offset: 1px; }
+.pm-today, .pm-split { padding: 20px 24px; }
+.pm-split h2 span, .pm-today h2 span { float: right; letter-spacing: 0.04em; text-transform: none; color: var(--gold); }
+/* today's timeline: blocks by category on a strip of the hours, today by category under it */
+.pm-strip { position: relative; height: 34px; margin-top: 16px; border-radius: 8px; background: rgba(255, 255, 255, 0.05); overflow: hidden; }
+.pm-strip i { position: absolute; top: 0; bottom: 0; min-width: 2px; background: var(--k); border-right: 1px solid var(--tile); }
+.pm-strip i.is-live { opacity: 0.75; }
+.pm-ticks { position: relative; height: 18px; margin-top: 6px; }
+.pm-ticks span { position: absolute; top: 0; font-size: 12px; font-weight: 700; color: var(--mute); white-space: nowrap; transform: translateX(-50%); }
+.pm-ticks span:first-child { transform: none; }
+.pm-ticks span:last-child { transform: translateX(-100%); }
+.pm-tlist { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; list-style: none; }
+.pm-tlist li { display: flex; align-items: center; justify-content: space-between; height: 22px; }
+.pm-tlist b { font-size: 15px; font-weight: 700; }
+.pm-today .pm-empty { margin-top: 18px; font-size: 16px; font-weight: 600; color: var(--mute); }
 .pm-split ul { display: flex; flex-direction: column; gap: 6px; margin-top: 14px; list-style: none; }
 .pm-split li { display: flex; align-items: center; gap: 14px; height: 22px; }
 .pm-cname { display: flex; align-items: center; gap: 8px; flex: none; width: 130px; font-size: 15px; font-weight: 600; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

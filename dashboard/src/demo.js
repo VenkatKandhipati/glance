@@ -1,5 +1,5 @@
 // ?demo: made-up events, trains and weather, and a public-domain photo, for screenshots that show
-// nothing personal (`?demo&screen=week` opens a screen, `?demo&alert` adds a weather warning, `?demo&stale` shows stale badges). The clock reads 8:42 am the day after
+// nothing personal (`?demo&screen=week` opens a screen, `?demo&alert` adds a weather warning, `?demo&stale` shows stale badges; the Time screen takes `&work`, `&idle` and `&auto`). The clock reads 8:42 am the day after
 // the build, so screenshots always look the same. Imported first by main.js, before anything
 // reads the time.
 export const DEMO = /[?&]demo(&|=|$)/.test(location.search);
@@ -96,6 +96,7 @@ export function demoForecast() {
 // work under way since 8:20.
 export function demoPomodoro() {
   const cats = ['interview-prep', 'geico', 'geico', 'interview-prep', 'chores', 'learning', 'projects'];
+  const between = ['break', 'scrolling', 'bathroom', 'break', 'chores', 'scrolling', 'other'];
   const log = [];
   let s = 7;
   const rand = (n) => { s = (Math.imul(s, 1103515245) + 12345) >>> 0; return (s >>> 8) % n; };
@@ -104,9 +105,21 @@ export function demoPomodoro() {
     for (let k = 0; k < count; k++) {
       const start = at(day, 9 + k * 2, 30 * rand(2));
       const done = rand(9) > 0;
-      log.push({ start: start.getTime(), end: start.getTime() + (done ? 45 : 15 + rand(25)) * 60000, cat: cats[rand(cats.length)], done });
+      const end = start.getTime() + (done ? 45 : 15 + rand(25)) * 60000;
+      log.push({ start: start.getTime(), end, cat: cats[rand(cats.length)], done });
+      // the last week also has tracked time between Pomodoros
+      if (day >= -7) log.push({ start: end + 60000, end: end + (6 + rand(40)) * 60000, cat: between[rand(between.length)], done: false, kind: 'track' });
     }
   }
   log.push({ start: at(0, 7, 20).getTime(), end: at(0, 8, 5).getTime(), cat: 'geico', done: true });
-  return { saved: 0, cat: 'interview-prep', state: { phase: 'work', start: at(0, 8, 20).getTime(), cat: 'interview-prep' }, log };
+  log.push({ start: at(0, 8, 5).getTime(), end: at(0, 8, 14).getTime(), cat: 'break', done: false, kind: 'track' });
+  log.push({ start: at(0, 8, 14).getTime(), end: at(0, 8, 21).getTime(), cat: 'scrolling', done: false, kind: 'track' });
+  // `?demo&work` shows a Pomodoro running, `&idle` nothing, `&auto` a tracker that stopped by
+  // itself; otherwise tracking
+  const q = (k) => new RegExp('[?&]' + k + '(&|$)').test(location.search);
+  const state = q('work') ? { phase: 'work', start: at(0, 8, 21).getTime(), cat: 'interview-prep' }
+    : q('idle') || q('auto') ? { phase: 'idle', start: 0, cat: 'scrolling' }
+    : { phase: 'track', start: at(0, 8, 21).getTime(), cat: 'projects' };
+  const auto = q('auto') ? { cat: 'scrolling', start: at(0, 8, 14).getTime(), at: at(0, 8, 21).getTime(), until: at(0, 10, 21).getTime() } : null;
+  return { saved: 0, cat: 'geico', state, log, touch: Date.now(), auto };
 }

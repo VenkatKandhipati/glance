@@ -1,6 +1,8 @@
 // Clock tile: date pill, weather pill (the temperature now), time, greeting with the weather.
 // During a weather warning the pill turns red with a warning sign and the greeting's second line
-// names it ("Heat Advisory."); the Weather screen has the rest. Redrawn once a minute.
+// names it ("Heat Advisory."); the Weather screen has the rest. While the Time screen is tracking
+// or timing something, it takes the greeting's place ("GEICO · 22 m left"), so a forgotten timer
+// is hard to miss; a tap there opens Time. Redrawn once a minute.
 import { DAYS, MONTHS, clockParts, esc, greeting } from '../time.js';
 import { weatherLine } from './weather-data.js';
 
@@ -38,12 +40,15 @@ function secondLine(w, alert) {
 }
 
 // w: summarize()'s weather, or null while there's none to show. alert: the most severe active
-// weather alert, or null. stale: the forecast's age once it's overdue, or null.
-export function renderClock(el, now, w, alert, stale) {
+// weather alert, or null. stale: the forecast's age once it's overdue, or null. running: what the
+// Time screen is doing ({ name, k, text }), or null.
+export function renderClock(el, now, w, alert, stale, running) {
   const { time, ampm } = clockParts(now);
   el.innerHTML =
     '<div class="clock-chips"><span class="chip"><span class="chip-icon">' + CAL_ICON + '</span>' +
     DAYS[now.getDay()] + ' · ' + now.getDate() + ' ' + MONTHS[now.getMonth()] + '</span>' + (w ? weatherChip(w, alert, stale) : '') + '</div>' +
     '<div class="clock-time serif">' + time + '<span class="clock-ampm">' + ampm + '</span></div>' +
-    '<div class="clock-greet serif"><b>' + greeting(now) + '</b>' + secondLine(w, alert) + '</div>';
+    '<div class="clock-greet serif">' + (running
+      ? '<b class="clock-run ' + running.k + '"><i></i>' + esc(running.name) + (running.text ? ' · ' + running.text : '') + '</b>'
+      : '<b>' + greeting(now) + '</b>') + secondLine(w, alert) + '</div>';
 }

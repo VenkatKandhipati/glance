@@ -107,6 +107,8 @@ services itself (Phase 1.5).
 - [x] Pomodoro: 45 + 15 minutes, a category per session, today and a daily goal, a streak,
       7 days by category, 12 weeks; survives power cuts; holds off night and the return to Home;
       log backed up to a file (kiosk 0.6)
+- [x] Time tracking at the desk on the same screen, renamed Time: one tap to track a category,
+      focus share, today's timeline, shown on Home while running ([#12](https://github.com/VenkatKandhipati/glance/issues/12))
 - [ ] Touch calibration, if smaller targets are ever needed
 
 ## Phase 2.7 — Pictures from public collections

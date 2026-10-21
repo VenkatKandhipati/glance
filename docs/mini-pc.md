@@ -23,14 +23,16 @@ The mini PC runs Linux, so nothing here may depend on macOS tools.
 - **A settings page** on the server (calendars, station, places, feeds) instead of editing
   `content.js` and rebuilding.
 
-## Pomodoro
+## Time (Pomodoro and tracking)
 
-- **Sync the log.** The frame keeps the Pomodoro log in the page's storage and a backup file
+- **Sync the log.** The frame keeps the Time screen's log (Pomodoros and tracked time) in the
+  page's storage and a backup file
   (`/sdcard/Android/data/app.glance.kiosk/files/pomodoro.json`, format in
   `dashboard/src/pomodoro-data.js`). The server should take a copy after every session (`POST
   /api/pomodoro`), keep the history if the frame is reset, and offer it as CSV.
 - **Longer views** that don't fit the frame: months and years by category, best hours of the day,
   sessions started vs finished.
+- **Tracking from the phone** when away from the desk, into the same log.
 
 ## Photos
 

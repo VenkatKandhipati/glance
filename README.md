@@ -12,7 +12,7 @@ train board or the forecast.
 <img src="docs/images/weather.png" width="32%" alt="Weather screen: now, the next 12 hours and the week">
 </p>
 
-![Pomodoro screen: a 45-minute timer with categories, today's count, the streak, the last 7 days, 12 weeks and time by category](docs/images/pomodoro.png)
+![Time screen: tracking a category, with today at the desk, the streak, the last 7 days, today's timeline and time by category](docs/images/pomodoro.png)
 
 ![Telugu screen: the later consonants with their romanizations, the last eight each beside a common word that has its sound](docs/images/telugu.png)
 
@@ -45,14 +45,19 @@ keep running for weeks with nobody touching it.
   calendar), **Transit** (the full board with destinations and cars, line alerts and elevator
   outages) and **Weather** (now, the next 12 hours, the week, sunrise and sunset, and any
   warnings). Two idle minutes bring back Home.
-- **Pomodoro.** 45 minutes of deep work, then a 15-minute break, on a screen of its own. Tap what
-  each session is for (interview prep, GEICO, chores…; edit them in `content.js`), before, during
-  or in the break after it. Beside the timer: today's sessions against a daily goal, the streak
-  (days with at least one full session, weekends included), the last 7 days by category, 12 weeks
-  at a glance and where the time went. The timer is kept as timestamps, so a reload or a power cut
-  picks it up where it was; while it runs, the frame stays on it and night waits. Each phase ends
-  with a chime and a gold pulse. Stopping early takes two taps and is logged as stopped, not as a
-  full session. The log is kept on the frame, with a backup file that `adb pull` can copy off.
+- **Time.** What you're doing at the desk, on a screen of its own. Tap a category to track it
+  (recruiting, GEICO, doom scrolling, bathroom…; edit them in `content.js`), another to switch,
+  Stop to end it; or start a Pomodoro: 45 minutes of deep work, then a 15-minute break. One thing
+  runs at a time, and a Pomodoro started while tracking takes over from it. Beside the timer, all
+  counted against time at the desk: today with its focus share and Pomodoros against a daily goal,
+  the streak (days with at least one full Pomodoro, weekends included), all time, the last 7 days
+  by category, today's timeline and where the week's time went. What's running shows on Home in
+  place of the greeting. The timer is kept as timestamps, so a reload or a power cut picks it up
+  where it was; while a Pomodoro runs, the frame stays on it and night waits. A tracker left with
+  no touch on the frame for 2 hours stops at the last touch (one tap counts the rest). Each
+  Pomodoro phase ends with a chime and a gold pulse; stopping one early takes two taps and is
+  logged as stopped. The log is kept on the frame, with a backup file that `adb pull` can copy
+  off.
 - **Telugu.** The 16 vowels and 36 consonants as a chart to look up at while writing them on
   paper, each centred in its box with its romanization (kathalu's) under it. Three pages: the
   vowels in their families, then the consonants over two (four vargas; then the fifth and the
@@ -149,7 +154,7 @@ dashboard/              the web app
     main.js             minute tick, daily reload, wiring
     content.js          the file you edit: dates, Metro station, timings
     tiles/              clock, calendar, photo, Metro
-    screens/            Week, Transit, Weather, Pomodoro, Telugu
+    screens/            Week, Transit, Weather, Time (pomodoro.js), Telugu
     nav.js, sheet.js    side bar; one day's events
     demo.js             ?demo: made-up data for screenshots
     night.js            night clock and screen off
