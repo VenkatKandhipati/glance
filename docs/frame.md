@@ -141,6 +141,10 @@ and their list (`/photos/`) from storage. Nothing depends on the Mac or the LAN;
 needs internet. Changing content, photos or design means running `npm run frame` again with the
 frame on USB.
 
+**Careful:** `npm run frame` makes the frame's photos match `dashboard/photos/` on the Mac it runs
+on, removing any the Mac doesn't have. From a Mac without your photos, build with
+`npm run frame:build` and install with `adb install -r kiosk/build/glance-kiosk.apk` instead.
+
 **Developing: from the Mac.** Over USB:
 
 ```sh
@@ -181,3 +185,4 @@ Record every change with its undo, newest last. All `su 0` commands run through 
 | 2026-10-19 | Kiosk with South Asian art and nature in the mix (`npm run frame`): adds the Cleveland Museum of Art and the Met | Drop `south-asian-art` / `south-asian-nature` from `featured.sources`, or an older build |
 | 2026-10-19 | Kiosk 0.5 (`npm run frame`): `/img` picture pass-through with a week's file cache in `/data/data/app.glance.kiosk/cache/img/`; public pictures measured before showing, dark style; the Met dropped | `adb install -r` an older build; `featured.style: 'any'` keeps the quality check only |
 | 2026-10-19 | Kiosk 0.6 (`npm run frame`): `GlanceFiles` bridge; the Pomodoro log's backup in `/sdcard/Android/data/app.glance.kiosk/files/pomodoro.json` | `adb install -r` an older build; the file can be deleted with `adb shell rm` (the page keeps its own copy) |
+| 2026-10-21 | Kiosk 0.6 rebuilt from main with stale-data badges (#5) and burn-in shifts (#6): `npm run frame:build`, then `adb install -r kiosk/build/glance-kiosk.apk` and `am start … --es url https://glance.local/`. Not `npm run frame`: the Mac it was built on had no photos, and the sync would have removed all 40 from the frame. `dashboard/.env.local` was recreated on that Mac from the values in the installed app. Same signing key, app data and photos kept; the Pomodoro log was backed up first. The page now also stores `glance-weather` and `glance-calendars` | `adb install -r` the previous 0.6 APK (kept off-repo); `shift.px: 0` in `content.js` turns the shift off |
