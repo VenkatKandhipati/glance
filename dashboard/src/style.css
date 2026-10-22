@@ -817,6 +817,17 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .night-time { font-size: 260px; line-height: 1; letter-spacing: -0.03em; }
 .night-time i { font-size: 72px; margin-left: 12px; }
 .night-date { margin-top: 8px; font-size: 26px; font-weight: 600; opacity: 0.75; }
+.night-pick { display: flex; justify-content: center; margin-top: 64px; }
+.night-btn {
+  width: 240px;
+  height: 76px;
+  margin: 0 14px;
+  border: 2px solid rgba(143, 36, 24, 0.55);
+  border-radius: 38px;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--night);
+}
 
 /* ------------------------------------------------------------------ ?diag */
 .diag {
