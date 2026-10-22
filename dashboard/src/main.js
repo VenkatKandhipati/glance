@@ -39,13 +39,14 @@ const focus = mountPomodoro($('pomodoro'), () => nav.go('pomodoro'));
 const letters = mountTelugu($('telugu'));
 const night = mountNight($('night'), setTrainsAsleep, () => focus.busy() || letters.busy());
 const nextPhoto = startPhotos($('photo'));
+// The side bar lists the screens in this order, Home first.
 const nav = mountNav($('bar'), $('edge'), $('scrim'), {
   home: { el: $('board'), show: () => draw(new Date()) }, // what's running on Time shows at once
-  week: { el: $('week'), show: () => renderWeek($('week'), new Date(), events) },
-  transit: { el: $('transit'), show: transit.show, hide: transit.hide },
-  weather: { el: $('weather'), show: () => { const now = new Date(); renderWeatherScreen($('weather'), now, forecast, weatherAge(now)); } },
   pomodoro: { el: $('pomodoro'), show: focus.show, hide: focus.hide, busy: focus.stay },
+  week: { el: $('week'), show: () => renderWeek($('week'), new Date(), events) },
   telugu: { el: $('telugu'), show: letters.show, hide: letters.hide, busy: letters.busy },
+  weather: { el: $('weather'), show: () => { const now = new Date(); renderWeatherScreen($('weather'), now, forecast, weatherAge(now)); } },
+  transit: { el: $('transit'), show: transit.show, hide: transit.hide },
 }, sheet);
 
 const weatherNow = (now) => forecast && summarize(forecast.daily, forecast.hourly, now);
