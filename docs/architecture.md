@@ -26,6 +26,7 @@ Stored on the frame:
 | `localStorage` `glance-weather` | The last forecast that arrived and when, shown after a reload during an outage (up to 7 days) |
 | `localStorage` `glance-calendars` | Each calendar's last occurrences and when they arrived (up to 7 days) |
 | `localStorage` `glance-pomodoro` | The Time screen's timer and log of tracked time and Pomodoros (format v2 in `src/pomodoro-data.js`; v1, Pomodoros only, still reads) |
+| `localStorage` `glance-night` | Tonight's choice on the night clock ("Still working" or "Going to sleep") and when it lapses (the next midnight or 8 a.m.) |
 | `/sdcard/Android/data/app.glance.kiosk/files/pomodoro.json` | The same, as a backup written by the kiosk (`GlanceFiles`) |
 | `/sdcard/Android/data/app.glance.kiosk/files/photos/` | Your photos, resized, pushed by `npm run frame` |
 | The app's cache, `img/` | Public pictures fetched through the kiosk's `/img`, kept a week |

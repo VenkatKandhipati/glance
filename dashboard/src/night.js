@@ -1,7 +1,10 @@
 // Night: once nobody has touched the screen for a while, a dim red clock on black in the evening
 // (settings.night.clock until .off), then the screen fully off until morning (.off until .on).
 // A tap brings the dashboard back; it goes again after the same idle time. The clock drifts a
-// little against burn-in. The kiosk app turns the backlight off (GlanceKiosk.setScreenOn); without
+// little against burn-in. Two buttons on the clock pick how the evening goes: "Still working"
+// keeps the clock away until the screen-off hour, and "Going to sleep" turns the screen off now,
+// and again after each idle spell, until morning. The choice is kept across a reload and lapses
+// on its own, so the next evening starts as usual. The kiosk app turns the backlight off (GlanceKiosk.setScreenOn); without
 // it, as in a desktop browser, "off" is just black.
 // onShow(true/false) hears when night comes and goes, so live tiles can stop asking meanwhile.
 // busy() true (the Pomodoro timer running, or the Telugu screen in use) holds night off until
@@ -20,17 +23,48 @@ export function nightMode(now, cfg) {
   return null;
 }
 
+// The evening's choice: 'awake' until the next cfg.off hour, 'sleep' until the next cfg.on hour.
+export function choose(kind, now, cfg) {
+  const until = new Date(now);
+  until.setHours(kind === 'sleep' ? cfg.on : cfg.off, 0, 0, 0);
+  if (until <= now) until.setDate(until.getDate() + 1);
+  return { kind, until: +until };
+}
+
+// What night shows at `now` once the screen has sat idle: nightMode, unless tonight's choice (if
+// it hasn't lapsed) says otherwise.
+export function nightWant(now, cfg, choice) {
+  const mode = nightMode(now, cfg);
+  if (!choice || +now >= choice.until) return mode;
+  if (choice.kind === 'sleep') return 'off';
+  return mode === 'clock' ? null : mode;
+}
+
+const KEY = 'glance-night';
+function loadChoice() {
+  try {
+    const c = JSON.parse(localStorage.getItem(KEY));
+    return c && (c.kind === 'awake' || c.kind === 'sleep') && c.until > Date.now() ? c : null;
+  } catch (e) { return null; }
+}
+function saveChoice(c) {
+  try { localStorage.setItem(KEY, JSON.stringify(c)); } catch (e) { /* kept for this page only */ }
+}
+
 function setScreenOn(on) {
   try {
     if (window.GlanceKiosk) window.GlanceKiosk.setScreenOn(on);
   } catch (e) { /* not in the kiosk, or an older one */ }
 }
 
-export function mountNight(el, onShow, busy) {
+// onAwake() hears "Still working", to go back to Home.
+export function mountNight(el, onShow, busy, onAwake) {
   const cfg = settings.night;
-  let idle = 0, mode = null, forced = false;
+  let idle = 0, mode = null, forced = false, choice = loadChoice();
 
-  el.innerHTML = '<div class="night-inner"><div class="night-time serif"></div><div class="night-date"></div></div>';
+  el.innerHTML = '<div class="night-inner"><div class="night-time serif"></div><div class="night-date"></div>' +
+    '<div class="night-pick"><button class="night-btn" data-pick="awake">Still working</button>' +
+    '<button class="night-btn" data-pick="sleep">Going to sleep</button></div></div>';
   const inner = el.firstChild, time = inner.children[0], date = inner.children[1];
 
   function paint(now) {
@@ -64,23 +98,30 @@ export function mountNight(el, onShow, busy) {
   el.addEventListener('click', (e) => {
     e.stopPropagation();
     idle = 0;
-    hide();
+    const pick = e.target.closest('[data-pick]');
+    if (!pick) { hide(); return; }
+    choice = choose(pick.getAttribute('data-pick'), new Date(), cfg);
+    saveChoice(choice);
+    if (choice.kind === 'sleep') { forced = true; show('off'); } // dark now, even before 10 p.m.
+    else { hide(); onAwake(); }
   });
 
   setInterval(() => {
     idle++;
     const now = new Date();
     // Before network time after a power cut the hour means nothing; stay on the dashboard.
-    const want = clockIsSane(now, __BUILT_AT__) ? nightMode(now, cfg) : null;
+    const want = clockIsSane(now, __BUILT_AT__) ? nightWant(now, cfg, choice) : null;
     if (!mode && want && idle >= cfg.idleSeconds && !busy()) show(want);
     else if (mode && want && want !== mode) show(want);       // midnight: clock → off
     else if (mode && !want && !forced) hide();                // morning: back on its own
+    else if (mode === 'off' && forced && choice && +now >= choice.until) hide(); // slept till morning
   }, 1000);
 
-  // A power cut or the 3 a.m. reload during the off hours: stay dark rather than light the room.
-  // Otherwise make sure the backlight is on, in case the page went away while it was off.
+  // A power cut or the 3 a.m. reload during the off hours (or after "Going to sleep"): stay dark
+  // rather than light the room. Otherwise make sure the backlight is on, in case the page went
+  // away while it was off.
   const now = new Date();
-  if (clockIsSane(now, __BUILT_AT__) && nightMode(now, cfg) === 'off' && !busy()) show('off');
+  if (clockIsSane(now, __BUILT_AT__) && nightWant(now, cfg, choice) === 'off' && !busy()) show('off');
   else setScreenOn(true);
 
   return {

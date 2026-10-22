@@ -37,7 +37,7 @@ const setTrainsAsleep = mountTrains($('trains'), transit.trains);
 // at most).
 const focus = mountPomodoro($('pomodoro'), () => nav.go('pomodoro'));
 const letters = mountTelugu($('telugu'));
-const night = mountNight($('night'), setTrainsAsleep, () => focus.busy() || letters.busy());
+const night = mountNight($('night'), setTrainsAsleep, () => focus.busy() || letters.busy(), () => nav.go('home'));
 const nextPhoto = startPhotos($('photo'));
 const nav = mountNav($('bar'), $('edge'), $('scrim'), {
   home: { el: $('board'), show: () => draw(new Date()) }, // what's running on Time shows at once
