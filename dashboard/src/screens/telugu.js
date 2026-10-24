@@ -1,7 +1,8 @@
 // Telugu screen: the vowels and consonants as a chart to look up at while writing them on paper.
 // Three pages, the vowels and the consonants over two; the tabs or a swipe move between them.
-// The second consonant page has room to spare, so its last eight letters, the hardest to say, each
-// get a common word beside them.
+// The eight consonants hardest to say on each consonant page get a common word beside them: on
+// the first, the two rare nasals and the retroflex/dental pairs, as the romanization alone; on the
+// second, the last eight, with the word and its meaning too.
 //
 // Writing means not touching the frame, so the screen stays up (no going Home, no night clock)
 // for content.js `telugu.stayMinutes` after the last touch on it. While it's up it steps a few
@@ -15,16 +16,19 @@ const SWIPE_PX = 80;
 const FONT = 'Noto Sans Telugu';
 
 // A word beside the letter, where there is one: the word, its romanization with the letter's
-// sound in gold, and what it means.
-const word = (w) => !w ? '' : '<span class="te-ex"><span class="te-ex-w" lang="te">' + w[0] + '</span>' +
-  '<span class="te-ex-r">' + w[1].replace(/\*([^*]+)\*/, '<b>$1</b>') + '</span><span class="te-ex-m">' + w[2] + '</span></span>';
-const cell = (l) => '<div class="te-cell' + (WORDS[l[0]] ? ' has-ex' : '') + '"><span class="te-main"><span class="te-box"><span class="te-g" lang="te">' + l[0] +
-  '</span></span><span class="te-r">' + l[1] + '</span></span>' + word(WORDS[l[0]]) + '</div>';
-const rows = (list) => list.map((r) => '<div class="te-row">' + r.map(cell).join('') + '</div>').join('');
+// sound in gold, and what it means. Where five to a row leave too little room (`sayOnly`), just
+// the romanization, to say out loud.
+const word = (w, sayOnly) => !w ? '' : '<span class="te-ex">' +
+  (sayOnly ? '' : '<span class="te-ex-w" lang="te">' + w[0] + '</span>') +
+  '<span class="te-ex-r">' + w[1].replace(/\*([^*]+)\*/, '<b>$1</b>') + '</span>' +
+  (sayOnly ? '' : '<span class="te-ex-m">' + w[2] + '</span>') + '</span>';
+const cell = (l, sayOnly) => '<div class="te-cell' + (WORDS[l[0]] ? ' has-ex' : '') + '"><span class="te-main"><span class="te-box"><span class="te-g" lang="te">' + l[0] +
+  '</span></span><span class="te-r">' + l[1] + '</span></span>' + word(WORDS[l[0]], sayOnly) + '</div>';
+const rows = (list, sayOnly) => list.map((r) => '<div class="te-row">' + r.map((l) => cell(l, sayOnly)).join('') + '</div>').join('');
 
 const PAGES = [
   { tab: 'Vowels', title: 'Vowels', te: 'అచ్చులు', cls: 'te-vowels', rows: VOWEL_ROWS },
-  { tab: 'Consonants 1', title: 'Consonants', te: 'హల్లులు', cls: 'te-cons', rows: CONSONANT_PAGES[0] },
+  { tab: 'Consonants 1', title: 'Consonants', te: 'హల్లులు', cls: 'te-cons te-c1', rows: CONSONANT_PAGES[0], sayOnly: true },
   { tab: 'Consonants 2', title: 'Consonants', te: 'హల్లులు', cls: 'te-cons te-words', rows: CONSONANT_PAGES[1] },
 ];
 
@@ -54,7 +58,7 @@ export function mountTelugu(el) {
       '<header class="screen-head"><h1 class="serif">' + p.title + '<i>,</i></h1><span class="te-word" lang="te">' + p.te + '</span>' +
       '<span class="te-tabs">' + PAGES.map((q, j) =>
         '<button class="te-tab' + (j === i ? ' is-on' : '') + '" data-go="' + j + '">' + q.tab + '</button>').join('') +
-      '</span></header><div class="te-grid ' + p.cls + '">' + rows(p.rows) + '</div></section>').join('');
+      '</span></header><div class="te-grid ' + p.cls + '">' + rows(p.rows, p.sayOnly) + '</div></section>').join('');
 
   function turn(i) {
     page = Math.max(0, Math.min(PAGES.length - 1, i));

@@ -23,10 +23,19 @@ export const VARGAS = [
 export const OTHERS = [['య', 'ya'], ['ర', 'ra'], ['ల', 'la'], ['వ', 'va'], ['శ', 'śa'], ['ష', 'ṣa'],
   ['స', 'sa'], ['హ', 'ha'], ['ళ', 'ḷa'], ['క్ష', 'kṣa'], ['ఱ', 'ṟa']];
 
-// A common word for each of the last eight consonants, the ones hardest to say from the letter
-// alone: the word, its romanization with the letter's sound between *s, and what it means. Most
-// start with the letter; ష ళ క్ష ఱ hardly ever do, so theirs have it inside.
+// A common word for the consonants hardest to say from the letter alone: the last eight, and on
+// the first page the two rare nasals and the retroflex/dental pairs (ట/త, డ/ద, ణ/న). Each is the
+// word, its romanization with the letter's sound between *s, and what it means. Most start with
+// the letter; ఙ ఞ ణ ష ళ క్ష ఱ hardly ever do, so theirs have it inside.
 export const WORDS = {
+  'ఙ': ['గఙ్గ', 'ga*ṅ*ga', 'the Ganga'],
+  'ఞ': ['పఞ్చదార', 'pa*ñ*chadāra', 'sugar'],
+  'ట': ['టమాటా', '*ṭ*amāṭā', 'tomato'],
+  'డ': ['డబ్బు', '*ḍ*abbu', 'money'],
+  'ణ': ['బాణం', 'bā*ṇ*aṁ', 'arrow'],
+  'త': ['తాత', '*t*āta', 'grandfather'],
+  'ద': ['దీపం', '*d*īpaṁ', 'lamp'],
+  'న': ['నక్క', '*n*akka', 'fox'],
   'వ': ['వాన', '*v*āna', 'rain'],
   'శ': ['శాంతి', '*ś*ānti', 'peace'],
   'ష': ['భాష', 'bhā*ṣ*a', 'language'],
