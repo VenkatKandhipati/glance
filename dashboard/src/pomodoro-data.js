@@ -212,6 +212,42 @@ export function categoryTotals(log, now, n) {
   return Object.keys(by).map((cat) => ({ cat, minutes: by[cat] })).sort((a, b) => b.minutes - a.minutes);
 }
 
+// A category's usual minutes a day, from lastDays(): the average over the days before today that
+// have anything tracked (days before tracking began don't pull it down). { cat: minutes }.
+export function usualByCat(days) {
+  const past = days.slice(0, -1).filter((d) => d.minutes > 0);
+  const out = {};
+  past.forEach((d) => Object.keys(d.byCat).forEach((cat) => { out[cat] = (out[cat] || 0) + d.byCat[cat]; }));
+  Object.keys(out).forEach((cat) => { out[cat] = Math.round(out[cat] / past.length); });
+  return out;
+}
+
+// Which of the categories to balance is furthest behind, from lastDays() (today last):
+// { cat, since, recent, today } or null when every one has had time today.
+//   since   days since the last day with time in it (0 today, 1 yesterday), null if none in the
+//           days given. A `daily` category counts a day only with at least `daily` minutes, and
+//           drops out once today has them.
+//   recent  its minutes over the last `recentDays` days, today included.
+// The longest since goes first; on a tie, a `daily` one (quick, done most days) comes after the
+// rest, then the fewest recent minutes, then the order given.
+// balance: [{ id, daily? }]
+export function nextFocus(days, balance, recentDays) {
+  const n = days.length;
+  const cands = balance.map((c, i) => {
+    const need = c.daily || 1;
+    let last = -1;
+    days.forEach((d, j) => { if ((d.byCat[c.id] || 0) >= need) last = j; });
+    let recent = 0;
+    days.slice(-(recentDays || 3)).forEach((d) => { recent += d.byCat[c.id] || 0; });
+    return { cat: c.id, since: last < 0 ? null : n - 1 - last, recent, today: days[n - 1].byCat[c.id] || 0, daily: !!c.daily, i };
+  }).filter((c) => c.since !== 0);
+  if (!cands.length) return null;
+  const age = (c) => (c.since === null ? n : c.since);
+  cands.sort((a, b) => age(b) - age(a) || a.daily - b.daily || a.recent - b.recent || a.i - b.i);
+  const top = cands[0];
+  return { cat: top.cat, since: top.since, recent: top.recent, today: top.today };
+}
+
 // ---- storage format: compact, versioned. Each entry is [start in seconds, seconds, cat, flag],
 // flag 1 a full Pomodoro, 0 a stopped one, 2 tracked time. Version 1 (Pomodoros only) reads as is.
 // `touch` is the last touch while tracking, so a power cut can't hide a forgotten tracker; `auto`

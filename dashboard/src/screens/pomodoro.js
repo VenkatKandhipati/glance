@@ -2,7 +2,10 @@
 // category to track it (another switches, Stop ends it), or start a Pomodoro (content.js `time`:
 // 45 minutes of deep work, then a 15-minute break). On the right, the insights, all counted
 // against tracked time at the desk: today, the streak, all time, the last 7 days, today's
-// timeline and time by category.
+// timeline and time by category. The last 7 days are stacked bars by category or, a swipe away, a
+// row per focus category and a column per day; the view last left is kept. A tap on a day, in
+// either, puts its breakdown in place of time by category. Above either view, and in the
+// timer's note while nothing runs, the `balance` category furthest behind: what to start with.
 //
 // The timer is kept as timestamps (pomodoro-data.js), so a reload or a power cut picks it up where
 // it was. While a Pomodoro runs, the frame stays on this screen and night waits (main.js asks
@@ -16,23 +19,30 @@
 //   adb pull /sdcard/Android/data/app.glance.kiosk/files/pomodoro.json
 import { time as cfg } from '../content.js';
 import { DEMO, demoPomodoro } from '../demo.js';
-import { DAYS, esc } from '../time.js';
+import { DAYS, addDays, esc } from '../time.js';
 import { timeText } from '../tiles/calendar.js';
 import * as P from '../pomodoro-data.js';
 
 const KEY = 'glance-pomodoro';
+const VIEW_KEY = 'glance-time-week'; // which view of the last 7 days: 'grid' or 'bars'
+const SWIPE_PX = 80;
 const FILE = 'pomodoro.json';
 const CONFIRM_MS = 4000;
 const RING = 2 * Math.PI * 138; // the arc's circumference, in its 300 × 300 viewBox
 const HOUR = 3600e3;
 const AUTO_MS = (cfg.autoStopHours || 0) * HOUR;
 const TOUCH_SAVE_MS = 60000; // while tracking, the last touch is saved at most this often
+const DAY_MS = 60000; // a tapped day's breakdown closes after this long with no touch on the screen
+const RECENT_DAYS = 3; // "1 h in 3 days" beside the category to start with
 
 const cats = cfg.categories;
 const known = {}, focusIds = {};
 cats.forEach((c) => { known[c.id] = true; if (c.focus) focusIds[c.id] = true; });
 // Focus: a focus category, or a Pomodoro in a category since removed from the list.
 const isFocus = (s) => !!focusIds[s.cat] || (!known[s.cat] && s.kind !== 'track');
+// The week's rows: the categories to balance first, then the other focus ones, in content.js order.
+const balance = cats.filter((c) => c.balance);
+const rowIds = balance.concat(cats.filter((c) => c.focus && !c.balance)).map((c) => c.id);
 const kClass = (id) => { const i = cats.findIndex((c) => c.id === id); return 'pm-k' + (i >= 0 ? i : 8); };
 const catName = (id) => { const c = cats.find((x) => x.id === id); return c ? c.name : id || 'Other'; };
 const mmss = (ms) => { const s = Math.max(0, Math.ceil(ms / 1000)); const m = Math.floor(s / 60), r = s % 60; return m + ':' + (r < 10 ? '0' : '') + r; };
@@ -46,6 +56,19 @@ const pct = (part, whole) => Math.round(part / whole * 100) + '%';
 const hoursOf = (mins) => String(mins < 600 ? Math.round(mins / 6) / 10 : Math.round(mins / 60));
 const REMIND = cfg.remind || { categories: [], minutes: 0 };
 const hourLabel = (h) => (h % 12 || 12) + (h % 24 < 12 ? ' am' : ' pm');
+// A day's minutes in a cell: 45 m, then hours to a tenth (1.8 h).
+const cellText = (m) => (m >= 60 ? hoursOf(m) + ' h' : m + ' m');
+
+// Why a category is next (P.nextFocus): "none in 7 days", "not since yesterday", "not since
+// Thursday"; a daily one part done today, "10 m of 15 today". `long` adds its minutes lately.
+function whyText(next, now, long) {
+  const c = cats.find((x) => x.id === next.cat) || {};
+  if (c.daily && next.today) return next.today + ' m of ' + c.daily + ' today';
+  const why = next.since === null ? 'none in 7 days'
+    : next.since === 1 ? 'not since yesterday'
+    : 'not since ' + DAYS[addDays(now, -next.since).getDay()];
+  return why + (long && next.recent ? ', ' + P.hoursText(next.recent) + ' in ' + RECENT_DAYS + ' days' : '');
+}
 
 // ---- storage: localStorage, plus the kiosk's backup file when there is one
 function load() {
@@ -87,12 +110,12 @@ function chime(notes) {
 const SOUNDS = { start: [523.25], 'work-done': [523.25, 659.25, 783.99], 'break-done': [783.99, 659.25], nudge: [659.25, 523.25, 659.25] };
 
 // ---- drawing
-function catButtons(on) {
+function catButtons(on, next) {
   return cats.map((c) =>
-    '<button class="pm-cat ' + kClass(c.id) + (c.id === on ? ' is-on' : '') + '" data-cat="' + esc(c.id) + '"><i></i>' + esc(c.name) + '</button>').join('');
+    '<button class="pm-cat ' + kClass(c.id) + (c.id === on ? ' is-on' : c.id === next ? ' is-next' : '') + '" data-cat="' + esc(c.id) + '"><i></i>' + esc(c.name) + '</button>').join('');
 }
 
-function timerTile(data, now, confirming, dropped) {
+function timerTile(data, now, confirming, dropped, next) {
   const st = data.state, sane = P.clockTrusted(st, now, __BUILT_AT__);
   const last = data.log[data.log.length - 1];
   const startPomodoro = '<button class="pm-btn is-go" data-act="start"' + (sane ? '' : ' disabled') + '>Start ' + cfg.work + ' minutes</button>';
@@ -126,17 +149,19 @@ function timerTile(data, now, confirming, dropped) {
     note = !sane ? 'Waiting for the time from the network…'
       : a ? 'No touch since ' + timeText(new Date(a.at)) + ', so <b>' + esc(catName(a.cat)) + '</b> stopped there.'
       : dropped ? 'The last session ended while the frame was off, so it wasn\'t logged.'
+      : next ? '<b>' + esc(catName(next.cat)) + '</b>: ' + whyText(next, now, true) + '. Start with it today?'
       : 'Tap what you\'re doing to track it. A Pomodoro starts on <b>' + esc(catName(data.cat || cats[0].id)) + '</b>.';
     actions = (a && sane ? '<button class="pm-btn" data-act="keep">Count until ' + timeText(new Date(a.until)) + '</button>' : '') + startPomodoro;
   }
   const on = st.phase === 'idle' ? null : st.cat;
+  const ring = st.phase === 'idle' && sane && !data.auto && !dropped && next ? next.cat : null;
   return '<section class="tile pm-timer is-' + st.phase + '"><div class="pm-flash"></div>' +
     '<h2 class="pm-phase">' + phase + '</h2>' +
     '<div class="pm-ring ' + kClass(st.cat) + '"><svg viewBox="0 0 300 300" width="240" height="240"><circle class="pm-track" cx="150" cy="150" r="138"/>' +
     '<circle class="pm-arc" cx="150" cy="150" r="138" stroke-dasharray="' + RING.toFixed(1) + '" stroke-dashoffset="' + RING.toFixed(1) + '" transform="rotate(-90 150 150)"/></svg>' +
     '<div class="pm-clock"><b class="pm-left serif">' + cfg.work + ':00</b><span class="pm-until"></span></div></div>' +
     '<p class="pm-note">' + note + '</p>' +
-    '<div class="pm-cats">' + catButtons(on) + '</div>' +
+    '<div class="pm-cats">' + catButtons(on, ring) + '</div>' +
     '<div class="pm-actions">' + actions + '</div></section>';
 }
 
@@ -160,10 +185,72 @@ function todayTile(view, now, today) {
     '<div class="pm-ticks">' + ticks + '</div><ul class="pm-tlist">' + rows + '</ul></section>';
 }
 
-function statsTiles(data, now, live) {
-  // Everything at the desk, what's running included, each full Pomodoro with its break.
-  const view = P.withBreaks(live ? data.log.concat(live) : data.log, cfg.break, +now);
-  const today = P.dayTotals(view, now, isFocus);
+// The last 7 days: a row per focus category with each day's time in it, and each day's focus
+// hours under them, gold once they reach the goal. A column is a button for that day's breakdown.
+function weekGrid(days, sel, next, head) {
+  const goalMin = cfg.goalHours * 60;
+  const names = '<li class="pm-wk-names"><span class="pm-wd"></span>' + rowIds.map((id) =>
+    '<span class="' + kClass(id) + (next && next.cat === id ? ' is-next' : '') + '"><i></i>' + esc(catName(id)) + '</span>').join('') +
+    '<span class="pm-wf">Focus · goal ' + cfg.goalHours + ' h</span></li>';
+  const cols = days.map((d, i) => {
+    const cells = rowIds.map((id) => {
+      const m = d.byCat[id] || 0;
+      return '<span class="pm-c ' + kClass(id) + (m ? ' is-on' : '') + '">' + (m ? cellText(m) : '') + '</span>';
+    }).join('');
+    return '<li data-day="' + i + '" class="' + (i === 6 ? 'is-today' : '') + (i === sel ? ' is-sel' : '') + '">' +
+      '<span class="pm-wd">' + (i === 6 ? 'Today' : DAYS[d.day.getDay()].slice(0, 3)) + '</span>' + cells +
+      '<span class="pm-wf' + (d.focus >= goalMin ? ' is-met' : '') + '">' + (d.focus ? hoursOf(d.focus) + ' h' : '·') + '</span></li>';
+  }).join('');
+  return '<h2>Last 7 days at the desk' + dots(1) + head + '</h2><ul class="pm-wk">' + names + cols + '</ul>';
+}
+
+// The same days as stacked bars by category, focus at the bottom so the goal line reads against
+// them, each day's focus hours above.
+function weekBars(days, sel, head) {
+  const goalMin = cfg.goalHours * 60;
+  const top = Math.max(goalMin * 1.25, Math.max.apply(null, days.map((d) => d.minutes)));
+  const order = cats.map((c) => c.id);
+  const bars = days.map((d, i) => {
+    const ids = Object.keys(d.byCat).sort((a, b) => (order.indexOf(a) + 99) % 99 - (order.indexOf(b) + 99) % 99);
+    const segs = ids.map((id) => '<i class="' + kClass(id) + '" style="height:' + (d.byCat[id] / top * 100).toFixed(1) + '%"></i>').join('');
+    return '<li data-day="' + i + '" class="' + (i === 6 ? 'is-today' : '') + (i === sel ? ' is-sel' : '') + '"><span class="pm-n">' + (d.focus >= 3 ? hoursOf(d.focus) : '') + '</span>' +
+      '<span class="pm-bar">' + segs + '</span><span class="pm-d">' + (i === 6 ? 'Today' : DAYS[d.day.getDay()].slice(0, 3)) + '</span></li>';
+  }).join('');
+  return '<h2>Last 7 days at the desk' + dots(0) + head + '</h2><ul class="pm-bars" style="--goal:' + (goalMin / top * 100).toFixed(1) + '%">' + bars + '</ul>';
+}
+
+const dots = (on) => '<i class="pm-pg' + (on === 0 ? ' is-on' : '') + '"></i><i class="pm-pg' + (on === 1 ? ' is-on' : '') + '"></i>';
+
+// The bars first (the default), the grid a swipe to the left.
+// Both views' titles end with the category to start with.
+function weekTile(days, now, sel, next, grid) {
+  const head = !balance.length ? ''
+    : next ? '<span class="pm-next">Next: <b>' + esc(catName(next.cat)) + '</b>, ' + whyText(next, now, false) + '</span>'
+    : '<span class="pm-next">Each one has had time today</span>';
+  return '<section class="tile pm-week' + (grid ? ' is-grid' : '') + '"><div class="pm-wk-track">' +
+    '<div class="pm-wk-pane">' + weekBars(days, sel, head) + '</div><div class="pm-wk-pane">' + weekGrid(days, sel, next, head) + '</div></div></section>';
+}
+
+// A tapped day: its time by focus category, the rest together, each against its usual.
+function dayTile(days, i) {
+  const d = days[i], usual = P.usualByCat(days);
+  const hasUsual = Object.keys(usual).length > 0;
+  const restOf = (by) => Object.keys(by).reduce((n, id) => n + (rowIds.indexOf(id) < 0 ? by[id] : 0), 0);
+  const vs = (m, u) => {
+    const x = m - (u || 0);
+    return !hasUsual || Math.abs(x) < 5 ? '' : (x > 0 ? '+' : '\u2212') + P.hoursText(Math.abs(x));
+  };
+  const row = (k, name, m, u, cls) => '<li class="' + k + (cls ? ' ' + cls : '') + '"><span class="pm-cname"><i></i>' + name + '</span>' +
+    '<b>' + (m ? P.hoursText(m) : '\u2013') + '</b><span class="pm-vs">' + vs(m, u) + '</span></li>';
+  const rows = rowIds.map((id) => row(kClass(id), esc(catName(id)), d.byCat[id] || 0, usual[id])).join('') +
+    row('pm-k8', 'Not focus', restOf(d.byCat), restOf(usual), 'is-rest');
+  return '<section class="tile pm-split"><h2>' + (i === 6 ? 'Today' : DAYS[d.day.getDay()]) + (hasUsual ? '<span>vs usual</span>' : '') + '</h2>' +
+    '<ul class="pm-day">' + rows + '</ul></section>';
+}
+
+// view: the log with what's running and each full Pomodoro's break; days: its last 7 days.
+function statsTiles(view, days, now, sel, next, grid) {
+  const today = days[6];
   const run = P.streak(view, now, P.focusDays(view, isFocus, cfg.streakHours * 60));
   const allMin = view.reduce((n, s) => n + P.minutes(s), 0);
   const allFocus = view.reduce((n, s) => n + (isFocus(s) ? P.minutes(s) : 0), 0);
@@ -172,18 +259,6 @@ function statsTiles(data, now, live) {
   const full = Math.floor(today.focus / 60), half = today.focus % 60 >= 30;
   for (let i = 0; i < Math.max(cfg.goalHours, full + (half ? 1 : 0)); i++) dots += '<i class="' + (i < full ? 'is-done' : i === full && half ? 'is-half' : '') + '"></i>';
 
-  const days = P.lastDays(view, now, 7, isFocus);
-  const goalMin = cfg.goalHours * 60;
-  const top = Math.max(goalMin * 1.25, Math.max.apply(null, days.map((d) => d.minutes)));
-  const order = cats.map((c) => c.id);
-  const bars = days.map((d, i) => {
-    // focus categories first, at the bottom, so the goal line reads against them
-    const ids = Object.keys(d.byCat).sort((a, b) => (order.indexOf(a) + 99) % 99 - (order.indexOf(b) + 99) % 99);
-    const segs = ids.map((id) => '<i class="' + kClass(id) + '" style="height:' + (d.byCat[id] / top * 100).toFixed(1) + '%"></i>').join('');
-    return '<li' + (i === 6 ? ' class="is-today"' : '') + '><span class="pm-n">' + (d.focus >= 3 ? hoursOf(d.focus) : '') + '</span>' +
-      '<span class="pm-bar">' + segs + '</span><span class="pm-d">' + (i === 6 ? 'Today' : DAYS[d.day.getDay()].slice(0, 3)) + '</span></li>';
-  }).join('');
-
   const totals = P.categoryTotals(view, now, 7);
   const most = totals.length ? totals[0].minutes : 1;
   const week = days.reduce((n, d) => n + d.minutes, 0), weekFocus = days.reduce((n, d) => n + d.focus, 0);
@@ -191,6 +266,8 @@ function statsTiles(data, now, live) {
     '<li class="' + kClass(t.cat) + '"><span class="pm-cname"><i></i>' + esc(catName(t.cat)) + '</span>' +
     '<span class="pm-track-h"><i style="width:' + (t.minutes / most * 100).toFixed(1) + '%"></i></span><b>' + P.hoursText(t.minutes) + '</b></li>').join('')
     : '<li class="pm-empty">Nothing in the last 7 days.</li>';
+  const split = sel !== null ? dayTile(days, sel)
+    : '<section class="tile pm-split"><h2>By category · 7 days' + (week ? '<span>' + pct(weekFocus, week) + ' focus</span>' : '') + '</h2><ul>' + rows + '</ul></section>';
 
   return '<div class="pm-stats">' +
     '<div class="pm-top">' +
@@ -200,23 +277,28 @@ function statsTiles(data, now, live) {
     '<span>' + (run.current && !run.today ? cfg.streakHours + ' h today keeps it going' : 'Best ' + run.best + ' day' + (run.best === 1 ? '' : 's')) + '</span></section>' +
     '<section class="tile pm-stat"><h2>All time · focus</h2><b class="serif">' + hoursOf(allFocus) + '<i> h</i></b><span>' + (allMin ? P.hoursText(allMin) + ' at the desk' : 'Your first hour starts here') + '</span></section>' +
     '</div>' +
-    '<section class="tile pm-week"><h2>Last 7 days at the desk<span>hours of focus</span></h2><ul style="--goal:' + (goalMin / top * 100).toFixed(1) + '%">' + bars + '</ul></section>' +
-    '<div class="pm-bottom">' + todayTile(view, now, today) +
-    '<section class="tile pm-split"><h2>By category · 7 days' + (week ? '<span>' + pct(weekFocus, week) + ' focus</span>' : '') + '</h2><ul>' + rows + '</ul></section>' +
-    '</div></div>';
+    weekTile(days, now, sel, next, grid) +
+    '<div class="pm-bottom">' + todayTile(view, now, today) + split + '</div></div>';
 }
 
 export function mountPomodoro(el, onCue) {
   const data = load();
   let visible = false, confirmUntil = 0, offset = -1, dropped = false, touchSaved = 0;
+  let sel = null, selTimer = 0; // the tapped day (0–6), or null
+  let grid = false, swipedAt = 0; // the last 7 days as the grid rather than the bars
+  try { grid = localStorage.getItem(VIEW_KEY) === 'grid'; } catch (e) { /* blocked */ }
 
   const trustedNow = (now) => P.clockTrusted(data.state, now, __BUILT_AT__);
   const live = (now) => (trustedNow(now) ? P.liveEntry(data.state, now) : null);
 
   function render() {
-    const now = Date.now();
+    const now = Date.now(), date = new Date(now), running = live(now);
+    // Everything at the desk, what's running included, each full Pomodoro with its break.
+    const view = P.withBreaks(running ? data.log.concat(running) : data.log, cfg.break, now);
+    const days = P.lastDays(view, date, 7, isFocus);
+    const next = balance.length ? P.nextFocus(days, balance, RECENT_DAYS) : null;
     const html = '<header class="screen-head"><h1 class="serif">Time<i>,</i></h1><span>At the desk · Pomodoro ' + cfg.work + ' + ' + cfg.break + ' minutes</span></header>' +
-      '<div class="pm-body">' + timerTile(data, now, now < confirmUntil, dropped) + statsTiles(data, new Date(now), live(now)) + '</div>';
+      '<div class="pm-body">' + timerTile(data, now, now < confirmUntil, dropped, next) + statsTiles(view, days, date, sel, next, grid) + '</div>';
     if (el.__html !== html) { el.innerHTML = el.__html = html; offset = -1; }
     tickView(now);
   }
@@ -308,10 +390,38 @@ export function mountPomodoro(el, onCue) {
     if (now - touchSaved > TOUCH_SAVE_MS) { touchSaved = now; save(data); }
   }, true);
 
+  // A swipe across the last 7 days slides to the other view; the HTML is left as it is so the
+  // slide can run, and the next render draws the same thing.
+  let from = null;
+  el.addEventListener('pointerdown', (e) => { from = e.target.closest('.pm-week') ? { x: e.clientX, y: e.clientY } : null; });
+  el.addEventListener('pointerup', (e) => {
+    if (!from) return;
+    const dx = e.clientX - from.x, dy = e.clientY - from.y;
+    from = null;
+    if (Math.abs(dx) < SWIPE_PX || Math.abs(dx) < 1.5 * Math.abs(dy)) return;
+    swipedAt = Date.now();
+    if (grid === dx < 0) return; // already there
+    grid = dx < 0;
+    try { localStorage.setItem(VIEW_KEY, grid ? 'grid' : 'bars'); } catch (e2) { /* blocked */ }
+    const tile = el.querySelector('.pm-week');
+    if (tile) tile.classList.toggle('is-grid', grid);
+  });
+
+  function closeDay() { clearTimeout(selTimer); if (sel !== null) { sel = null; if (visible) render(); } }
+
   el.addEventListener('click', (e) => {
-    const c = e.target.closest('[data-cat]'), a = e.target.closest('[data-act]');
+    const c = e.target.closest('[data-cat]'), a = e.target.closest('[data-act]'), d = e.target.closest('[data-day]');
     const now = Date.now(), trusted = trustedNow(now);
-    if (c) {
+    // Any tap here keeps a day's breakdown open a while longer.
+    if (sel !== null) { clearTimeout(selTimer); selTimer = setTimeout(closeDay, DAY_MS); }
+    if (d && now - swipedAt < 500) return; // the end of a swipe, not a tap on a day
+    if (d) {
+      const i = +d.getAttribute('data-day');
+      if (i === sel) { closeDay(); return; }
+      sel = i;
+      clearTimeout(selTimer);
+      selTimer = setTimeout(closeDay, DAY_MS);
+    } else if (c) {
       const id = c.getAttribute('data-cat');
       if (data.state.phase === 'work') data.state = Object.assign({}, data.state, { cat: id });
       else if (data.state.phase === 'break') {
@@ -378,7 +488,7 @@ export function mountPomodoro(el, onCue) {
 
   return {
     show() { visible = true; render(); },
-    hide() { visible = false; },
+    hide() { visible = false; clearTimeout(selTimer); sel = null; },
     // Called every minute: the stats and "Today" move on with the date.
     update() { if (visible) render(); },
     // A Pomodoro holds the screen and night off; tracking holds only the screen.

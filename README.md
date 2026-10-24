@@ -12,7 +12,7 @@ train board or the forecast.
 <img src="docs/images/weather.png" width="32%" alt="Weather screen: now, the next 12 hours and the week">
 </p>
 
-![Time screen: tracking a category, with today at the desk, the streak, the last 7 days, today's timeline and time by category](docs/images/pomodoro.png)
+![Time screen: tracking a category, with today at the desk, the streak, the last 7 days by category (a swipe away from a grid) with what to start with, today's timeline and time by category](docs/images/pomodoro.png)
 
 ![Telugu screen: the later consonants with their romanizations, the last eight each beside a common word that has its sound](docs/images/telugu.png)
 
@@ -51,8 +51,15 @@ keep running for weeks with nobody touching it.
   a time, and a Pomodoro started while tracking takes over from it. Beside the timer, all counted
   against time at the desk: today's hours of focus against a goal of 4 (focus time tracked, and an
   hour for each full Pomodoro, its break included), the streak (days with at least an hour of focus,
-  weekends included), all-time focus hours, the last 7 days by category with each day's focus hours,
-  today's timeline and where the week's time went. What's running shows on Home in place of the
+  weekends included), all-time focus hours, the last 7 days as stacked bars by category with each
+  day's focus hours and the goal line, today's timeline and where the week's time went. A swipe
+  across the last 7 days switches to a row per focus category with each day's time in it and each
+  day's focus hours under them (gold once they reach the goal), and back; the screen keeps the one
+  last left. A tap on a day, in either, shows its hours by category against
+  usual in place of the week's; another tap, or a minute, closes it. Above either view, and in the
+  timer's note while nothing runs, what to start with: of the categories to balance (Recruiting,
+  Masters and Chores), the one longest since it last had time, with its hours in the last 3 days;
+  Chores only until it has its 15 minutes for the day. What's running shows on Home in place of the
   greeting. The timer is kept as timestamps, so a reload or a power cut picks it up where it was;
   while anything runs, the frame stays on it, and while a Pomodoro runs night waits too. A tracker
   left with no touch on the frame for 2 hours stops at the last touch (one tap counts the rest).
