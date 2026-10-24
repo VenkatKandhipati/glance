@@ -37,7 +37,7 @@ const setTrainsAsleep = mountTrains($('trains'), transit.trains);
 // at most).
 const focus = mountPomodoro($('pomodoro'), () => nav.go('pomodoro'));
 const letters = mountTelugu($('telugu'));
-const night = mountNight($('night'), setTrainsAsleep, () => focus.busy() || letters.busy());
+const night = mountNight($('night'), setTrainsAsleep, () => focus.busy() || letters.busy(), () => nav.go('home'));
 const nextPhoto = startPhotos($('photo'));
 // The side bar lists the screens in this order, Home first.
 const nav = mountNav($('bar'), $('edge'), $('scrim'), {

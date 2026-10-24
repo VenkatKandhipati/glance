@@ -76,6 +76,9 @@ All in [`dashboard/src/style.css`](../dashboard/src/style.css) as custom propert
 - **Side bar:** 120 px, hidden off the left edge with a faint 5 px handle showing; 100 px tall
   buttons (icon and label), the current screen tinted gold. Order, most used first: Home, Time,
   Week, Telugu, Weather, Transit. It slides in and out (transform only).
+- **Night clock:** `--night` red on black, nothing brighter. Under the date, two outlined pill
+  buttons (240 × 76 px, red text, a faint red border): *Still working* and *Going to sleep*. They
+  drift with the clock.
 - **Day sheet:** a panel over a dimmed screen: the day in serif, 76 px round ‹ › buttons, then each
   event with its time in its calendar's colour and a bar of the same colour.
 - **Weather warning:** the temperature pill turns red (`rgba(191, 13, 62, 0.18)` with `#ffd6df`
