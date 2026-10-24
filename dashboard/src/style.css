@@ -739,6 +739,11 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .te-cons .te-cell { flex: none; width: calc((100% - 40px) / 5); }
 .te-cons .te-g { font-size: 100px; }
 .te-cons .te-r { height: 40px; font-size: 21px; }
+/* first consonant page: five to a row, so only the word's romanization, beside a narrower letter column */
+.te-c1 .has-ex { align-items: center; }
+.te-c1 .has-ex .te-main { flex: none; align-self: stretch; width: 122px; }
+.te-c1 .te-ex { height: 44px; padding-left: 10px; }
+.te-c1 .te-ex-r { font-size: 16px; }
 /* second consonant page: four to a row; with a word, the letter keeps a fixed column beside it */
 .te-words .te-cell { width: calc((100% - 30px) / 4); align-items: center; }
 .te-words .te-main { align-self: stretch; }

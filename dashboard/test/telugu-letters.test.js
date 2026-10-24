@@ -33,10 +33,12 @@ test('the consonant pages hold every consonant once, four rows of at most five e
   }
 });
 
-test('each of the last eight consonants has a word that contains it', () => {
+test('the eight hardest on each consonant page have a word that contains them', () => {
+  const first = ['ఙ', 'ఞ', 'ట', 'డ', 'ణ', 'త', 'ద', 'న'];
   const last = consonants.slice(-8).map((l) => l[0]);
-  assert.deepEqual(Object.keys(WORDS).sort(), last.slice().sort());
-  for (const letter of last) {
+  assert.deepEqual(Object.keys(WORDS).sort(), first.concat(last).sort());
+  assert.deepEqual(CONSONANT_PAGES[0].flat().map((l) => l[0]).filter((l) => WORDS[l]), first);
+  for (const letter of first.concat(last)) {
     const [word, roman, meaning] = WORDS[letter];
     assert.ok(word.includes(letter), letter + ' in ' + word);
     assert.match(roman, /^[^*]*\*[^*]+\*[^*]*$/, 'one marked sound in ' + roman);
