@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { IDLE, advance, startTrack, stopTrack, autoStop, liveEntry, withBreaks, focusDays, nudges, dayTotals, dayBlocks, categoryTotals, lastDays, streak, pack, unpack } from '../src/pomodoro-data.js';
+import { IDLE, advance, startTrack, stopTrack, autoStop, liveEntry, withBreaks, focusDays, nudges, dayTotals, dayBlocks, categoryTotals, lastDays, streak, usualByCat, nextFocus, pack, unpack } from '../src/pomodoro-data.js';
 
 const MIN = 60000, H = 60 * MIN;
 const at = (y, mo, d, h, m) => new Date(y, mo - 1, d, h || 0, m || 0).getTime();
@@ -165,4 +165,73 @@ test('doom scrolling and breaks earn a reminder every 10 minutes; nothing else d
   assert.equal(nudges({ phase: 'track', start: t9, cat: 'geico' }, t9 + H, cats, 10), 0);
   assert.equal(nudges({ phase: 'work', start: t9, cat: 'break' }, t9 + H, cats, 10), 0);
   assert.equal(nudges(s, t9 + H, cats, 0), 0);
+});
+
+// ---- the last 7 days: a day's usual, and which category to give time to next
+// A week shaped like the owner's: nothing Sun and Mon (before tracking began), GEICO on weekdays.
+const day = (byCat) => ({ byCat, minutes: Object.keys(byCat).reduce((n, k) => n + byCat[k], 0) });
+const week = [
+  day({}), day({}),                                                           // Sun, Mon
+  day({ geico: 120 }),                                                        // Tue
+  day({ geico: 120, projects: 106, 'interview-prep': 15, learning: 45, scrolling: 10 }), // Wed
+  day({ geico: 226, learning: 60, bathroom: 13 }),                            // Thu
+  day({ geico: 77, projects: 49, 'interview-prep': 120, scrolling: 45, bathroom: 14 }),  // Fri
+  day({}),                                                                    // today, Sat
+];
+const balance = [{ id: 'interview-prep' }, { id: 'learning' }, { id: 'chores', daily: 15 }];
+
+test('usual: the average over past days with anything tracked, not over empty ones or today', () => {
+  const u = usualByCat(week);
+  // Tue–Fri: four days
+  assert.equal(u.geico, Math.round(543 / 4));
+  assert.equal(u['interview-prep'], Math.round(135 / 4));
+  assert.equal(u.learning, Math.round(105 / 4));
+  assert.equal(u.chores, undefined);
+  assert.deepEqual(usualByCat([day({}), day({ geico: 30 })]), {}); // only today: no usual yet
+});
+
+test('next focus: the longest since, with its minutes over the last 3 days', () => {
+  // Chores never; Masters last Thu (2 days); Recruiting Fri (1 day)
+  assert.deepEqual(nextFocus(week, balance, 3), { cat: 'chores', since: null, recent: 0, today: 0 });
+  const done = week.slice(0, 6).concat(day({ chores: 20 }));
+  assert.deepEqual(nextFocus(done, balance, 3), { cat: 'learning', since: 2, recent: 60, today: 0 });
+});
+
+test('next focus: a daily category counts a day only with its minutes, and drops out once today has them', () => {
+  const w = week.slice(0, 5).concat(day({ chores: 10, 'interview-prep': 120 }), day({ chores: 10 }));
+  // 10 m of chores isn't a chores day, so chores still has none: it comes first
+  assert.equal(nextFocus(w, balance, 3).cat, 'chores');
+  assert.equal(nextFocus(w, balance, 3).today, 10);
+  const w2 = w.slice(0, 6).concat(day({ chores: 15 }));
+  assert.equal(nextFocus(w2, balance, 3).cat, 'learning');
+});
+
+test('next focus: on a tie a daily category goes last, then the fewest recent minutes, then the order given', () => {
+  // all three last done yesterday
+  const w = [day({}), day({}), day({}), day({}), day({ learning: 30 }), day({ 'interview-prep': 20, learning: 30, chores: 15 }), day({})];
+  assert.equal(nextFocus(w, balance, 3).cat, 'interview-prep'); // 20 m beats Masters' 60 m; chores waits
+  const even = [day({}), day({}), day({}), day({}), day({}), day({ 'interview-prep': 30, learning: 30 }), day({})];
+  assert.equal(nextFocus(even, balance, 3).cat, 'chores'); // never done: longest since
+  const evenDone = even.slice(0, 6).concat(day({ chores: 15 }));
+  assert.equal(nextFocus(evenDone, balance, 3).cat, 'interview-prep'); // listed first
+});
+
+test('next focus: nothing when every category has had time today; an empty log names the most behind', () => {
+  const all = week.slice(0, 6).concat(day({ 'interview-prep': 5, learning: 5, chores: 15 }));
+  assert.equal(nextFocus(all, balance, 3), null);
+  const empty = [0, 1, 2, 3, 4, 5, 6].map(() => day({}));
+  assert.deepEqual(nextFocus(empty, balance, 3), { cat: 'interview-prep', since: null, recent: 0, today: 0 });
+});
+
+test('next focus from the log: minutes split at midnight count on each day', () => {
+  const now = new Date(2026, 9, 24, 9);
+  // Masters from 11 pm Thu to 1 am Fri: 60 m Thu, 60 m Fri
+  const log = [{ start: at(2026, 10, 22, 23), end: at(2026, 10, 23, 1), cat: 'learning', done: false, kind: 'track' },
+    { start: at(2026, 10, 23, 10), end: at(2026, 10, 23, 11), cat: 'interview-prep', done: false, kind: 'track' },
+    { start: at(2026, 10, 23, 12), end: at(2026, 10, 23, 12, 20), cat: 'chores', done: false, kind: 'track' }];
+  const days = lastDays(log, now, 7, isFocus);
+  assert.equal(days[4].byCat.learning, 60);
+  assert.equal(days[5].byCat.learning, 60);
+  // all three last on Fri; chores waits; Recruiting (60) and Masters (120): Recruiting
+  assert.deepEqual(nextFocus(days, balance, 3), { cat: 'interview-prep', since: 1, recent: 60, today: 0 });
 });

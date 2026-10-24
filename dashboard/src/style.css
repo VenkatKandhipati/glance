@@ -611,9 +611,36 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .pm-dots i.is-half { border-color: var(--gold-fill); background: linear-gradient(90deg, var(--gold-fill) 50%, transparent 50%); }
 .pm-dots + span { margin-top: auto; }
 
-.pm-week { display: flex; flex-direction: column; flex: 1; min-height: 0; padding: 20px 24px 16px; }
-.pm-week ul { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(7, 1fr); margin-top: 10px; list-style: none; }
-.pm-week li { display: flex; flex-direction: column; align-items: center; min-height: 0; }
+.pm-week { display: flex; flex-direction: column; flex: 1; min-height: 0; padding: 20px 0 16px; overflow: hidden; touch-action: none; }
+/* two views side by side, the stacked bars and the grid; a swipe slides between them */
+.pm-wk-track { flex: 1; min-height: 0; display: flex; width: 200%; transition: transform 0.35s ease; }
+.pm-week.is-grid .pm-wk-track { transform: translateX(-50%); }
+.pm-wk-pane { display: flex; flex-direction: column; width: 50%; min-height: 0; padding: 0 24px; }
+.pm-week h2 .pm-pg { display: inline-block; width: 7px; height: 7px; margin-left: 6px; border-radius: 50%; background: var(--faint); vertical-align: 1px; }
+.pm-week h2 .pm-pg:first-of-type { margin-left: 12px; }
+.pm-week h2 .pm-pg.is-on { background: var(--ink-2); }
+.pm-week h2 span b { color: var(--ink); }
+.pm-week h2 .pm-next { font-size: 16px; font-weight: 600; }
+/* a row per focus category, a column per day: the column is the tap target */
+.pm-wk { flex: 1; min-height: 0; display: grid; grid-template-columns: 140px repeat(7, 1fr); margin-top: 8px; list-style: none; }
+.pm-wk li { display: flex; flex-direction: column; gap: 4px; padding: 0 4px; border: 2px solid transparent; border-radius: 12px; }
+.pm-wk li > * { flex: none; display: flex; align-items: center; justify-content: center; height: 22px; }
+.pm-wk .pm-wd { height: 18px; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mute); }
+.pm-wk li.is-today .pm-wd { color: var(--gold); }
+.pm-wk li.is-sel { border-color: var(--gold); }
+.pm-wk li.is-sel .pm-wd { color: var(--ink); }
+.pm-wk .pm-c { border-radius: 7px; background: rgba(255, 255, 255, 0.035); font-size: 14px; font-weight: 700; color: #15171c; }
+.pm-wk .pm-c.is-on { background: var(--k); }
+.pm-wk .pm-wf { height: 24px; font-size: 16px; font-weight: 700; color: var(--mute); }
+.pm-wk .pm-wf.is-met { color: var(--gold); }
+.pm-wk li.pm-wk-names { padding-left: 0; }
+.pm-wk-names > span { justify-content: flex-start; gap: 8px; font-size: 15px; font-weight: 600; color: var(--ink-2); white-space: nowrap; }
+.pm-wk-names > span i { flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--k); }
+.pm-wk-names > span.is-next { color: var(--gold); }
+.pm-wk-names > .pm-wf { font-size: 14px; font-weight: 600; }
+/* the other view: stacked bars by category, focus at the bottom, each day's focus hours above */
+.pm-bars { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(7, 1fr); margin-top: 10px; list-style: none; }
+.pm-bars li { display: flex; flex-direction: column; align-items: center; min-height: 0; }
 .pm-n { height: 22px; font-size: 16px; font-weight: 700; color: var(--ink-2); }
 .pm-bar {
   position: relative;
@@ -629,7 +656,9 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 /* the daily goal, as a faint line across every bar */
 .pm-bar::after { content: ''; position: absolute; left: 0; right: 0; bottom: var(--goal); border-top: 2px dashed rgba(243, 240, 233, 0.22); }
 .pm-d { margin-top: 8px; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mute); }
-.pm-week li.is-today .pm-d { color: var(--gold); }
+.pm-bars li.is-today .pm-d { color: var(--gold); }
+.pm-bars li.is-sel .pm-bar { outline: 2px solid var(--gold); outline-offset: 2px; }
+.pm-bars li.is-sel .pm-d { color: var(--ink); }
 
 .pm-bottom { display: grid; grid-template-columns: 330px 1fr; gap: var(--gap); flex: none; height: 232px; }
 .pm-today, .pm-split { padding: 20px 24px; }
@@ -653,6 +682,12 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .pm-track-h { flex: 1; height: 8px; border-radius: 4px; background: rgba(255, 255, 255, 0.05); overflow: hidden; }
 .pm-track-h i { display: block; height: 100%; border-radius: 4px; background: var(--k); }
 .pm-split b { flex: none; width: 70px; font-size: 15px; font-weight: 700; text-align: right; }
+/* a tapped day: its hours by category, and how that compares with usual */
+.pm-split li.is-rest { opacity: 0.5; }
+.pm-split .pm-day .pm-cname { flex: 1; width: auto; }
+.pm-split .pm-day b { width: 80px; }
+.pm-split .pm-vs { flex: none; width: 90px; font-size: 14px; font-weight: 600; color: var(--mute); text-align: right; }
+.pm-cat.is-next { border: 2px solid var(--gold-fill); }
 .pm-split .pm-empty { font-size: 16px; font-weight: 600; color: var(--mute); }
 
 /* ------------------------------------------------------------------ day sheet */

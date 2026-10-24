@@ -61,7 +61,10 @@ export const featured = {
 // included); a streak day has at least `streakHours` of focus. Tracking one of
 // `remind.categories` chimes and flashes every `remind.minutes` as a nudge to stop. A tracker
 // with no touch on the frame for `autoStopHours` stops by itself at the last touch. `focus` categories count as focus in the insights. An `id` is what the log
-// keeps, so rename a `name` freely but keep its id; colours follow this order.
+// keeps, so rename a `name` freely but keep its id; colours follow this order. The `balance`
+// categories are the ones to share the days between: the screen names the one furthest behind
+// (longest since it last had time) as what to start with. A `daily` one needs only that many
+// minutes a day, and isn't suggested once today has them.
 export const time = {
   work: 45,
   break: 15,
@@ -70,11 +73,11 @@ export const time = {
   remind: { categories: ['scrolling', 'break'], minutes: 10 },
   autoStopHours: 2,
   categories: [
-    { id: 'interview-prep', name: 'Recruiting', focus: true },
+    { id: 'interview-prep', name: 'Recruiting', focus: true, balance: true },
     { id: 'geico', name: 'GEICO', focus: true },
-    { id: 'learning', name: 'Masters', focus: true },
+    { id: 'learning', name: 'Masters', focus: true, balance: true },
     { id: 'projects', name: 'Projects', focus: true },
-    { id: 'chores', name: 'Chores', focus: true },
+    { id: 'chores', name: 'Chores', focus: true, balance: true, daily: 15 },
     { id: 'bathroom', name: 'Bathroom' },
     { id: 'scrolling', name: 'Doom scrolling' },
     { id: 'break', name: 'Break' },

@@ -100,7 +100,15 @@ All in [`dashboard/src/style.css`](../dashboard/src/style.css) as custom propert
   ones, Chores included), then slate, orange `#e8a26a`, sage and grey. On the right: Today (hours of
   focus of the goal, a dot an hour, half-filled from 30 minutes, time at the desk), Streak (days
   with an hour of focus), All time (hours of focus); the last 7 days as stacked bars by category,
-  focus at the bottom, each day's focus hours above, with a dashed goal line; today's timeline as a
+  focus at the bottom, each day's focus hours above, with a dashed goal line or, a horizontal
+  swipe (80 px) away (the tile slides, transform, 0.35 s), as a grid, a row per focus
+  category (the ones to balance first) and a column per day, each cell filled in the category's
+  colour with its time (45 m, 1.8 h) or left empty, and each day's focus hours under them, gold
+  once they reach the goal. In both views the category to start with is named in gold at the top
+  right (in the grid its row label is gold too; its chip is outlined in gold while nothing runs). A day column is one tap target
+  (about 76 px wide); a tapped one is outlined in gold and its breakdown replaces time by
+  category: hours per focus category, the rest dimmed together, and the difference from usual in
+  grey; a tap on a bar does the same. Two dots by the title show which view is up. Today's timeline as a
   34 px strip of blocks over the hours, with today's top three categories; minutes by category as
   thin bars. On Home, what's running replaces the greeting's gold line, after a dot in its
   category's colour. The nudge to stop doom scrolling or a break pulses the timer tile orange
