@@ -76,13 +76,25 @@ Baseline, 2026-10-16 (dev server over USB, no photos yet): **47 fps** at rest, 2
 all at page load; 106 DOM nodes; JS heap 10 MB; kiosk 40 MB PSS plus 33 MB for the WebView
 renderer. The kiosk window is up 1.5 s after launch.
 
+Hour-long run, 2026-10-27 17:25–18:26 (built-in copy with `?diag`, Home, the owner's 40 photos and
+public pictures rotating every 2 min): JS heap **10 MB** at the start and after 60 min; decoded
+images 1.2 MP → 2.2 MP (one or two pictures, two during a crossfade); 787 → 814 DOM nodes; 47 fps
+throughout. WebView renderer PSS rises and falls between about 62 and 76 MB with the pictures, with
+level peaks (76.1, 76.2, 76.2, 76.7, 76.2 MB). The kiosk app crept 55.9 → 58.0 MB, slowing every
+10 minutes (+0.9, +0.7, +0.3, +0.4, +0.3 MB), then held at 58.2–58.3 MB for the next 12 min. No
+console messages in logcat. About 2 long frames per picture change; none from the burn-in shift.
+Method (reads only): `dumpsys meminfo` for `app.glance.kiosk` and the `webview:sandbox…` renderer
+once a minute, `adb exec-out screencap` for the `?diag` box, `adb logcat`.
+
 ## Running unattended
 
 - **Boot:** Wi-Fi comes up after the kiosk. The kiosk retries the page every 5 s; the page reloads
   itself if its script hasn't started within 10 s.
 - **Clock after a power cut:** until network time arrives the frame reads its firmware build date,
   28 Sep 2025 (other frames read 1970). The calendar only trusts a time later than the dashboard's
-  own build, and redraws when the real date arrives.
+  own build, and redraws when the real date arrives. So a power cut during a Wi-Fi outage shows
+  that date, no weather, no events and no stale badges until Wi-Fi is back (checked 2026-10-27);
+  everything returns within a minute of network time, the weather on its next poll.
 - **Leaks:** the page reloads itself daily at 3 a.m.
 
 ## Network
@@ -217,3 +229,4 @@ Record every change with its undo, newest last. All `su 0` commands run through 
 | 2026-10-24 | Kiosk 0.6 rebuilt twice more from `23-time-day-breakdown` (Issue #23: the stacked bars kept as a second view, a swipe away, remembered in `localStorage` `glance-time-week`; then `touch-action: none` on that tile, since the first build's swipe was taken by the WebView). 40 photos kept; the Time log (24 entries) identical before and after, and the owner's Masters tracker carried on through both installs. On the frame a swipe goes to the bars and back | As above |
 | 2026-10-24 | Kiosk 0.6 rebuilt again from `23-time-day-breakdown` (Issue #23: the stacked bars the default view, the grid a swipe to the left), the same way. 40 photos kept; the Time log (24 entries) identical before and after, the Masters tracker still running. It opened on the bars; a swipe went to the grid and back, and it was left on the bars | As above |
 | 2026-10-24 | Kiosk 0.6 rebuilt again from `23-time-day-breakdown` (Issue #23: the "Next" line on the bars too, in place of "hours of focus"), the same way. 40 photos kept; the Time log (25 entries) identical before and after. Time opens on the bars with "Next: Chores, none in 7 days" at the top right | As above |
+| 2026-10-27 | Test session for Issues #4 and #10: opened `https://glance.local/?diag` with a VIEW intent (not saved as the kiosk URL; `?diag` itself is remembered in `localStorage` until `?diag=0`); Wi-Fi off 18:27–19:24 with `svc wifi disable` / `svc wifi enable`; the owner unplugged the power for about a minute at 19:21. 40 photos kept; the Time log intact (41 → 42 entries, the owner's GEICO session logged whole). `?diag=0` opened the same way at 20:03 | Nothing left to undo |

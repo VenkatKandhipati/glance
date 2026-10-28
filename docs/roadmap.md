@@ -44,7 +44,7 @@ One screen, no navigation, no API calls.
 - [x] Point the kiosk at the Mac's LAN URL; it boots into the dashboard after `adb reboot`
 - [x] Unplug-and-replug power test: back on the dashboard in about a minute (2026-10-19)
 - [x] ~~Mac-asleep test~~: not needed since the dashboard runs inside the kiosk (Phase 1.5)
-- [ ] An hour of photos without memory growth (`?diag`)
+- [x] An hour of photos without memory growth (`?diag`, 2026-10-27)
 
 **Done when** it runs on the frame with no console errors, photos rotate for an hour without
 memory growing, and the frame returns to the dashboard on its own after a power cut. (Chores
