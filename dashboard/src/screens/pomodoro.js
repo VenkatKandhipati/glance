@@ -6,6 +6,8 @@
 // row per focus category and a column per day; the view last left is kept. A tap on a day, in
 // either, puts its breakdown in place of time by category. Above either view, and in the
 // timer's note while nothing runs, the `balance` category furthest behind: what to start with.
+// A tap on today's strip opens today's timeline in place of the insights: every block and gap,
+// the share of the day tracked, as a bar with the day listed or, a swipe away, a column.
 //
 // The timer is kept as timestamps (pomodoro-data.js), so a reload or a power cut picks it up where
 // it was. While a Pomodoro runs, the frame stays on this screen and night waits (main.js asks
@@ -18,7 +20,7 @@
 // next (Start break, Keep working, Done for now) and with no answer in 15 seconds goes to Ready.
 // The log lives in localStorage and, in the kiosk, in a backup file that adb can pull (both still named for the Pomodoro screen it grew from):
 //   adb pull /sdcard/Android/data/app.glance.kiosk/files/pomodoro.json
-import { time as cfg } from '../content.js';
+import { time as cfg, settings } from '../content.js';
 import { DEMO, demoPomodoro } from '../demo.js';
 import { DAYS, addDays, esc } from '../time.js';
 import { timeText } from '../tiles/calendar.js';
@@ -35,6 +37,10 @@ const AUTO_MS = (cfg.autoStopHours || 0) * HOUR;
 const TOUCH_SAVE_MS = 60000; // while tracking, the last touch is saved at most this often
 const DAY_MS = 60000; // a tapped day's breakdown closes after this long with no touch on the screen
 const RECENT_DAYS = 3; // "1 h in 3 days" beside the category to start with
+const TL_KEY = 'glance-time-today'; // which view of today's timeline: 'bar' or 'column'
+const GAP_MIN = 5; // gaps this long are drawn and listed on the timeline; shorter ones still count
+const LIST_MAX = 20; // rows in the timeline's list, two columns of 10
+const BAR_PX = 676, COL_PX = 500; // the timeline's bar width and column height
 
 const cats = cfg.categories;
 const known = {}, focusIds = {};
@@ -193,6 +199,98 @@ function todayTile(view, now, today) {
     '<div class="pm-ticks">' + ticks + '</div><ul class="pm-tlist">' + rows + '</ul></section>';
 }
 
+// ---- today's timeline, opened from "Today at the desk": every block and every gap, so the
+// untracked time shows. The bar with the day in order under it, or a swipe away, a column like
+// the calendar's with the biggest gaps beside it. It starts after the night (settings.night.on):
+// a gap from before then is time away, and last night's late blocks are only listed.
+const clock = (t) => { const d = new Date(t), h = d.getHours() % 12 || 12, m = d.getMinutes(); return h + ':' + (m < 10 ? '0' : '') + m; };
+const msText = (ms) => P.hoursText(Math.round(ms / 60000));
+const fits = (px, text) => px >= text.length * 8 + 14; // a label's rough width at 14px
+
+function timelineHtml(view, now) {
+  const wake = new Date(now);
+  wake.setHours(settings.night.on, 0, 0, 0);
+  const tl = P.dayTimeline(P.dayBlocks(view, now), +now, wake.getTime());
+  if (!tl.entries.length) return '<h2>Today at the desk</h2><p class="pm-empty">Nothing tracked yet today.</p>';
+  let cut = 0; // the first entry after the last time away
+  tl.entries.forEach((e, i) => { if (e.kind === 'away') cut = i + 1; });
+  const before = tl.entries.slice(0, cut).filter((e) => e.kind === 'block'), day = tl.entries.slice(cut);
+  const first = new Date(day[0].start);
+  first.setMinutes(0, 0, 0);
+  const from = first.getTime(), to = Math.max(Math.ceil(+now / HOUR) * HOUR, from + 4 * HOUR), span = to - from;
+  const big = (e) => e.kind === 'gap' && e.end - e.start >= GAP_MIN * 60000;
+  const cls = (e) => (e.kind === 'gap' ? 'is-gap' : kClass(e.cat)) + (e.live || (e.kind === 'gap' && e.end === +now) ? ' is-live' : '');
+
+  const share = tl.tracked + tl.untracked ? Math.floor(tl.tracked / (tl.tracked + tl.untracked) * 100) : 100;
+  // the dots follow the tile's is-col in CSS, since a swipe changes it without drawing again
+  const head = '<h2>Today at the desk<i class="pm-pg is-a"></i><i class="pm-pg is-b"></i><span>Tap to close</span></h2>' +
+    '<div class="pm-tl-cov"><b class="serif">' + share + '<i>%</i></b><span>tracked · ' + msText(tl.tracked) + ' at the desk · ' +
+    (tl.untracked >= 60000 ? '<em>' + msText(tl.untracked) + ' untracked</em>' : '<em class="is-none">nothing untracked</em>') + '</span></div>';
+
+  // every category today, the most first, then what's untracked
+  const by = {};
+  tl.entries.forEach((e) => { if (e.kind === 'block') by[e.cat] = (by[e.cat] || 0) + e.end - e.start; });
+  const catRows = Object.keys(by).sort((a, b) => by[b] - by[a]).map((id) =>
+    '<li class="' + kClass(id) + '"><span class="pm-cname"><i></i>' + esc(catName(id)) + '</span><b>' + msText(by[id]) + '</b></li>').join('') +
+    (tl.untracked >= 60000 ? '<li class="is-gap"><span class="pm-cname"><i></i>Untracked</span><b>' + msText(tl.untracked) + '</b></li>' : '');
+
+  // The bar: blocks in their colours, gaps of GAP_MIN or more as outlined holes with their length.
+  const bar = day.filter((e) => e.kind === 'block' || big(e)).map((e) => {
+    const text = e.kind === 'gap' ? msText(e.end - e.start) : '';
+    return '<i class="' + cls(e) + '" style="left:' + ((e.start - from) / span * 100).toFixed(2) + '%;width:' + ((e.end - e.start) / span * 100).toFixed(2) + '%">' +
+      (text && fits((e.end - e.start) / span * BAR_PX, text) ? '<span>' + text + '</span>' : '') + '</i>';
+  }).join('');
+  const hours = span / HOUR, step = hours <= 7 ? 1 : hours <= 14 ? 2 : 3;
+  let ticks = '';
+  for (let t = from; t <= to; t += step * HOUR) ticks += '<span style="left:' + ((t - from) / span * 100).toFixed(2) + '%">' + hourLabel(new Date(t).getHours()) + '</span>';
+  // The day in order: last night's blocks first, then each block and gap; the latest if it's long.
+  let rows = before.concat(day.filter((e) => e.kind === 'block' || big(e))).map((e) =>
+    '<li class="' + cls(e) + '"><span class="pm-tl-t">' + (e.end <= wake.getTime() ? 'Last night' : clock(e.start) + '–' + (e.end === +now ? 'now' : clock(e.end))) + '</span>' +
+    (e.kind === 'gap' ? '<span class="pm-tl-n">Untracked</span>' : '<i></i><span class="pm-tl-n">' + esc(catName(e.cat)) + '</span>') + '<b>' + msText(e.end - e.start) + '</b></li>');
+  if (rows.length > LIST_MAX) rows = ['<li class="pm-tl-more">' + (rows.length - LIST_MAX + 1) + ' earlier, on the bar</li>'].concat(rows.slice(rows.length - LIST_MAX + 1));
+  const barPane = '<div class="pm-tl-bar">' + bar + '</div><div class="pm-ticks">' + ticks + '</div><ul class="pm-tl-list">' + rows.join('') + '</ul>' +
+    '<ul class="pm-tl-cats">' + catRows + '</ul>';
+
+  // The column: an hour a row line, blocks and gaps top to bottom, named where they're tall enough.
+  const y = (t) => ((t - from) / span * COL_PX).toFixed(1) + 'px';
+  let col = '';
+  for (let t = from; t <= to; t += HOUR) col += '<span class="pm-tl-hr" style="top:' + y(t) + '">' + hourLabel(new Date(t).getHours()) + '</span>';
+  day.filter((e) => e.kind === 'block' || big(e)).forEach((e) => {
+    const px = (e.end - e.start) / span * COL_PX;
+    const text = e.kind === 'gap' ? msText(e.end - e.start) + ' untracked' : esc(catName(e.cat)) + ' · ' + clock(e.start) + '–' + (e.end === +now ? 'now' : clock(e.end));
+    col += '<i class="' + cls(e) + '" style="top:' + y(e.start) + ';height:' + px.toFixed(1) + 'px">' + (px >= 18 ? '<span>' + text + '</span>' : '') + '</i>';
+  });
+  const gaps = day.filter(big).sort((a, b) => (b.end - b.start) - (a.end - a.start)).slice(0, 3).map((g) =>
+    '<li><b>' + msText(g.end - g.start) + '</b> from ' + clock(g.start) + (g.end === +now ? ', still going' : '') + '</li>').join('');
+  const colPane = '<div class="pm-tl-cal"><div class="pm-tl-col" style="height:' + COL_PX + 'px">' + col + '</div><div class="pm-tl-side">' +
+    '<h3>Biggest gaps</h3><ul class="pm-tl-gaps">' + (gaps || '<li>None of ' + GAP_MIN + ' minutes or more</li>') + '</ul>' +
+    '<h3>By category</h3><ul class="pm-tl-cats">' + catRows + '</ul></div></div>';
+
+  return head + '<div class="pm-tl-track"><div class="pm-tl-pane">' + barPane + '</div><div class="pm-tl-pane">' + colPane + '</div></div>';
+}
+
+// Brings drawn nodes in line with new ones, so a minute's change touches only the widths and
+// numbers that moved; false when the shape differs and it needs drawing afresh.
+function patch(to, from) {
+  if (to.nodeName !== from.nodeName) return false;
+  if (to.nodeType === 3) { if (to.nodeValue !== from.nodeValue) to.nodeValue = from.nodeValue; return true; }
+  if (to.nodeType === 1) {
+    if (to.attributes.length !== from.attributes.length) return false;
+    for (let i = 0; i < from.attributes.length; i++) {
+      const a = from.attributes[i];
+      if (to.getAttribute(a.name) !== a.value) to.setAttribute(a.name, a.value);
+    }
+  }
+  return patchKids(to, from);
+}
+
+function patchKids(to, from) {
+  const a = to.childNodes, b = from.childNodes;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) if (!patch(a[i], b[i])) return false;
+  return true;
+}
+
 // The last 7 days: a row per focus category with each day's time in it, and each day's focus
 // hours under them, gold once they reach the goal. A column is a button for that day's breakdown.
 function weekGrid(days, sel, next, head) {
@@ -295,6 +393,8 @@ export function mountPomodoro(el, onCue) {
   let sel = null, selTimer = 0; // the tapped day (0–6), or null
   let grid = false, swipedAt = 0; // the last 7 days as the grid rather than the bars
   try { grid = localStorage.getItem(VIEW_KEY) === 'grid'; } catch (e) { /* blocked */ }
+  let tl = false, tlTimer = 0, tlCol = false; // today's timeline open, and as the column
+  try { tlCol = localStorage.getItem(TL_KEY) === 'column'; } catch (e) { /* blocked */ }
 
   const trustedNow = (now) => P.clockTrusted(data.state, now, __BUILT_AT__);
   const live = (now) => (trustedNow(now) ? P.liveEntry(data.state, now) : null);
@@ -306,9 +406,22 @@ export function mountPomodoro(el, onCue) {
     const days = P.lastDays(view, date, 7, isFocus);
     const next = balance.length ? P.nextFocus(days, balance, RECENT_DAYS) : null;
     const html = '<header class="screen-head"><h1 class="serif">Time<i>,</i></h1><span>At the desk · Pomodoro ' + cfg.work + ' + ' + cfg.break + ' minutes</span></header>' +
-      '<div class="pm-body">' + timerTile(data, now, now < confirmUntil, dropped, next) + statsTiles(view, days, date, sel, next, grid) + '</div>';
+      '<div class="pm-body">' + timerTile(data, now, now < confirmUntil, dropped, next) +
+      (tl ? '<section class="tile pm-tl' + (tlCol ? ' is-col' : '') + '"></section>' : statsTiles(view, days, date, sel, next, grid)) + '</div>';
     if (el.__html !== html) { el.innerHTML = el.__html = html; offset = -1; }
+    if (tl) drawTimeline(view, date);
     tickView(now);
+  }
+
+  // The timeline is drawn into its tile apart from the rest, and patched from then on, so what's
+  // running grows each minute without the screen being drawn again.
+  function drawTimeline(view, date) {
+    const tile = el.querySelector('.pm-tl'), html = timelineHtml(view, date);
+    if (tile.__html === html) return;
+    const fresh = document.createElement('div');
+    fresh.innerHTML = html;
+    if (!tile.__html || !patchKids(tile, fresh)) tile.innerHTML = html;
+    tile.__html = html;
   }
 
   // The time left (or, tracking, the time so far) and the arc, every second.
@@ -406,14 +519,26 @@ export function mountPomodoro(el, onCue) {
 
   // A swipe across the last 7 days slides to the other view; the HTML is left as it is so the
   // slide can run, and the next render draws the same thing.
+  // Today's timeline swipes between the bar and the column the same way.
   let from = null;
-  el.addEventListener('pointerdown', (e) => { from = e.target.closest('.pm-week') ? { x: e.clientX, y: e.clientY } : null; });
+  el.addEventListener('pointerdown', (e) => {
+    const w = e.target.closest('.pm-week, .pm-tl');
+    from = w ? { x: e.clientX, y: e.clientY, tl: w.classList.contains('pm-tl') } : null;
+  });
   el.addEventListener('pointerup', (e) => {
     if (!from) return;
-    const dx = e.clientX - from.x, dy = e.clientY - from.y;
+    const dx = e.clientX - from.x, dy = e.clientY - from.y, onTl = from.tl;
     from = null;
     if (Math.abs(dx) < SWIPE_PX || Math.abs(dx) < 1.5 * Math.abs(dy)) return;
     swipedAt = Date.now();
+    if (onTl) {
+      if (tlCol === dx < 0) return;
+      tlCol = dx < 0;
+      try { localStorage.setItem(TL_KEY, tlCol ? 'column' : 'bar'); } catch (e2) { /* blocked */ }
+      const t = el.querySelector('.pm-tl');
+      if (t) t.classList.toggle('is-col', tlCol);
+      return;
+    }
     if (grid === dx < 0) return; // already there
     grid = dx < 0;
     try { localStorage.setItem(VIEW_KEY, grid ? 'grid' : 'bars'); } catch (e2) { /* blocked */ }
@@ -422,12 +547,22 @@ export function mountPomodoro(el, onCue) {
   });
 
   function closeDay() { clearTimeout(selTimer); if (sel !== null) { sel = null; if (visible) render(); } }
+  function closeTimeline() { clearTimeout(tlTimer); if (tl) { tl = false; if (visible) render(); } }
 
   el.addEventListener('click', (e) => {
     const c = e.target.closest('[data-cat]'), a = e.target.closest('[data-act]'), d = e.target.closest('[data-day]');
     const now = Date.now(), trusted = trustedNow(now);
     // Any tap here keeps a day's breakdown open a while longer.
     if (sel !== null) { clearTimeout(selTimer); selTimer = setTimeout(closeDay, DAY_MS); }
+    if (tl) { clearTimeout(tlTimer); tlTimer = setTimeout(closeTimeline, DAY_MS); }
+    // Today's timeline opens from its tile and closes with a tap on it (not the end of a swipe).
+    if (e.target.closest('.pm-tl')) { if (now - swipedAt >= 500) closeTimeline(); return; }
+    if (e.target.closest('.pm-today') && !el.querySelector('.pm-today .pm-empty')) {
+      tl = true;
+      tlTimer = setTimeout(closeTimeline, DAY_MS);
+      render();
+      return;
+    }
     if (d && now - swipedAt < 500) return; // the end of a swipe, not a tap on a day
     if (d) {
       const i = +d.getAttribute('data-day');
@@ -505,7 +640,7 @@ export function mountPomodoro(el, onCue) {
 
   return {
     show() { visible = true; render(); },
-    hide() { visible = false; clearTimeout(selTimer); sel = null; },
+    hide() { visible = false; clearTimeout(selTimer); sel = null; clearTimeout(tlTimer); tl = false; },
     // Called every minute: the stats and "Today" move on with the date.
     update() { if (visible) render(); },
     // A Pomodoro holds the screen and night off; tracking holds only the screen.
