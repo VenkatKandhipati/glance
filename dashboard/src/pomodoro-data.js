@@ -168,6 +168,31 @@ export function dayBlocks(log, day) {
     .sort((a, b) => a.start - b.start);
 }
 
+// A day's blocks (dayBlocks) in order with the gaps between them, up to `end` (now, today). A gap
+// that starts before `wake`, the night's end, is time away rather than untracked. Blocks are
+// trimmed where they overlap (the log keeps whole seconds), so tracked + untracked + away is
+// always `end` less the first block's start. Each entry: { kind: 'block' | 'gap' | 'away', start,
+// end, cat, live }.
+export function dayTimeline(blocks, end, wake) {
+  const out = { entries: [], tracked: 0, untracked: 0, away: 0 };
+  let at = null;
+  const gap = (from, to) => {
+    const kind = from < wake ? 'away' : 'gap';
+    out.entries.push({ kind, start: from, end: to });
+    out[kind === 'gap' ? 'untracked' : 'away'] += to - from;
+  };
+  blocks.forEach((b) => {
+    const start = at === null ? b.start : Math.max(b.start, at), stop = Math.min(b.end, end);
+    if (stop <= start) return;
+    if (at !== null && start > at) gap(at, start);
+    out.entries.push({ kind: 'block', start, end: stop, cat: b.cat, live: !!b.live });
+    out.tracked += stop - start;
+    at = stop;
+  });
+  if (at !== null && end > at) gap(at, end);
+  return out;
+}
+
 // Days with a full session, as a set of day keys.
 function doneDays(log) {
   const days = {};

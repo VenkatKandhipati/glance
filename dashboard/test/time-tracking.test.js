@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { IDLE, advance, startTrack, stopTrack, autoStop, liveEntry, withBreaks, focusDays, nudges, dayTotals, dayBlocks, categoryTotals, lastDays, streak, usualByCat, nextFocus, pack, unpack } from '../src/pomodoro-data.js';
+import { IDLE, advance, startTrack, stopTrack, autoStop, liveEntry, withBreaks, focusDays, nudges, dayTotals, dayBlocks, dayTimeline, categoryTotals, lastDays, streak, usualByCat, nextFocus, pack, unpack } from '../src/pomodoro-data.js';
 
 const MIN = 60000, H = 60 * MIN;
 const at = (y, mo, d, h, m) => new Date(y, mo - 1, d, h || 0, m || 0).getTime();
@@ -93,6 +93,50 @@ test("a day's blocks come in order, the running one marked", () => {
   ];
   const live = liveEntry({ phase: 'track', start: t9 + 2 * H, cat: 'c' }, t9 + 2 * H + 5 * MIN);
   assert.deepEqual(dayBlocks(log.concat(live), new Date(t9)).map((b) => b.cat + (b.live ? '*' : '')), ['a', 'b', 'c*']);
+});
+
+test("today's timeline: blocks and the gaps between them, overnight away, a gap growing to now", () => {
+  const wake = at(2026, 10, 21, 8);
+  const blocks = [
+    { start: at(2026, 10, 21), end: at(2026, 10, 21, 0, 48), cat: 'a', live: false }, // last night's, past midnight
+    { start: t9 + 3 * H, end: t9 + 4 * H, cat: 'b', live: false },
+    { start: t9 + 4 * H, end: t9 + 4 * H + 20 * MIN, cat: 'c', live: false }, // touching: no gap
+    { start: t9 + 5 * H - 1000, end: t9 + 6 * H, cat: 'b', live: false },
+    { start: t9 + 6 * H - 1000, end: t9 + 6 * H + 30 * MIN, cat: 'a', live: false }, // a second's overlap, from rounding
+  ];
+  const now = t9 + 7 * H;
+  const tl = dayTimeline(blocks, now, wake);
+  assert.deepEqual(tl.entries.map((e) => e.kind + (e.cat ? ':' + e.cat : '')), ['block:a', 'away', 'block:b', 'block:c', 'gap', 'block:b', 'block:a', 'gap']);
+  assert.equal(tl.entries[1].end, t9 + 3 * H);
+  assert.equal(tl.entries[6].start, t9 + 6 * H); // trimmed, not counted twice
+  assert.equal(tl.tracked, (48 + 60 + 20 + 60 + 30) * MIN + 1000);
+  assert.equal(tl.untracked, 40 * MIN - 1000 + 30 * MIN);
+  assert.equal(tl.tracked + tl.untracked + tl.away, now - blocks[0].start);
+  // what's running ends now: no gap after it
+  const running = dayTimeline(blocks.concat({ start: t9 + 6 * H + 30 * MIN, end: now, cat: 'c', live: true }), now, wake);
+  assert.equal(running.entries[running.entries.length - 1].live, true);
+  assert.equal(running.untracked, 40 * MIN - 1000);
+  assert.deepEqual(dayTimeline([], now, wake), { entries: [], tracked: 0, untracked: 0, away: 0 });
+});
+
+test("the timeline always adds up: tracked + untracked + away is the span, on random logs", () => {
+  let seed = 7;
+  const rnd = (n) => { seed = (seed * 16807) % 2147483647; return seed % n; };
+  for (let run = 0; run < 300; run++) {
+    const blocks = [];
+    let t = at(2026, 10, 21) + rnd(12 * H);
+    for (let i = rnd(12); i >= 0; i--) {
+      t += rnd(90 * MIN) - 2000; // sometimes overlapping the last by a second or two
+      const len = 1000 + rnd(2 * H);
+      blocks.push({ start: t, end: t + len, cat: 'c' + rnd(4), live: false });
+      t += len;
+    }
+    blocks.sort((p, q) => p.start - q.start);
+    const end = Math.max.apply(null, blocks.map((b) => b.end)) + rnd(H);
+    const tl = dayTimeline(blocks, end, at(2026, 10, 21, 8));
+    assert.equal(tl.tracked + tl.untracked + tl.away, end - blocks[0].start);
+    tl.entries.forEach((e, i) => { assert.ok(e.end > e.start); if (i) assert.equal(e.start, tl.entries[i - 1].end); });
+  }
 });
 
 test('version 1 logs (Pomodoros only) read unchanged and save as version 2', () => {
