@@ -91,15 +91,20 @@ All in [`dashboard/src/style.css`](../dashboard/src/style.css) as custom propert
   on the tile's dark ground; photos fill the tile. A credit line sits in a dark pill
   (`rgba(8, 10, 14, 0.7)`, 14 px) at the bottom left and fades with the picture.
 - **Time** (grew from the Pomodoro screen): the timer tile on the left (500 px), tinted
-  `--tile-blue` while deep work runs: a 240 px ring that empties as a Pomodoro runs out (gold for
-  work, teal `#7cc6b8` for the break) or, tracking, fills once an hour in the category's colour; the
+  `--tile-blue` while deep work runs: a 240 px ring that empties as a Pomodoro runs out (in the
+  category's colour for work, with the phase label; the Break category's teal `#7cc6b8` for the
+  break) or, tracking, fills once an hour in the category's colour; the
   time in serif; then nine category chips (64 px, three by three) and the action buttons (76 px). A
   category tap tracks it; there is no mode switch. The start button is filled gold; Pomodoro "Stop"
   turns red-tinted and asks for a second tap. A phase ending pulses the tile gold (opacity only).
   When the work ends the tile reads "Pomodoro done" in gold with the ring counting down 15 seconds,
   and three buttons in one row (17 px): Done for now, Keep working, and Start break filled gold.
-  Categories take nine colours in `content.js` order: gold, violet, rose, sky and teal (the focus
-  ones, Chores included), then slate, orange `#e8a26a`, sage and grey. On the right: Today (hours of
+  Categories take nine colours in `content.js` order: violet `#bba5fc`, blue `#4678ff`, pink
+  `#ee6ec3`, lime `#bde753` and dusty rose `#c18988` (the focus ones, Chores included), then pale
+  sky `#a7deff`, red `#ed5523` (Doom scrolling, the only hot colour), teal `#7cc6b8` (Break, the
+  same as the break phase) and grey `#858a95`. Every pair is at least 20 apart in CIEDE2000 and
+  at least 10 with red-green colour blindness simulated, none is near `--gold`, and dark cell
+  text reads on each (4.6:1 or better). On the right: Today (hours of
   focus of the goal, a dot an hour, half-filled from 30 minutes, time at the desk), Streak (days
   with an hour of focus), All time (hours of focus); the last 7 days as stacked bars by category,
   focus at the bottom, each day's focus hours above, with a dashed goal line or, a horizontal
@@ -113,8 +118,8 @@ All in [`dashboard/src/style.css`](../dashboard/src/style.css) as custom propert
   grey; a tap on a bar does the same. Two dots by the title show which view is up. Today's timeline as a
   34 px strip of blocks over the hours, with today's top three categories; minutes by category as
   thin bars. On Home, what's running replaces the greeting's gold line, after a dot in its
-  category's colour. The nudge to stop doom scrolling or a break pulses the timer tile orange
-  (`#e8a26a`, opacity only) and turns the note orange.
+  category's colour. The nudge to stop doom scrolling or a break pulses the timer tile in Doom
+  scrolling's red (`#ed5523`, opacity only) and turns the note red.
 - **Touch:** every target is at least 76 px, because the frame reads taps low (docs/frame.md).
 - **No** shadows, blur, gradients that animate, or motion other than photo crossfades, the side
   bar's slide and the night clock's drift.

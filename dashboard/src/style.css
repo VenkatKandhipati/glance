@@ -527,22 +527,24 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .wx-hl b { margin-right: 8px; font-size: 26px; font-weight: 700; color: var(--ink); }
 
 /* ---- pomodoro */
-/* categories, in content.js order: the calendar colours, then sky and grey */
-.pm-k0 { --k: #cbb47c; --kb: rgba(203, 180, 124, 0.16); }
-.pm-k1 { --k: #b4a6ff; --kb: rgba(180, 166, 255, 0.16); }
-.pm-k2 { --k: #e69a9a; --kb: rgba(230, 154, 154, 0.16); }
-.pm-k3 { --k: #78b9e6; --kb: rgba(120, 185, 230, 0.16); }
-.pm-k4 { --k: #7cc6b8; --kb: rgba(124, 198, 184, 0.16); }
-.pm-k5 { --k: #8fa3c4; --kb: rgba(143, 163, 196, 0.16); }
-.pm-k6 { --k: #e8a26a; --kb: rgba(232, 162, 106, 0.16); }
-.pm-k7 { --k: #a9c48a; --kb: rgba(169, 196, 138, 0.16); }
+/* categories, in content.js order. Picked so every pair stays apart (CIEDE2000 >= 20, >= 10 with
+   red-green colour blindness simulated) and none is near --gold. Doom scrolling is the one hot red;
+   Break is the break phase's teal. */
+.pm-k0 { --k: #bba5fc; --kb: rgba(187, 165, 252, 0.16); }
+.pm-k1 { --k: #4678ff; --kb: rgba(70, 120, 255, 0.16); }
+.pm-k2 { --k: #ee6ec3; --kb: rgba(238, 110, 195, 0.16); }
+.pm-k3 { --k: #bde753; --kb: rgba(189, 231, 83, 0.16); }
+.pm-k4 { --k: #c18988; --kb: rgba(193, 137, 136, 0.16); }
+.pm-k5 { --k: #a7deff; --kb: rgba(167, 222, 255, 0.16); }
+.pm-k6 { --k: #ed5523; --kb: rgba(237, 85, 35, 0.16); }
+.pm-k7 { --k: #7cc6b8; --kb: rgba(124, 198, 184, 0.16); }
 .pm-k8 { --k: #858a95; --kb: rgba(133, 138, 149, 0.16); }
 .pm-body { flex: 1; min-height: 0; display: grid; grid-template-columns: 500px 1fr; gap: var(--gap); }
 .pm-timer { display: flex; flex-direction: column; padding: 22px 26px 24px; }
 .pm-timer.is-work { background: var(--tile-blue); }
 .pm-phase { color: var(--mute); }
-.pm-timer.is-work .pm-phase { color: var(--gold); }
-.pm-timer.is-break .pm-phase { color: #7cc6b8; }
+.pm-timer.is-work .pm-phase { color: var(--k); }
+.pm-timer.is-break .pm-phase { color: #7cc6b8; } /* .pm-k7, the Break category */
 .pm-timer.is-ask .pm-phase { color: var(--gold); }
 .pm-timer.is-track .pm-phase { color: var(--ink-2); }
 .pm-ring { position: relative; align-self: center; width: 240px; height: 240px; margin-top: 6px; }
@@ -550,8 +552,8 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .pm-track { fill: none; stroke: rgba(255, 255, 255, 0.06); stroke-width: 10; }
 .pm-arc { fill: none; stroke: var(--gold); stroke-width: 10; stroke-linecap: round; }
 .pm-timer.is-break .pm-arc { stroke: #7cc6b8; }
-/* tracking: the ring fills once an hour, in the category's colour */
-.pm-timer.is-track .pm-arc { stroke: var(--k); }
+/* a Pomodoro, and tracking (the ring fills once an hour), in the category's colour */
+.pm-timer.is-work .pm-arc, .pm-timer.is-track .pm-arc { stroke: var(--k); }
 .pm-timer.is-idle .pm-arc { display: none; } /* a round cap on an empty arc would still draw a dot */
 .pm-clock { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .pm-left { font-size: 84px; line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
@@ -597,9 +599,9 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 /* a phase ending: the tile pulses gold a few times (opacity only) */
 .pm-flash { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(212, 181, 78, 0.16); opacity: 0; pointer-events: none; }
 .pm-flash.is-on { animation: pm-pulse 1.4s ease-in-out 4; }
-/* the nudge to stop doom scrolling or a break: orange, not gold */
-.pm-flash.is-nudge { background: rgba(232, 162, 106, 0.24); }
-.pm-note b.pm-nudge { color: #e8a26a; }
+/* the nudge to stop doom scrolling or a break: Doom scrolling's red, not gold */
+.pm-flash.is-nudge { background: rgba(237, 85, 35, 0.24); }
+.pm-note b.pm-nudge { color: #ed5523; } /* .pm-k6, Doom scrolling */
 @keyframes pm-pulse { 50% { opacity: 1; } }
 
 .pm-stats { display: flex; flex-direction: column; gap: var(--gap); min-width: 0; }
