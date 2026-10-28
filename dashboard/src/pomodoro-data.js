@@ -3,7 +3,8 @@
 // power cut resumes it); the numbers the screen draws come from the log. No DOM, no storage: unit
 // tested.
 //
-//   state  { phase: 'idle' | 'work' | 'break' | 'track', start: ms, cat }   start: when it began
+//   state  { phase: 'idle' | 'work' | 'ask' | 'break' | 'track', start: ms, cat }   start: when it began
+//          'ask' is the moment after a Pomodoro: break, keep working or done? Its start is the work end.
 //   log    [{ start, end, cat, done, kind? }]   kind 'track' for tracked time; none for a Pomodoro
 //
 // One thing runs at a time, so entries never overlap. `done` is a full Pomodoro; a stopped one
@@ -16,6 +17,8 @@ const MIN_STOPPED = 1; // a session stopped sooner than this many minutes isn't 
 // A session counts only if the frame was running within this many minutes of its end. One that
 // ended while the frame was off or unplugged for longer is dropped: nobody saw it finish.
 export const GRACE_MIN = 10;
+// After a Pomodoro the frame asks what's next for this many seconds, then goes back to idle.
+export const ASK_SEC = 15;
 
 export const IDLE = { phase: 'idle', start: 0, cat: null };
 const idle = (cat) => ({ phase: 'idle', start: 0, cat });
@@ -36,21 +39,32 @@ export function clockTrusted(state, now, builtAt) {
 // Moves the timer on to `now`. Returns { state, logged, cue, dropped }: `logged` is the session
 // to add to the log (or null), `cue` 'work-done' or 'break-done' when a phase ended in the last
 // minute, and `dropped` true when a session ended more than GRACE_MIN ago and so isn't logged.
-// Call it only when clockTrusted().
+// A work phase that just ended asks what's next (answer()); one that ended while nobody was there
+// to answer, and an ask nobody answered in ASK_SEC, go to idle. Call it only when clockTrusted().
 export function advance(state, now, cfg) {
   let logged = null, cue = null, dropped = false;
   if (state.phase === 'work' && now >= phaseEnd(state, cfg)) {
     const end = phaseEnd(state, cfg);
-    if (now - end > GRACE_MIN * MIN) return { state: { phase: 'idle', start: 0, cat: state.cat }, logged, cue, dropped: true };
+    if (now - end > GRACE_MIN * MIN) return { state: idle(state.cat), logged, cue, dropped: true };
     logged = { start: state.start, end, cat: state.cat, done: true };
-    if (now - end < MIN) cue = 'work-done';
-    state = { phase: 'break', start: end, cat: state.cat };
+    if (now - end < ASK_SEC * 1000) { cue = 'work-done'; state = { phase: 'ask', start: end, cat: state.cat }; }
+    else state = idle(state.cat);
   }
+  if (state.phase === 'ask' && now - state.start >= ASK_SEC * 1000) state = idle(state.cat);
   if (state.phase === 'break' && now >= phaseEnd(state, cfg)) {
     if (now - phaseEnd(state, cfg) < MIN) cue = 'break-done';
-    state = { phase: 'idle', start: 0, cat: state.cat };
+    state = idle(state.cat);
   }
   return { state, logged, cue, dropped };
+}
+
+// The answer to the ask after a Pomodoro: 'break' starts the break, counted from the work end;
+// 'work' starts the next Pomodoro now in the same category; 'done' goes to idle.
+export function answer(state, choice, now) {
+  if (state.phase !== 'ask') return state;
+  if (choice === 'break') return { phase: 'break', start: state.start, cat: state.cat };
+  if (choice === 'work') return { phase: 'work', start: now, cat: state.cat };
+  return idle(state.cat);
 }
 
 // Stopping deep work early: the minutes so far, unless it had barely begun.
@@ -70,7 +84,7 @@ function trackEntry(state, end, trusted) {
 }
 
 export function startTrack(state, cat, now, trusted) {
-  if (state.phase === 'work' || state.phase === 'break') return { state, logged: null }; // a Pomodoro owns the timer
+  if (state.phase === 'work' || state.phase === 'ask' || state.phase === 'break') return { state, logged: null }; // a Pomodoro owns the timer
   if (state.phase === 'track' && state.cat === cat) return { state, logged: null };
   const logged = state.phase === 'track' ? trackEntry(state, now, trusted) : null;
   return { state: { phase: 'track', start: now, cat }, logged };
@@ -274,7 +288,7 @@ export function unpack(text) {
   let raw;
   try { raw = JSON.parse(text); } catch (e) { return null; }
   if (!raw || (raw.v !== 1 && raw.v !== VERSION) || !Array.isArray(raw.log)) return null;
-  const state = raw.state && /^(idle|work|break|track)$/.test(raw.state.phase) ? raw.state : IDLE;
+  const state = raw.state && /^(idle|work|ask|break|track)$/.test(raw.state.phase) ? raw.state : IDLE;
   const out = {
     saved: raw.saved || 0,
     state,

@@ -14,8 +14,9 @@
 // Every number is about focus: the focus categories' time, a full Pomodoro counting as an hour
 // with its break. Tracking doom scrolling or a break chimes and flashes every 10 minutes.
 // The day's goal is hours of focus: a full Pomodoro counts as an hour, its break included. Each Pomodoro phase ends with a chime and a gold
-// pulse, and brings this screen back if you'd left it. The log lives in localStorage and, in the
-// kiosk, in a backup file that adb can pull (both still named for the Pomodoro screen it grew from):
+// pulse, and brings this screen back if you'd left it. When the work ends the screen asks what's
+// next (Start break, Keep working, Done for now) and with no answer in 15 seconds goes to Ready.
+// The log lives in localStorage and, in the kiosk, in a backup file that adb can pull (both still named for the Pomodoro screen it grew from):
 //   adb pull /sdcard/Android/data/app.glance.kiosk/files/pomodoro.json
 import { time as cfg } from '../content.js';
 import { DEMO, demoPomodoro } from '../demo.js';
@@ -122,13 +123,20 @@ function timerTile(data, now, confirming, dropped, next) {
   const stop = (two) => '<button class="pm-btn' + (two && confirming ? ' is-confirm' : '') + '" data-act="stop">' + (two && confirming ? 'Tap again to stop' : 'Stop') + '</button>';
   let phase, note, actions;
   if (st.phase !== 'idle' && !sane) {
-    phase = st.phase === 'work' ? 'Deep work' : st.phase === 'break' ? 'Break' : 'Tracking';
+    phase = st.phase === 'work' ? 'Deep work' : st.phase === 'ask' ? 'Pomodoro done' : st.phase === 'break' ? 'Break' : 'Tracking';
     note = 'Waiting for the time from the network…';
     actions = st.phase === 'work' ? stop(true) : st.phase === 'track' ? stop(false) : '';
   } else if (st.phase === 'work') {
     phase = 'Deep work';
     note = '<b>' + esc(catName(st.cat)) + '</b>. Tap another to change it.';
     actions = stop(true);
+  } else if (st.phase === 'ask') {
+    phase = 'Pomodoro done';
+    note = last && last.end === st.start
+      ? 'Logged ' + P.minutes(last) + ' m of <b>' + esc(catName(last.cat)) + '</b>. A break, or keep going?'
+      : 'A break, or keep going?';
+    actions = '<button class="pm-btn" data-act="done">Done for now</button><button class="pm-btn" data-act="work">Keep working</button>' +
+      '<button class="pm-btn is-go" data-act="break">Start break</button>';
   } else if (st.phase === 'break') {
     phase = 'Break';
     note = last && last.end === st.start
@@ -162,7 +170,7 @@ function timerTile(data, now, confirming, dropped, next) {
     '<div class="pm-clock"><b class="pm-left serif">' + cfg.work + ':00</b><span class="pm-until"></span></div></div>' +
     '<p class="pm-note">' + note + '</p>' +
     '<div class="pm-cats">' + catButtons(on, ring) + '</div>' +
-    '<div class="pm-actions">' + actions + '</div></section>';
+    '<div class="pm-actions' + (st.phase === 'ask' ? ' is-three' : '') + '">' + actions + '</div></section>';
 }
 
 // Today's blocks on a strip from the hour the first began to now, with today by category under it.
@@ -315,6 +323,12 @@ export function mountPomodoro(el, onCue) {
       text = trusted ? upText(ms) : '––:––';
       until = trusted ? 'since ' + timeText(new Date(st.start)) : '';
       fill = trusted ? (ms % HOUR) / HOUR : 0;
+    } else if (st.phase === 'ask') {
+      // The seconds left to answer, the ring emptying with them.
+      const remaining = st.start + P.ASK_SEC * 1000 - now;
+      text = trusted ? mmss(remaining) : '––:––';
+      until = trusted ? 'then Ready' : '';
+      fill = trusted ? 1 - Math.min(1, Math.max(0, remaining) / (P.ASK_SEC * 1000)) : 1;
     } else {
       const end = P.phaseEnd(st, cfg);
       const total = (st.phase === 'break' ? cfg.break : cfg.work) * 60000;
@@ -424,7 +438,7 @@ export function mountPomodoro(el, onCue) {
     } else if (c) {
       const id = c.getAttribute('data-cat');
       if (data.state.phase === 'work') data.state = Object.assign({}, data.state, { cat: id });
-      else if (data.state.phase === 'break') {
+      else if (data.state.phase === 'ask' || data.state.phase === 'break') {
         const last = data.log[data.log.length - 1];
         if (last && last.end === data.state.start) last.cat = id; // retag the session just finished
         data.state = Object.assign({}, data.state, { cat: id });
@@ -466,6 +480,9 @@ export function mountPomodoro(el, onCue) {
           if (r.logged) data.log.push(r.logged);
           confirmUntil = 0;
         }
+      } else if ((act === 'break' || act === 'work' || act === 'done') && data.state.phase === 'ask') {
+        data.state = P.answer(data.state, act, now);
+        if (act === 'work') chime(SOUNDS.start);
       } else if (act === 'skip') {
         data.state = { phase: 'idle', start: 0, cat: data.state.cat };
       } else if (act === 'keep' && data.auto) {
@@ -492,14 +509,14 @@ export function mountPomodoro(el, onCue) {
     // Called every minute: the stats and "Today" move on with the date.
     update() { if (visible) render(); },
     // A Pomodoro holds the screen and night off; tracking holds only the screen.
-    busy() { return data.state.phase === 'work' || data.state.phase === 'break'; },
+    busy() { return data.state.phase === 'work' || data.state.phase === 'ask' || data.state.phase === 'break'; },
     stay() { return data.state.phase !== 'idle'; },
     // What's running, for Home: { name, k, text } or null.
     running() {
       const st = data.state, now = Date.now();
       if (st.phase === 'idle') return null;
-      const r = { name: st.phase === 'break' ? 'Break' : catName(st.cat), k: kClass(st.cat), text: '' };
-      if (!trustedNow(now)) return r;
+      const r = { name: st.phase === 'break' ? 'Break' : st.phase === 'ask' ? 'Pomodoro done' : catName(st.cat), k: kClass(st.cat), text: '' };
+      if (!trustedNow(now) || st.phase === 'ask') return r;
       if (st.phase === 'track') r.text = P.hoursText(Math.max(1, Math.floor((now - st.start) / 60000)));
       else r.text = Math.max(1, Math.ceil((P.phaseEnd(st, cfg) - now) / 60000)) + ' m left';
       return r;
