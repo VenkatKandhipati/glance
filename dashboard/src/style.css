@@ -543,6 +543,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .pm-phase { color: var(--mute); }
 .pm-timer.is-work .pm-phase { color: var(--gold); }
 .pm-timer.is-break .pm-phase { color: #7cc6b8; }
+.pm-timer.is-ask .pm-phase { color: var(--gold); }
 .pm-timer.is-track .pm-phase { color: var(--ink-2); }
 .pm-ring { position: relative; align-self: center; width: 240px; height: 240px; margin-top: 6px; }
 .pm-ring svg { width: 240px; height: 240px; }
@@ -591,6 +592,8 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .pm-btn.is-go { border-color: var(--gold-fill); background: var(--gold-fill); color: #15171c; }
 .pm-btn.is-confirm { border-color: rgba(242, 167, 184, 0.3); background: rgba(191, 13, 62, 0.22); color: #ffd6df; }
 .pm-btn[disabled] { opacity: 0.4; }
+.pm-actions.is-three { gap: 10px; }
+.pm-actions.is-three .pm-btn { font-size: 17px; } /* three to a row: Done for now, Keep working, Start break */
 /* a phase ending: the tile pulses gold a few times (opacity only) */
 .pm-flash { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(212, 181, 78, 0.16); opacity: 0; pointer-events: none; }
 .pm-flash.is-on { animation: pm-pulse 1.4s ease-in-out 4; }

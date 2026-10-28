@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { IDLE, advance, clockTrusted, stopWork, dayTotals, streak, lastDays, categoryTotals, pack, unpack, newer, hoursText } from '../src/pomodoro-data.js';
+import { IDLE, ASK_SEC, advance, answer, clockTrusted, stopWork, dayTotals, streak, lastDays, categoryTotals, pack, unpack, newer, hoursText } from '../src/pomodoro-data.js';
 
 const cfg = { work: 45, break: 15 };
 const MIN = 60000;
@@ -8,26 +8,57 @@ const at = (y, mo, d, h, m) => new Date(y, mo - 1, d, h || 0, m || 0).getTime();
 // A full session on a day, starting at hour h.
 const full = (y, mo, d, h, cat) => ({ start: at(y, mo, d, h), end: at(y, mo, d, h) + 45 * MIN, cat: cat || 'geico', done: true });
 
-test('work turns into a break, then the break into idle, with a cue for each', () => {
-  const start = at(2026, 10, 19, 9);
+test('work ends in an ask with a cue; Start break counts the break from the work end', () => {
+  const start = at(2026, 10, 19, 9), end = start + 45 * MIN;
   let r = advance({ phase: 'work', start, cat: 'geico' }, start + 44 * MIN, cfg);
   assert.equal(r.state.phase, 'work');
   assert.equal(r.logged, null);
-  r = advance(r.state, start + 45 * MIN + 2000, cfg);
-  assert.equal(r.state.phase, 'break');
-  assert.equal(r.state.start, start + 45 * MIN);
-  assert.deepEqual(r.logged, { start, end: start + 45 * MIN, cat: 'geico', done: true });
+  r = advance(r.state, end + 1000, cfg);
+  assert.deepEqual(r.state, { phase: 'ask', start: end, cat: 'geico' });
+  assert.deepEqual(r.logged, { start, end, cat: 'geico', done: true });
   assert.equal(r.cue, 'work-done');
-  r = advance(r.state, start + 60 * MIN + 2000, cfg);
+  assert.equal(advance(r.state, end + 5000, cfg).state, r.state); // still asking
+  const brk = answer(r.state, 'break', end + 8000);
+  assert.deepEqual(brk, { phase: 'break', start: end, cat: 'geico' });
+  r = advance(brk, end + 15 * MIN + 2000, cfg);
   assert.equal(r.state.phase, 'idle');
   assert.equal(r.state.cat, 'geico');
   assert.equal(r.cue, 'break-done');
 });
 
-test('a session that ended during a short power cut still counts, silently', () => {
+test('Keep working starts the next Pomodoro now; Done for now goes to idle', () => {
+  const end = at(2026, 10, 19, 9, 45), ask = { phase: 'ask', start: end, cat: 'geico' };
+  assert.deepEqual(answer(ask, 'work', end + 3000), { phase: 'work', start: end + 3000, cat: 'geico' });
+  assert.deepEqual(answer(ask, 'done', end + 3000), { phase: 'idle', start: 0, cat: 'geico' });
+  const work = { phase: 'work', start: end, cat: 'geico' };
+  assert.equal(answer(work, 'done', end + 3000), work); // only an ask takes an answer
+});
+
+test('an ask nobody answers goes to idle after ASK_SEC, the Pomodoro still logged', () => {
+  const start = at(2026, 10, 19, 9), end = start + 45 * MIN;
+  let r = advance({ phase: 'work', start, cat: 'geico' }, end, cfg);
+  assert.equal(r.state.phase, 'ask');
+  assert.equal(r.logged.done, true);
+  assert.equal(advance(r.state, end + ASK_SEC * 1000 - 1, cfg).state.phase, 'ask');
+  r = advance(r.state, end + ASK_SEC * 1000, cfg);
+  assert.deepEqual(r.state, { phase: 'idle', start: 0, cat: 'geico' });
+  assert.equal(r.logged, null);
+  assert.equal(r.cue, null);
+});
+
+test('an ask survives a reload, and runs out by the clock', () => {
+  const end = at(2026, 10, 19, 9, 45);
+  const saved = pack({ saved: end + 4000, state: { phase: 'ask', start: end, cat: 'geico' }, cat: 'geico', log: [] });
+  const st = unpack(saved).state;
+  assert.equal(advance(st, end + 6000, cfg).state.phase, 'ask');
+  assert.equal(advance(st, end + 60000, cfg).state.phase, 'idle');
+});
+
+test('a session that ended during a short power cut still counts, silently, with no ask', () => {
   const start = at(2026, 10, 19, 9);
   const r = advance({ phase: 'work', start, cat: 'chores' }, start + 50 * MIN, cfg);
-  assert.equal(r.state.phase, 'break');
+  assert.equal(r.state.phase, 'idle');
+  assert.equal(r.state.cat, 'chores');
   assert.equal(r.logged.done, true);
   assert.equal(r.logged.end, start + 45 * MIN);
   assert.equal(r.cue, null);

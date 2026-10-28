@@ -114,10 +114,14 @@ export function demoPomodoro() {
   log.push({ start: at(0, 7, 20).getTime(), end: at(0, 8, 5).getTime(), cat: 'geico', done: true });
   log.push({ start: at(0, 8, 5).getTime(), end: at(0, 8, 14).getTime(), cat: 'break', done: false, kind: 'track' });
   log.push({ start: at(0, 8, 14).getTime(), end: at(0, 8, 21).getTime(), cat: 'scrolling', done: false, kind: 'track' });
-  // `?demo&work` shows a Pomodoro running, `&idle` nothing, `&auto` a tracker that stopped by
+  // `?demo&work` shows a Pomodoro running, `&ask` one that just ended (asking what's next, for
+  // the 15 seconds before it goes to Ready), `&idle` nothing, `&auto` a tracker that stopped by
   // itself, `&nudge` 21 minutes of doom scrolling; otherwise tracking
   const q = (k) => new RegExp('[?&]' + k + '(&|$)').test(location.search);
-  const state = q('work') ? { phase: 'work', start: at(0, 8, 21).getTime(), cat: 'interview-prep' }
+  const ended = Date.now() - 3000;
+  if (q('ask')) log.splice(-3, 3, { start: ended - 45 * 60000, end: ended, cat: 'interview-prep', done: true }); // in place of this morning's
+  const state = q('ask') ? { phase: 'ask', start: ended, cat: 'interview-prep' }
+    : q('work') ? { phase: 'work', start: at(0, 8, 21).getTime(), cat: 'interview-prep' }
     : q('nudge') ? { phase: 'track', start: at(0, 8, 21).getTime(), cat: 'scrolling' }
     : q('idle') || q('auto') ? { phase: 'idle', start: 0, cat: 'scrolling' }
     : { phase: 'track', start: at(0, 8, 21).getTime(), cat: 'projects' };
