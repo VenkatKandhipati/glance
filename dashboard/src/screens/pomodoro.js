@@ -163,9 +163,9 @@ function timerTile(data, now, confirming, dropped, next) {
   }
   const on = st.phase === 'idle' ? null : st.cat;
   const ring = st.phase === 'idle' && sane && !data.auto && !dropped && next ? next.cat : null;
-  return '<section class="tile pm-timer is-' + st.phase + '"><div class="pm-flash"></div>' +
+  return '<section class="tile pm-timer is-' + st.phase + ' ' + kClass(st.cat) + '"><div class="pm-flash"></div>' +
     '<h2 class="pm-phase">' + phase + '</h2>' +
-    '<div class="pm-ring ' + kClass(st.cat) + '"><svg viewBox="0 0 300 300" width="240" height="240"><circle class="pm-track" cx="150" cy="150" r="138"/>' +
+    '<div class="pm-ring"><svg viewBox="0 0 300 300" width="240" height="240"><circle class="pm-track" cx="150" cy="150" r="138"/>' +
     '<circle class="pm-arc" cx="150" cy="150" r="138" stroke-dasharray="' + RING.toFixed(1) + '" stroke-dashoffset="' + RING.toFixed(1) + '" transform="rotate(-90 150 150)"/></svg>' +
     '<div class="pm-clock"><b class="pm-left serif">' + cfg.work + ':00</b><span class="pm-until"></span></div></div>' +
     '<p class="pm-note">' + note + '</p>' +
