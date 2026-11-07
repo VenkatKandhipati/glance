@@ -567,7 +567,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .pm-ring svg { width: 240px; height: 240px; }
 .pm-track { fill: none; stroke: rgba(255, 255, 255, 0.06); stroke-width: 10; }
 .pm-arc { fill: none; stroke: var(--gold); stroke-width: 10; stroke-linecap: round; }
-.pm-timer.is-break .pm-arc { stroke: #7cc6b8; }
+.pm-timer.is-break .pm-arc, .pm-timer.is-ask .pm-arc { stroke: #7cc6b8; } /* the ask counts down to the break */
 /* a Pomodoro, and tracking (the ring fills once an hour), in the category's colour */
 .pm-timer.is-work .pm-arc, .pm-timer.is-track .pm-arc { stroke: var(--k); }
 .pm-timer.is-idle .pm-arc { display: none; } /* a round cap on an empty arc would still draw a dot */
@@ -611,7 +611,8 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .pm-btn.is-confirm { border-color: rgba(242, 167, 184, 0.3); background: rgba(191, 13, 62, 0.22); color: #ffd6df; }
 .pm-btn[disabled] { opacity: 0.4; }
 .pm-actions.is-three { gap: 10px; }
-.pm-actions.is-three .pm-btn { font-size: 17px; } /* three to a row: Done for now, Keep working, Start break */
+.pm-actions.is-three .pm-btn { font-size: 17px; } /* three to a row: Done, Break, Keep working */
+.pm-actions.is-three .pm-btn.is-wide { flex: 1.5; font-size: 19px; } /* Keep working, the one to tap */
 /* a phase ending: the tile pulses gold a few times (opacity only) */
 .pm-flash { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(212, 181, 78, 0.16); opacity: 0; pointer-events: none; }
 .pm-flash.is-on { animation: pm-pulse 1.4s ease-in-out 4; }

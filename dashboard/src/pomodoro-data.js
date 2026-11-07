@@ -17,8 +17,8 @@ const MIN_STOPPED = 1; // a session stopped sooner than this many minutes isn't 
 // A session counts only if the frame was running within this many minutes of its end. One that
 // ended while the frame was off or unplugged for longer is dropped: nobody saw it finish.
 export const GRACE_MIN = 10;
-// After a Pomodoro the frame asks what's next for this many seconds, then goes back to idle.
-export const ASK_SEC = 15;
+// After a Pomodoro the frame asks what's next for this many seconds, then starts the break.
+export const ASK_SEC = 60;
 
 export const IDLE = { phase: 'idle', start: 0, cat: null };
 const idle = (cat) => ({ phase: 'idle', start: 0, cat });
@@ -39,18 +39,20 @@ export function clockTrusted(state, now, builtAt) {
 // Moves the timer on to `now`. Returns { state, logged, cue, dropped }: `logged` is the session
 // to add to the log (or null), `cue` 'work-done' or 'break-done' when a phase ended in the last
 // minute, and `dropped` true when a session ended more than GRACE_MIN ago and so isn't logged.
-// A work phase that just ended asks what's next (answer()); one that ended while nobody was there
-// to answer, and an ask nobody answered in ASK_SEC, go to idle. Call it only when clockTrusted().
+// A work phase that just ended asks what's next (answer()); an ask nobody answered in ASK_SEC
+// starts the break, as if "Start break" had been tapped, counted from the work end. So does a work
+// phase that ended while the frame was off (within GRACE_MIN): the break is running, or over, when
+// it comes back. Call it only when clockTrusted().
 export function advance(state, now, cfg) {
   let logged = null, cue = null, dropped = false;
   if (state.phase === 'work' && now >= phaseEnd(state, cfg)) {
     const end = phaseEnd(state, cfg);
     if (now - end > GRACE_MIN * MIN) return { state: idle(state.cat), logged, cue, dropped: true };
     logged = { start: state.start, end, cat: state.cat, done: true };
-    if (now - end < ASK_SEC * 1000) { cue = 'work-done'; state = { phase: 'ask', start: end, cat: state.cat }; }
-    else state = idle(state.cat);
+    if (now - end < ASK_SEC * 1000) cue = 'work-done';
+    state = { phase: 'ask', start: end, cat: state.cat };
   }
-  if (state.phase === 'ask' && now - state.start >= ASK_SEC * 1000) state = idle(state.cat);
+  if (state.phase === 'ask' && now - state.start >= ASK_SEC * 1000) state = answer(state, 'break', now);
   if (state.phase === 'break' && now >= phaseEnd(state, cfg)) {
     if (now - phaseEnd(state, cfg) < MIN) cue = 'break-done';
     state = idle(state.cat);
