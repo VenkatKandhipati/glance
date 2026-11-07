@@ -117,7 +117,13 @@ All in [`dashboard/src/style.css`](../dashboard/src/style.css) as custom propert
   category: hours per focus category, the rest dimmed together, and the difference from usual in
   grey; a tap on a bar does the same. Two dots by the title show which view is up. Today's timeline as a
   34 px strip of blocks over the hours, with today's top three categories; minutes by category as
-  thin bars. On Home, what's running replaces the greeting's gold line, after a dot in its
+  thin bars. The timeline counts from 9 a.m. (`time.dayStart`), so a morning with nothing tracked
+  is a gap too. A tap on a gap in the opened timeline (anywhere within 40 px of it, since a short
+  gap is a sliver on the bar and the list rows are 27 px) puts "What was it?" in its place: the
+  gap's length and times, the categories as 76 px buttons, and Cancel under them, well clear of
+  the bottom edge. A gap over an hour shows its hours first as 56 px chips, six to a row, all
+  picked and outlined like a gap; a tap drops one (dashed) and the categories, then 64 px, fill
+  only the picked ones. On Home, what's running replaces the greeting's gold line, after a dot in its
   category's colour. The nudge to stop doom scrolling or a break pulses the timer tile in Doom
   scrolling's red (`#ed5523`, opacity only) and turns the note red.
 - **Touch:** every target is at least 76 px, because the frame reads taps low (docs/frame.md).

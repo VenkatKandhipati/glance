@@ -64,12 +64,15 @@ export const featured = {
 // keeps, so rename a `name` freely but keep its id; colours follow this order. The `balance`
 // categories are the ones to share the days between: the screen names the one furthest behind
 // (longest since it last had time) as what to start with. A `daily` one needs only that many
-// minutes a day, and isn't suggested once today has them.
+// minutes a day, and isn't suggested once today has them. Today's timeline counts from `dayStart`
+// (an hour, 24 h clock): the time from then that nothing was tracked is untracked, and can be
+// filled in; before it is time away.
 export const time = {
   work: 45,
   break: 15,
   goalHours: 4,
   streakHours: 1,
+  dayStart: 9,
   remind: { categories: ['scrolling', 'break'], minutes: 10 },
   autoStopHours: 2,
   categories: [

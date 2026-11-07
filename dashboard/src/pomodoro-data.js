@@ -168,18 +168,23 @@ export function dayBlocks(log, day) {
     .sort((a, b) => a.start - b.start);
 }
 
-// A day's blocks (dayBlocks) in order with the gaps between them, up to `end` (now, today). A gap
-// that starts before `wake`, the night's end, is time away rather than untracked. Blocks are
-// trimmed where they overlap (the log keeps whole seconds), so tracked + untracked + away is
-// always `end` less the first block's start. Each entry: { kind: 'block' | 'gap' | 'away', start,
-// end, cat, live }.
+// A day's blocks (dayBlocks) in order with the gaps between them, up to `end` (now, today). The
+// day starts at `wake` (time.dayStart): the time before it is away rather than untracked, a gap
+// across it is split there, and once it's past, the time from it to the first block is a gap even
+// with nothing tracked yet. Blocks are trimmed where they overlap (the log keeps whole seconds), so
+// tracked + untracked + away is always `end` less the first block's start or `wake`, whichever is
+// earlier. Each entry: { kind: 'block' | 'gap' | 'away', start, end, cat, live }.
 export function dayTimeline(blocks, end, wake) {
   const out = { entries: [], tracked: 0, untracked: 0, away: 0 };
-  let at = null;
-  const gap = (from, to) => {
-    const kind = from < wake ? 'away' : 'gap';
+  let at = wake < end && (!blocks.length || blocks[0].start > wake) ? wake : null;
+  const push = (kind, from, to) => {
     out.entries.push({ kind, start: from, end: to });
     out[kind === 'gap' ? 'untracked' : 'away'] += to - from;
+  };
+  const gap = (from, to) => {
+    const cut = Math.min(to, Math.max(from, wake));
+    if (cut > from) push('away', from, cut);
+    if (to > cut) push('gap', cut, to);
   };
   blocks.forEach((b) => {
     const start = at === null ? b.start : Math.max(b.start, at), stop = Math.min(b.end, end);
@@ -190,6 +195,30 @@ export function dayTimeline(blocks, end, wake) {
     at = stop;
   });
   if (at !== null && end > at) gap(at, end);
+  return out;
+}
+
+// Says after the fact what a gap was (#33): the log with a tracked entry from `start` to `end` in
+// `cat`, put in time order since withBreaks() reads each entry's next. null for one under a
+// minute or one that would overlap the log.
+export function fillGap(log, start, end, cat) {
+  if (end - start < MIN_STOPPED * MIN || log.some((s) => s.start < end && s.end > start)) return null;
+  let i = log.length;
+  while (i > 0 && log[i - 1].start > start) i--;
+  return log.slice(0, i).concat({ start, end, cat, done: false, kind: 'track' }, log.slice(i));
+}
+
+// A long gap by the hour, so part of it can be filled: [[start, end], …] split at each whole hour
+// (9:20–10, 10–11, 11–11:45), with an end piece under `minMs` joined to the one beside it.
+export function hourSlots(start, end, minMs) {
+  const out = [], first = new Date(start);
+  first.setMinutes(0, 0, 0);
+  let t = start;
+  for (let h = first.getTime() + 60 * MIN; h < end; h += 60 * MIN) { out.push([t, h]); t = h; }
+  out.push([t, end]);
+  if (out.length > 1 && out[0][1] - out[0][0] < minMs) out.splice(0, 2, [out[0][0], out[1][1]]);
+  const n = out.length;
+  if (n > 1 && out[n - 1][1] - out[n - 1][0] < minMs) out.splice(n - 2, 2, [out[n - 2][0], out[n - 1][1]]);
   return out;
 }
 

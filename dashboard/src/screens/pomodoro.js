@@ -7,7 +7,9 @@
 // either, puts its breakdown in place of time by category. Above either view, and in the
 // timer's note while nothing runs, the `balance` category furthest behind: what to start with.
 // A tap on today's strip opens today's timeline in place of the insights: every block and gap,
-// the share of the day tracked, as a bar with the day listed or, a swipe away, a column.
+// the share of the day tracked, as a bar with the day listed or, a swipe away, a column. A tap on
+// a gap there asks what it was (a long one by the hour, to say which hours), and the category
+// picked logs it as tracked time. The day counts from `time.dayStart`, tracked or not.
 //
 // The timer is kept as timestamps (pomodoro-data.js), so a reload or a power cut picks it up where
 // it was. While a Pomodoro runs, the frame stays on this screen and night waits (main.js asks
@@ -41,6 +43,8 @@ const TL_KEY = 'glance-time-today'; // which view of today's timeline: 'bar' or 
 const GAP_MIN = 5; // gaps this long are drawn and listed on the timeline; shorter ones still count
 const LIST_MAX = 20; // rows in the timeline's list, two columns of 10
 const BAR_PX = 676, COL_PX = 500; // the timeline's bar width and column height
+const REACH_PX = 40; // a tap this close to a gap on the timeline picks it (thin ones, low touch)
+const SLOT_MIN = 10; // a long gap's hours: an end piece shorter than this joins the hour beside it
 
 const cats = cfg.categories;
 const known = {}, focusIds = {};
@@ -180,9 +184,12 @@ function timerTile(data, now, confirming, dropped, next) {
 }
 
 // Today's blocks on a strip from the hour the first began to now, with today by category under it.
+// Once the day has started (time.dayStart) it opens the timeline even with nothing tracked, to fill
+// the morning in.
 function todayTile(view, now, today) {
-  const blocks = P.dayBlocks(view, now);
-  if (!blocks.length) return '<section class="tile pm-today"><h2>Today at the desk</h2><p class="pm-empty">Nothing tracked yet today.</p></section>';
+  const blocks = P.dayBlocks(view, now), open = blocks.length || now.getHours() >= cfg.dayStart;
+  if (!blocks.length) return '<section class="tile pm-today"' + (open ? ' data-open' : '') + '><h2>Today at the desk</h2><p class="pm-empty">Nothing tracked yet today.' +
+    (open ? ' Tap to fill it in.' : '') + '</p></section>';
   const first = new Date(blocks[0].start);
   first.setMinutes(0, 0, 0);
   const from = first.getTime();
@@ -195,30 +202,41 @@ function todayTile(view, now, today) {
   for (let t = from; t <= to; t += step * HOUR) ticks += '<span style="left:' + x(t) + '">' + hourLabel(new Date(t).getHours()) + '</span>';
   const rows = Object.keys(today.byCat).map((cat) => ({ cat, m: today.byCat[cat] })).sort((a, b) => b.m - a.m).slice(0, 3).map((r) =>
     '<li class="' + kClass(r.cat) + '"><span class="pm-cname"><i></i>' + esc(catName(r.cat)) + '</span><b>' + P.hoursText(r.m) + '</b></li>').join('');
-  return '<section class="tile pm-today"><h2>Today at the desk</h2><div class="pm-strip">' + strip + '</div>' +
+  return '<section class="tile pm-today" data-open><h2>Today at the desk</h2><div class="pm-strip">' + strip + '</div>' +
     '<div class="pm-ticks">' + ticks + '</div><ul class="pm-tlist">' + rows + '</ul></section>';
 }
 
 // ---- today's timeline, opened from "Today at the desk": every block and every gap, so the
 // untracked time shows. The bar with the day in order under it, or a swipe away, a column like
-// the calendar's with the biggest gaps beside it. It starts after the night (settings.night.on):
-// a gap from before then is time away, and last night's late blocks are only listed.
+// the calendar's with the biggest gaps beside it. The day starts at time.dayStart: the time before
+// it is away, and blocks from before it with time away after them (last night's) are only listed.
 const clock = (t) => { const d = new Date(t), h = d.getHours() % 12 || 12, m = d.getMinutes(); return h + ':' + (m < 10 ? '0' : '') + m; };
 const msText = (ms) => P.hoursText(Math.round(ms / 60000));
 const fits = (px, text) => px >= text.length * 8 + 14; // a label's rough width at 14px
+const big = (e) => e.kind === 'gap' && e.end - e.start >= GAP_MIN * 60000;
+const gapAttr = (e) => (e.kind === 'gap' ? ' data-gap="' + e.start + '"' : ''); // a tap finds it by its start
+
+function todayTimeline(view, now) {
+  const wake = new Date(now);
+  wake.setHours(cfg.dayStart, 0, 0, 0);
+  return { wake, tl: P.dayTimeline(P.dayBlocks(view, now), +now, wake.getTime()) };
+}
+
+// Today's gaps that can be filled in: those drawn and listed.
+const todayGaps = (view, now) => todayTimeline(view, now).tl.entries.filter(big);
 
 function timelineHtml(view, now) {
-  const wake = new Date(now);
-  wake.setHours(settings.night.on, 0, 0, 0);
-  const tl = P.dayTimeline(P.dayBlocks(view, now), +now, wake.getTime());
+  const { tl } = todayTimeline(view, now);
   if (!tl.entries.length) return '<h2>Today at the desk</h2><p class="pm-empty">Nothing tracked yet today.</p>';
-  let cut = 0; // the first entry after the last time away
+  let cut = 0; // the first entry after the last time away; before the day starts, all of it
   tl.entries.forEach((e, i) => { if (e.kind === 'away') cut = i + 1; });
+  if (cut === tl.entries.length) cut = 0;
   const before = tl.entries.slice(0, cut).filter((e) => e.kind === 'block'), day = tl.entries.slice(cut);
+  const night = new Date(now);
+  night.setHours(settings.night.on, 0, 0, 0);
   const first = new Date(day[0].start);
   first.setMinutes(0, 0, 0);
   const from = first.getTime(), to = Math.max(Math.ceil(+now / HOUR) * HOUR, from + 4 * HOUR), span = to - from;
-  const big = (e) => e.kind === 'gap' && e.end - e.start >= GAP_MIN * 60000;
   const cls = (e) => (e.kind === 'gap' ? 'is-gap' : kClass(e.cat)) + (e.live || (e.kind === 'gap' && e.end === +now) ? ' is-live' : '');
 
   const share = tl.tracked + tl.untracked ? Math.floor(tl.tracked / (tl.tracked + tl.untracked) * 100) : 100;
@@ -237,7 +255,7 @@ function timelineHtml(view, now) {
   // The bar: blocks in their colours, gaps of GAP_MIN or more as outlined holes with their length.
   const bar = day.filter((e) => e.kind === 'block' || big(e)).map((e) => {
     const text = e.kind === 'gap' ? msText(e.end - e.start) : '';
-    return '<i class="' + cls(e) + '" style="left:' + ((e.start - from) / span * 100).toFixed(2) + '%;width:' + ((e.end - e.start) / span * 100).toFixed(2) + '%">' +
+    return '<i class="' + cls(e) + '"' + gapAttr(e) + ' style="left:' + ((e.start - from) / span * 100).toFixed(2) + '%;width:' + ((e.end - e.start) / span * 100).toFixed(2) + '%">' +
       (text && fits((e.end - e.start) / span * BAR_PX, text) ? '<span>' + text + '</span>' : '') + '</i>';
   }).join('');
   const hours = span / HOUR, step = hours <= 7 ? 1 : hours <= 14 ? 2 : 3;
@@ -245,7 +263,7 @@ function timelineHtml(view, now) {
   for (let t = from; t <= to; t += step * HOUR) ticks += '<span style="left:' + ((t - from) / span * 100).toFixed(2) + '%">' + hourLabel(new Date(t).getHours()) + '</span>';
   // The day in order: last night's blocks first, then each block and gap; the latest if it's long.
   let rows = before.concat(day.filter((e) => e.kind === 'block' || big(e))).map((e) =>
-    '<li class="' + cls(e) + '"><span class="pm-tl-t">' + (e.end <= wake.getTime() ? 'Last night' : clock(e.start) + '–' + (e.end === +now ? 'now' : clock(e.end))) + '</span>' +
+    '<li class="' + cls(e) + '"' + gapAttr(e) + '><span class="pm-tl-t">' + (e.end <= night.getTime() ? 'Last night' : clock(e.start) + '–' + (e.end === +now ? 'now' : clock(e.end))) + '</span>' +
     (e.kind === 'gap' ? '<span class="pm-tl-n">Untracked</span>' : '<i></i><span class="pm-tl-n">' + esc(catName(e.cat)) + '</span>') + '<b>' + msText(e.end - e.start) + '</b></li>');
   if (rows.length > LIST_MAX) rows = ['<li class="pm-tl-more">' + (rows.length - LIST_MAX + 1) + ' earlier, on the bar</li>'].concat(rows.slice(rows.length - LIST_MAX + 1));
   const barPane = '<div class="pm-tl-bar">' + bar + '</div><div class="pm-ticks">' + ticks + '</div><ul class="pm-tl-list">' + rows.join('') + '</ul>' +
@@ -258,15 +276,39 @@ function timelineHtml(view, now) {
   day.filter((e) => e.kind === 'block' || big(e)).forEach((e) => {
     const px = (e.end - e.start) / span * COL_PX;
     const text = e.kind === 'gap' ? msText(e.end - e.start) + ' untracked' : esc(catName(e.cat)) + ' · ' + clock(e.start) + '–' + (e.end === +now ? 'now' : clock(e.end));
-    col += '<i class="' + cls(e) + '" style="top:' + y(e.start) + ';height:' + px.toFixed(1) + 'px">' + (px >= 18 ? '<span>' + text + '</span>' : '') + '</i>';
+    col += '<i class="' + cls(e) + '"' + gapAttr(e) + ' style="top:' + y(e.start) + ';height:' + px.toFixed(1) + 'px">' + (px >= 18 ? '<span>' + text + '</span>' : '') + '</i>';
   });
   const gaps = day.filter(big).sort((a, b) => (b.end - b.start) - (a.end - a.start)).slice(0, 3).map((g) =>
-    '<li><b>' + msText(g.end - g.start) + '</b> from ' + clock(g.start) + (g.end === +now ? ', still going' : '') + '</li>').join('');
+    '<li' + gapAttr(g) + '><b>' + msText(g.end - g.start) + '</b> from ' + clock(g.start) + (g.end === +now ? ', still going' : '') + '</li>').join('');
   const colPane = '<div class="pm-tl-cal"><div class="pm-tl-col" style="height:' + COL_PX + 'px">' + col + '</div><div class="pm-tl-side">' +
     '<h3>Biggest gaps</h3><ul class="pm-tl-gaps">' + (gaps || '<li>None of ' + GAP_MIN + ' minutes or more</li>') + '</ul>' +
     '<h3>By category</h3><ul class="pm-tl-cats">' + catRows + '</ul></div></div>';
 
   return head + '<div class="pm-tl-track"><div class="pm-tl-pane">' + barPane + '</div><div class="pm-tl-pane">' + colPane + '</div></div>';
+}
+
+// A gap's hours to pick from: one piece unless it's over an hour.
+const slotsOf = (gap) => (gap.end - gap.start > HOUR ? P.hourSlots(gap.start, gap.end, SLOT_MIN * 60000) : [[gap.start, gap.end]]);
+const hm = (t) => { const d = new Date(t), h = d.getHours() % 12 || 12, m = d.getMinutes(); return m ? h + ':' + (m < 10 ? '0' : '') + m : String(h); };
+
+// In place of the timeline, after a tap on a gap: what was it? A gap over an hour shows its hours
+// first, all picked; a tap drops one (or takes it back), and the rest stays a gap to fill after.
+// Then the category buttons as on the timer, and Cancel well above the bottom edge, where the
+// frame's touch reads low. `drop`: the starts of the hours dropped.
+function fillHtml(gap, now, drop) {
+  const slots = slotsOf(gap), live = gap.end === +now, all = gap.end - gap.start;
+  let picked = 0;
+  const hours = slots.length < 2 ? '' : '<div class="pm-hrs">' + slots.map((sl, i) => {
+    const on = !drop[sl[0]];
+    if (on) picked += sl[1] - sl[0];
+    return '<button class="pm-hr' + (on ? ' is-on' : '') + '" data-slot="' + sl[0] + '">' + hm(sl[0]) + '–' + (live && i === slots.length - 1 ? 'now' : hm(sl[1])) + '</button>';
+  }).join('') + '</div>';
+  if (slots.length < 2) picked = all;
+  return '<h2>Untracked time<span>' + (hours ? 'Which hours, and what were they?' : 'What was it?') + '</span></h2>' +
+    '<div class="pm-tl-cov"><b class="serif">' + msText(picked) + '</b><span>' + (picked === all ? '' : 'of ' + msText(all) + ' · ') +
+    clock(gap.start) + '–' + (live ? 'now' : clock(gap.end)) + '</span></div>' + hours +
+    '<div class="pm-cats pm-fill' + (picked ? '' : ' is-off') + '">' + catButtons(null, null) + '</div>' +
+    '<button class="pm-btn pm-fill-x" data-act="cancel">Cancel</button>';
 }
 
 // Brings drawn nodes in line with new ones, so a minute's change touches only the widths and
@@ -394,15 +436,18 @@ export function mountPomodoro(el, onCue) {
   let grid = false, swipedAt = 0; // the last 7 days as the grid rather than the bars
   try { grid = localStorage.getItem(VIEW_KEY) === 'grid'; } catch (e) { /* blocked */ }
   let tl = false, tlTimer = 0, tlCol = false; // today's timeline open, and as the column
+  let fill = null, drop = {}; // the start of the gap being said what it was (or null), and its hours left out
   try { tlCol = localStorage.getItem(TL_KEY) === 'column'; } catch (e) { /* blocked */ }
 
   const trustedNow = (now) => P.clockTrusted(data.state, now, __BUILT_AT__);
   const live = (now) => (trustedNow(now) ? P.liveEntry(data.state, now) : null);
 
+  // Everything at the desk, what's running included, each full Pomodoro with its break.
+  const viewAt = (now) => { const running = live(now); return P.withBreaks(running ? data.log.concat(running) : data.log, cfg.break, now); };
+  const gapAt = (start, now) => (trustedNow(now) ? todayGaps(viewAt(now), new Date(now)).find((g) => g.start === start) : null) || null;
+
   function render() {
-    const now = Date.now(), date = new Date(now), running = live(now);
-    // Everything at the desk, what's running included, each full Pomodoro with its break.
-    const view = P.withBreaks(running ? data.log.concat(running) : data.log, cfg.break, now);
+    const now = Date.now(), date = new Date(now), view = viewAt(now);
     const days = P.lastDays(view, date, 7, isFocus);
     const next = balance.length ? P.nextFocus(days, balance, RECENT_DAYS) : null;
     const html = '<header class="screen-head"><h1 class="serif">Time<i>,</i></h1><span>At the desk · Pomodoro ' + cfg.work + ' + ' + cfg.break + ' minutes</span></header>' +
@@ -416,7 +461,9 @@ export function mountPomodoro(el, onCue) {
   // The timeline is drawn into its tile apart from the rest, and patched from then on, so what's
   // running grows each minute without the screen being drawn again.
   function drawTimeline(view, date) {
-    const tile = el.querySelector('.pm-tl'), html = timelineHtml(view, date);
+    const gap = fill === null ? null : gapAt(fill, +date);
+    if (!gap) fill = null; // gone: filled, or a tracker started at its start
+    const tile = el.querySelector('.pm-tl'), html = gap ? fillHtml(gap, date, drop) : timelineHtml(view, date);
     if (tile.__html === html) return;
     const fresh = document.createElement('div');
     fresh.innerHTML = html;
@@ -532,7 +579,7 @@ export function mountPomodoro(el, onCue) {
     if (Math.abs(dx) < SWIPE_PX || Math.abs(dx) < 1.5 * Math.abs(dy)) return;
     swipedAt = Date.now();
     if (onTl) {
-      if (tlCol === dx < 0) return;
+      if (fill !== null || tlCol === dx < 0) return;
       tlCol = dx < 0;
       try { localStorage.setItem(TL_KEY, tlCol ? 'column' : 'bar'); } catch (e2) { /* blocked */ }
       const t = el.querySelector('.pm-tl');
@@ -547,7 +594,45 @@ export function mountPomodoro(el, onCue) {
   });
 
   function closeDay() { clearTimeout(selTimer); if (sel !== null) { sel = null; if (visible) render(); } }
-  function closeTimeline() { clearTimeout(tlTimer); if (tl) { tl = false; if (visible) render(); } }
+  function closeTimeline() { clearTimeout(tlTimer); fill = null; drop = {}; if (tl) { tl = false; if (visible) render(); } }
+
+  // The gap nearest a tap on the timeline's view that's up, within REACH_PX: a short gap is a
+  // sliver on the bar, and the frame's touch reads low (docs/frame.md).
+  function gapNear(e) {
+    const pane = el.querySelectorAll('.pm-tl-pane')[tlCol ? 1 : 0];
+    let best = null, bestD = REACH_PX;
+    if (pane) pane.querySelectorAll('[data-gap]').forEach((g) => {
+      const r = g.getBoundingClientRect();
+      const dx = Math.max(r.left - e.clientX, 0, e.clientX - r.right), dy = Math.max(r.top - e.clientY, 0, e.clientY - r.bottom);
+      const d = Math.sqrt(dx * dx + dy * dy);
+      if (d <= bestD) { bestD = d; best = +g.getAttribute('data-gap'); }
+    });
+    return best;
+  }
+
+  // The gap's picked hours logged as `cat`, each run of them one entry, up to now if it's the one
+  // still going. A tracker stopped by itself in them loses its "count the rest", so the same time
+  // can't be counted twice. false while no hours are picked, so the question stays.
+  function fillWith(cat, now) {
+    const gap = gapAt(fill, now), runs = [];
+    if (gap) slotsOf(gap).forEach((sl) => {
+      if (drop[sl[0]]) return;
+      const last = runs[runs.length - 1];
+      if (last && last[1] === sl[0]) last[1] = sl[1];
+      else runs.push([sl[0], sl[1]]);
+    });
+    if (gap && !runs.length) return false;
+    fill = null;
+    drop = {};
+    let log = data.log;
+    runs.forEach((r) => { log = P.fillGap(log, r[0], r[1], cat) || log; });
+    if (log === data.log) return true;
+    data.log = log;
+    const au = data.auto;
+    if (au && runs.some((r) => r[0] < au.until && r[1] > au.at)) data.auto = null;
+    save(data);
+    return true;
+  }
 
   el.addEventListener('click', (e) => {
     const c = e.target.closest('[data-cat]'), a = e.target.closest('[data-act]'), d = e.target.closest('[data-day]');
@@ -555,9 +640,26 @@ export function mountPomodoro(el, onCue) {
     // Any tap here keeps a day's breakdown open a while longer.
     if (sel !== null) { clearTimeout(selTimer); selTimer = setTimeout(closeDay, DAY_MS); }
     if (tl) { clearTimeout(tlTimer); tlTimer = setTimeout(closeTimeline, DAY_MS); }
-    // Today's timeline opens from its tile and closes with a tap on it (not the end of a swipe).
-    if (e.target.closest('.pm-tl')) { if (now - swipedAt >= 500) closeTimeline(); return; }
-    if (e.target.closest('.pm-today') && !el.querySelector('.pm-today .pm-empty')) {
+    // Today's timeline opens from its tile and closes with a tap on it (not the end of a swipe);
+    // a tap on a gap asks what it was instead, and the category picked fills it.
+    if (e.target.closest('.pm-tl')) {
+      if (now - swipedAt < 500) return;
+      const slot = e.target.closest('[data-slot]');
+      if (fill !== null) {
+        if (slot) { const k = slot.getAttribute('data-slot'); if (drop[k]) delete drop[k]; else drop[k] = true; }
+        else if (c) { if (!fillWith(c.getAttribute('data-cat'), now)) return; }
+        else if (a && a.getAttribute('data-act') === 'cancel') { fill = null; drop = {}; }
+        else return;
+      } else {
+        const g = trusted ? gapNear(e) : null;
+        if (g === null) { closeTimeline(); return; }
+        fill = g;
+        drop = {};
+      }
+      render();
+      return;
+    }
+    if (e.target.closest('.pm-today[data-open]')) {
       tl = true;
       tlTimer = setTimeout(closeTimeline, DAY_MS);
       render();
@@ -640,7 +742,7 @@ export function mountPomodoro(el, onCue) {
 
   return {
     show() { visible = true; render(); },
-    hide() { visible = false; clearTimeout(selTimer); sel = null; clearTimeout(tlTimer); tl = false; },
+    hide() { visible = false; clearTimeout(selTimer); sel = null; clearTimeout(tlTimer); tl = false; fill = null; drop = {}; },
     // Called every minute: the stats and "Today" move on with the date.
     update() { if (visible) render(); },
     // A Pomodoro holds the screen and night off; tracking holds only the screen.

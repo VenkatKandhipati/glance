@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { IDLE, advance, startTrack, stopTrack, autoStop, liveEntry, withBreaks, focusDays, nudges, dayTotals, dayBlocks, dayTimeline, categoryTotals, lastDays, streak, usualByCat, nextFocus, pack, unpack } from '../src/pomodoro-data.js';
+import { IDLE, advance, startTrack, stopTrack, autoStop, liveEntry, withBreaks, focusDays, nudges, dayTotals, dayBlocks, dayTimeline, fillGap, hourSlots, categoryTotals, lastDays, streak, usualByCat, nextFocus, pack, unpack } from '../src/pomodoro-data.js';
 
 const MIN = 60000, H = 60 * MIN;
 const at = (y, mo, d, h, m) => new Date(y, mo - 1, d, h || 0, m || 0).getTime();
@@ -96,7 +96,7 @@ test("a day's blocks come in order, the running one marked", () => {
 });
 
 test("today's timeline: blocks and the gaps between them, overnight away, a gap growing to now", () => {
-  const wake = at(2026, 10, 21, 8);
+  const wake = t9;
   const blocks = [
     { start: at(2026, 10, 21), end: at(2026, 10, 21, 0, 48), cat: 'a', live: false }, // last night's, past midnight
     { start: t9 + 3 * H, end: t9 + 4 * H, cat: 'b', live: false },
@@ -106,17 +106,30 @@ test("today's timeline: blocks and the gaps between them, overnight away, a gap 
   ];
   const now = t9 + 7 * H;
   const tl = dayTimeline(blocks, now, wake);
-  assert.deepEqual(tl.entries.map((e) => e.kind + (e.cat ? ':' + e.cat : '')), ['block:a', 'away', 'block:b', 'block:c', 'gap', 'block:b', 'block:a', 'gap']);
-  assert.equal(tl.entries[1].end, t9 + 3 * H);
-  assert.equal(tl.entries[6].start, t9 + 6 * H); // trimmed, not counted twice
+  // the night until 9 is away; from 9 to the first block is untracked
+  assert.deepEqual(tl.entries.map((e) => e.kind + (e.cat ? ':' + e.cat : '')), ['block:a', 'away', 'gap', 'block:b', 'block:c', 'gap', 'block:b', 'block:a', 'gap']);
+  assert.deepEqual([tl.entries[1].end, tl.entries[2].start, tl.entries[2].end], [wake, wake, t9 + 3 * H]);
+  assert.equal(tl.entries[7].start, t9 + 6 * H); // trimmed, not counted twice
   assert.equal(tl.tracked, (48 + 60 + 20 + 60 + 30) * MIN + 1000);
-  assert.equal(tl.untracked, 40 * MIN - 1000 + 30 * MIN);
+  assert.equal(tl.untracked, 3 * H + 40 * MIN - 1000 + 30 * MIN);
   assert.equal(tl.tracked + tl.untracked + tl.away, now - blocks[0].start);
   // what's running ends now: no gap after it
   const running = dayTimeline(blocks.concat({ start: t9 + 6 * H + 30 * MIN, end: now, cat: 'c', live: true }), now, wake);
   assert.equal(running.entries[running.entries.length - 1].live, true);
-  assert.equal(running.untracked, 40 * MIN - 1000);
-  assert.deepEqual(dayTimeline([], now, wake), { entries: [], tracked: 0, untracked: 0, away: 0 });
+  assert.equal(running.untracked, 3 * H + 40 * MIN - 1000);
+  // nothing tracked yet: from 9 to now is a gap; before 9 there's nothing
+  assert.deepEqual(dayTimeline([], now, wake), { entries: [{ kind: 'gap', start: wake, end: now }], tracked: 0, untracked: now - wake, away: 0 });
+  assert.deepEqual(dayTimeline([], wake - H, wake), { entries: [], tracked: 0, untracked: 0, away: 0 });
+});
+
+test('the day starts at 9: a morning block before it, then a gap across 9 split there', () => {
+  const blocks = [{ start: t9 - 90 * MIN, end: t9 - 30 * MIN, cat: 'a', live: false }, { start: t9 + H, end: t9 + 2 * H, cat: 'b', live: false }];
+  const tl = dayTimeline(blocks, t9 + 2 * H, t9);
+  assert.deepEqual(tl.entries.map((e) => [e.kind, (e.start - t9) / MIN, (e.end - t9) / MIN]),
+    [['block', -90, -30], ['away', -30, 0], ['gap', 0, 60], ['block', 60, 120]]);
+  // a block running across 9: no away at all
+  const across = dayTimeline([{ start: t9 - 30 * MIN, end: t9 + 30 * MIN, cat: 'a' }], t9 + H, t9);
+  assert.deepEqual(across.entries.map((e) => e.kind), ['block', 'gap']);
 });
 
 test("the timeline always adds up: tracked + untracked + away is the span, on random logs", () => {
@@ -133,10 +146,62 @@ test("the timeline always adds up: tracked + untracked + away is the span, on ra
     }
     blocks.sort((p, q) => p.start - q.start);
     const end = Math.max.apply(null, blocks.map((b) => b.end)) + rnd(H);
-    const tl = dayTimeline(blocks, end, at(2026, 10, 21, 8));
-    assert.equal(tl.tracked + tl.untracked + tl.away, end - blocks[0].start);
-    tl.entries.forEach((e, i) => { assert.ok(e.end > e.start); if (i) assert.equal(e.start, tl.entries[i - 1].end); });
+    const wake = at(2026, 10, 21, 8) + rnd(3 * H);
+    const tl = dayTimeline(blocks, end, wake);
+    assert.equal(tl.tracked + tl.untracked + tl.away, end - (wake < end ? Math.min(blocks[0].start, wake) : blocks[0].start));
+    tl.entries.forEach((e, i) => {
+      assert.ok(e.end > e.start);
+      if (i) assert.equal(e.start, tl.entries[i - 1].end);
+      if (e.kind === 'gap') assert.ok(e.start >= wake);
+      if (e.kind === 'away') assert.ok(e.end <= wake);
+    });
   }
+});
+
+test('a gap filled after the fact is tracked time in log order, and leaves no gap', () => {
+  const wake = t9;
+  const log = [
+    { start: t9, end: t9 + 45 * MIN, cat: 'geico', done: true }, // its break runs to 10:00
+    { start: t9 + 2 * H, end: t9 + 3 * H, cat: 'interview-prep', done: false, kind: 'track' },
+  ];
+  const now = t9 + 4 * H;
+  const gaps = (l) => dayTimeline(dayBlocks(withBreaks(l, 15, now), new Date(now)), now, wake).entries.filter((e) => e.kind === 'gap');
+  assert.deepEqual(gaps(log).map((g) => [g.start, g.end]), [[t9 + H, t9 + 2 * H], [t9 + 3 * H, now]]);
+
+  // the gap between the break and the tracker
+  const filled = fillGap(log, t9 + H, t9 + 2 * H, 'learning');
+  assert.deepEqual(filled.map((s) => s.cat), ['geico', 'learning', 'interview-prep']);
+  assert.deepEqual(filled[1], { start: t9 + H, end: t9 + 2 * H, cat: 'learning', done: false, kind: 'track' });
+  assert.equal(log.length, 2); // the log given is left as it was
+  assert.equal(withBreaks(filled, 15, now)[0].end, t9 + H); // the break still counts whole
+  assert.deepEqual(gaps(filled).map((g) => g.start), [t9 + 3 * H]);
+  // the trailing gap, up to now
+  const both = fillGap(filled, t9 + 3 * H, now, 'other');
+  assert.equal(both[3].end, now);
+  assert.deepEqual(gaps(both), []);
+  const tl = dayTimeline(dayBlocks(withBreaks(both, 15, now), new Date(now)), now, wake);
+  assert.equal(tl.untracked, 0);
+  assert.equal(tl.tracked, 4 * H);
+  assert.equal(dayTotals(withBreaks(both, 15, now), new Date(now)).byCat.learning, 60);
+  // and it saves like any tracked entry
+  assert.deepEqual(unpack(pack({ saved: 1, state: IDLE, cat: null, log: both })).log, both);
+});
+
+test('a long gap by the hour: split at each whole hour, a short end piece joined to its neighbour', () => {
+  const span = (slots) => slots.map(([a, b]) => (a - t9) / MIN + '–' + (b - t9) / MIN);
+  assert.deepEqual(span(hourSlots(t9 + 20 * MIN, t9 + 2 * H + 45 * MIN, 10 * MIN)), ['20–60', '60–120', '120–165']);
+  assert.deepEqual(span(hourSlots(t9, t9 + 3 * H, 10 * MIN)), ['0–60', '60–120', '120–180']);
+  assert.deepEqual(span(hourSlots(t9 + 55 * MIN, t9 + 2 * H + 5 * MIN, 10 * MIN)), ['55–125']); // 5 m at each end
+  assert.deepEqual(span(hourSlots(t9 + 10 * MIN, t9 + 50 * MIN, 10 * MIN)), ['10–50']);
+  assert.deepEqual(span(hourSlots(t9 + 58 * MIN, t9 + 62 * MIN, 10 * MIN)), ['58–62']);
+});
+
+test("a fill that would overlap the log, or is under a minute, isn't made", () => {
+  const log = [{ start: t9, end: t9 + H, cat: 'geico', done: false, kind: 'track' }];
+  assert.equal(fillGap(log, t9 + 30 * MIN, t9 + 2 * H, 'other'), null);
+  assert.equal(fillGap(log, t9 - H, t9 + 1000, 'other'), null);
+  assert.equal(fillGap(log, t9 + H, t9 + H + 59 * 1000, 'other'), null);
+  assert.equal(fillGap(log, t9 - H, t9, 'other')[0].cat, 'other'); // touching is fine
 });
 
 test('version 1 logs (Pomodoros only) read unchanged and save as version 2', () => {
