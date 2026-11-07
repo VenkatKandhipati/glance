@@ -1,6 +1,6 @@
 // ?demo: made-up events, trains and weather, and a public-domain photo, for screenshots that show
 // nothing personal (`?demo&screen=week` opens a screen, `?demo&alert` adds a weather warning, `?demo&stale` shows stale badges; the Time screen takes `&work`, `&idle`, `&auto` and `&nudge`). The clock reads 8:42 am the day after
-// the build, so screenshots always look the same. Imported first by main.js, before anything
+// the build (`&at=14:30` for another time), so screenshots always look the same. Imported first by main.js, before anything
 // reads the time.
 export const DEMO = /[?&]demo(&|=|$)/.test(location.search);
 export const DEMO_SCREEN = DEMO ? new URLSearchParams(location.search).get('screen') : null;
@@ -11,7 +11,8 @@ if (DEMO) {
   const Real = Date;
   const start = new Real(__BUILT_AT__);
   start.setDate(start.getDate() + 1);
-  start.setHours(8, 42, 0, 0);
+  const hm = (new URLSearchParams(location.search).get('at') || '8:42').split(':');
+  start.setHours(+hm[0] || 0, +hm[1] || 0, 0, 0);
   const offset = start - Real.now();
   class DemoDate extends Real {
     constructor(...args) {

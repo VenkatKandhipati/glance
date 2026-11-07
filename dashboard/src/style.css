@@ -711,6 +711,16 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .pm-tl-cov em { font-style: normal; font-weight: 700; color: var(--gap-ink); }
 .pm-tl-cov em.is-none { color: var(--gold); }
 .pm-tl .pm-empty { margin: 18px 24px 0; font-size: 16px; font-weight: 600; color: var(--mute); }
+/* what a gap was: the timer's category buttons, taller, and Cancel under them */
+.pm-tl .pm-fill { grid-auto-rows: 76px; gap: 12px; margin: 28px 24px 0; }
+.pm-tl .pm-fill .pm-cat { font-size: 18px; }
+.pm-fill-x { flex: none; align-self: flex-start; width: 228px; margin: 24px 24px 0; }
+.pm-tl .pm-fill.is-off { opacity: 0.4; }
+/* a long gap's hours, picked (outlined like a gap) or dropped; the categories shorter beside them */
+.pm-hrs { display: grid; grid-template-columns: repeat(6, 1fr); grid-auto-rows: 56px; gap: 10px; margin: 24px 24px 0; }
+.pm-hr { border-radius: 16px; border: 2px dashed var(--chip-line); background: none; color: var(--mute); font-size: 17px; font-weight: 700; }
+.pm-hr.is-on { border: 2px solid var(--gap-line); background: rgba(242, 167, 184, 0.12); color: var(--gap-ink); }
+.pm-tl .pm-hrs + .pm-fill { grid-auto-rows: 64px; gap: 10px; margin-top: 22px; }
 .pm-tl-track { flex: 1; min-height: 0; display: flex; width: 200%; margin-top: 16px; transition: transform 0.35s ease; }
 .pm-tl.is-col .pm-tl-track { transform: translateX(-50%); }
 .pm-tl-pane { display: flex; flex-direction: column; width: 50%; min-height: 0; padding: 0 24px; }
