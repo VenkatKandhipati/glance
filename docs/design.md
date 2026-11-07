@@ -102,7 +102,7 @@ All in [`dashboard/src/style.css`](../dashboard/src/style.css) as custom propert
   (17 px), then Keep working, wider (19 px) and filled gold, since the break needs no tap.
   Categories take nine colours in `content.js` order: violet `#bba5fc`, blue `#4678ff`, pink
   `#ee6ec3`, lime `#bde753` and dusty rose `#c18988` (the focus ones, Chores included), then pale
-  sky `#a7deff`, red `#ed5523` (Doom scrolling, the only hot colour), teal `#7cc6b8` (Break, the
+  sky `#a7deff`, red `#ed5523` (Doom, for doom scrolling, the only hot colour), teal `#7cc6b8` (Break, the
   same as the break phase) and grey `#858a95`. Every pair is at least 20 apart in CIEDE2000 and
   at least 10 with red-green colour blindness simulated, none is near `--gold`, and dark cell
   text reads on each (4.6:1 or better). On the right: Today (hours of
