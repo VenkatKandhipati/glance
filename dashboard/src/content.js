@@ -82,7 +82,7 @@ export const time = {
     { id: 'projects', name: 'Projects', focus: true },
     { id: 'chores', name: 'Chores', focus: true, balance: true, daily: 15 },
     { id: 'bathroom', name: 'Bathroom' },
-    { id: 'scrolling', name: 'Doom scrolling' },
+    { id: 'scrolling', name: 'Doom' }, // doom scrolling; short to fit its chip
     { id: 'break', name: 'Break' },
     { id: 'other', name: 'Other' },
   ],

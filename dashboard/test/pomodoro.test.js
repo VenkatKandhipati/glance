@@ -26,7 +26,7 @@ test('work ends in an ask with a cue; Start break counts the break from the work
   assert.equal(r.cue, 'break-done');
 });
 
-test('Keep working starts the next Pomodoro now; Done for now goes to idle', () => {
+test('Keep working starts the next Pomodoro now; Done goes to idle', () => {
   const end = at(2026, 10, 19, 9, 45), ask = { phase: 'ask', start: end, cat: 'geico' };
   assert.deepEqual(answer(ask, 'work', end + 3000), { phase: 'work', start: end + 3000, cat: 'geico' });
   assert.deepEqual(answer(ask, 'done', end + 3000), { phase: 'idle', start: 0, cat: 'geico' });
@@ -34,33 +34,58 @@ test('Keep working starts the next Pomodoro now; Done for now goes to idle', () 
   assert.equal(answer(work, 'done', end + 3000), work); // only an ask takes an answer
 });
 
-test('an ask nobody answers goes to idle after ASK_SEC, the Pomodoro still logged', () => {
+test('an ask nobody answers starts the break after a minute, as Start break would', () => {
   const start = at(2026, 10, 19, 9), end = start + 45 * MIN;
+  assert.equal(ASK_SEC, 60);
   let r = advance({ phase: 'work', start, cat: 'geico' }, end, cfg);
   assert.equal(r.state.phase, 'ask');
   assert.equal(r.logged.done, true);
   assert.equal(advance(r.state, end + ASK_SEC * 1000 - 1, cfg).state.phase, 'ask');
-  r = advance(r.state, end + ASK_SEC * 1000, cfg);
-  assert.deepEqual(r.state, { phase: 'idle', start: 0, cat: 'geico' });
-  assert.equal(r.logged, null);
+  const ask = r.state;
+  r = advance(ask, end + ASK_SEC * 1000, cfg);
+  assert.deepEqual(r.state, answer(ask, 'break', end + ASK_SEC * 1000)); // the same break, from the work end
+  assert.deepEqual(r.state, { phase: 'break', start: end, cat: 'geico' });
+  assert.equal(r.logged, null); // the Pomodoro was logged when the work ended
   assert.equal(r.cue, null);
+  r = advance(r.state, end + 15 * MIN + 500, cfg);
+  assert.equal(r.state.phase, 'idle');
+  assert.equal(r.cue, 'break-done');
 });
 
-test('an ask survives a reload, and runs out by the clock', () => {
+test('Keep working, Break and Done act at once within the minute', () => {
+  const end = at(2026, 10, 19, 9, 45), ask = { phase: 'ask', start: end, cat: 'geico' }, t = end + 50000;
+  assert.deepEqual(answer(ask, 'work', t), { phase: 'work', start: t, cat: 'geico' });
+  assert.deepEqual(answer(ask, 'break', t), { phase: 'break', start: end, cat: 'geico' });
+  assert.deepEqual(answer(ask, 'done', t), { phase: 'idle', start: 0, cat: 'geico' });
+});
+
+test('an ask survives a reload, and runs out by the clock into the break', () => {
   const end = at(2026, 10, 19, 9, 45);
   const saved = pack({ saved: end + 4000, state: { phase: 'ask', start: end, cat: 'geico' }, cat: 'geico', log: [] });
   const st = unpack(saved).state;
   assert.equal(advance(st, end + 6000, cfg).state.phase, 'ask');
-  assert.equal(advance(st, end + 60000, cfg).state.phase, 'idle');
+  assert.deepEqual(advance(st, end + 90000, cfg).state, { phase: 'break', start: end, cat: 'geico' });
+  // off for longer than the minute and the break: over, silently
+  const r = advance(st, end + 40 * MIN, cfg);
+  assert.equal(r.state.phase, 'idle');
+  assert.equal(r.cue, null);
 });
 
-test('a session that ended during a short power cut still counts, silently, with no ask', () => {
-  const start = at(2026, 10, 19, 9);
+test('a session that ended during a short power cut still counts, silently, and its break runs', () => {
+  const start = at(2026, 10, 19, 9), end = start + 45 * MIN;
   const r = advance({ phase: 'work', start, cat: 'chores' }, start + 50 * MIN, cfg);
-  assert.equal(r.state.phase, 'idle');
-  assert.equal(r.state.cat, 'chores');
+  assert.deepEqual(r.state, { phase: 'break', start: end, cat: 'chores' }); // 10 minutes of it left
   assert.equal(r.logged.done, true);
-  assert.equal(r.logged.end, start + 45 * MIN);
+  assert.equal(r.logged.end, end);
+  assert.equal(r.cue, null);
+  assert.equal(r.dropped, false);
+});
+
+test('back after the minute and the break: the Pomodoro is logged and the break is over', () => {
+  const start = at(2026, 10, 19, 9), end = start + 45 * MIN, brk = { work: 45, break: 5 };
+  const r = advance({ phase: 'work', start, cat: 'chores' }, end + 8 * MIN, brk);
+  assert.deepEqual(r.state, { phase: 'idle', start: 0, cat: 'chores' });
+  assert.deepEqual(r.logged, { start, end, cat: 'chores', done: true });
   assert.equal(r.cue, null);
   assert.equal(r.dropped, false);
 });
