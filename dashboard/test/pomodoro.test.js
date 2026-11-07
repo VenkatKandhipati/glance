@@ -26,7 +26,7 @@ test('work ends in an ask with a cue; Start break counts the break from the work
   assert.equal(r.cue, 'break-done');
 });
 
-test('Keep working starts the next Pomodoro now; Done for now goes to idle', () => {
+test('Keep working starts the next Pomodoro now; Done goes to idle', () => {
   const end = at(2026, 10, 19, 9, 45), ask = { phase: 'ask', start: end, cat: 'geico' };
   assert.deepEqual(answer(ask, 'work', end + 3000), { phase: 'work', start: end + 3000, cat: 'geico' });
   assert.deepEqual(answer(ask, 'done', end + 3000), { phase: 'idle', start: 0, cat: 'geico' });
@@ -52,7 +52,7 @@ test('an ask nobody answers starts the break after a minute, as Start break woul
   assert.equal(r.cue, 'break-done');
 });
 
-test('Keep working, Break now and Done for now act at once within the minute', () => {
+test('Keep working, Break and Done act at once within the minute', () => {
   const end = at(2026, 10, 19, 9, 45), ask = { phase: 'ask', start: end, cat: 'geico' }, t = end + 50000;
   assert.deepEqual(answer(ask, 'work', t), { phase: 'work', start: t, cat: 'geico' });
   assert.deepEqual(answer(ask, 'break', t), { phase: 'break', start: end, cat: 'geico' });

@@ -595,7 +595,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .pm-btn.is-confirm { border-color: rgba(242, 167, 184, 0.3); background: rgba(191, 13, 62, 0.22); color: #ffd6df; }
 .pm-btn[disabled] { opacity: 0.4; }
 .pm-actions.is-three { gap: 10px; }
-.pm-actions.is-three .pm-btn { font-size: 17px; } /* three to a row: Done for now, Break now, Keep working */
+.pm-actions.is-three .pm-btn { font-size: 17px; } /* three to a row: Done, Break, Keep working */
 .pm-actions.is-three .pm-btn.is-wide { flex: 1.5; font-size: 19px; } /* Keep working, the one to tap */
 /* a phase ending: the tile pulses gold a few times (opacity only) */
 .pm-flash { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(212, 181, 78, 0.16); opacity: 0; pointer-events: none; }

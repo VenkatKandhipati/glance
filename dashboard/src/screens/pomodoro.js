@@ -19,7 +19,7 @@
 // with its break. Tracking doom scrolling or a break chimes and flashes every 10 minutes.
 // The day's goal is hours of focus: a full Pomodoro counts as an hour, its break included. Each Pomodoro phase ends with a chime and a gold
 // pulse, and brings this screen back if you'd left it. When the work ends the screen asks what's
-// next for a minute (Keep working, the one to tap; Break now; Done for now), and with no answer
+// next for a minute (Keep working, the one to tap; Break; Done), and with no answer
 // the break starts on its own, counted from the work end like a tapped one.
 // The log lives in localStorage and, in the kiosk, in a backup file that adb can pull (both still named for the Pomodoro screen it grew from):
 //   adb pull /sdcard/Android/data/app.glance.kiosk/files/pomodoro.json
@@ -147,7 +147,7 @@ function timerTile(data, now, confirming, dropped, next) {
     note = last && last.end === st.start
       ? 'Logged ' + P.minutes(last) + ' m of <b>' + esc(catName(last.cat)) + '</b>. The break starts on its own.'
       : 'The break starts on its own.';
-    actions = '<button class="pm-btn" data-act="done">Done for now</button><button class="pm-btn" data-act="break">Break now</button>' +
+    actions = '<button class="pm-btn" data-act="done">Done</button><button class="pm-btn" data-act="break">Break</button>' +
       '<button class="pm-btn is-go is-wide" data-act="work">Keep working</button>';
   } else if (st.phase === 'break') {
     phase = 'Break';
