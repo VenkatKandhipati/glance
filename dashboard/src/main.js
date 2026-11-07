@@ -33,9 +33,9 @@ let reloadDue = false, lastServerCheck = 0;
 const sheet = mountSheet($('sheet'), () => events);
 const transit = mountTransit($('transit'));
 const setTrainsAsleep = mountTrains($('trains'), transit.trains);
-// A Pomodoro phase ending brings the Time screen back (declared below; cues come a second later
-// at most).
-const focus = mountPomodoro($('pomodoro'), () => nav.go('pomodoro'));
+// A Pomodoro phase ending brings the Time screen back, lit if the power button had turned it off
+// (declared below; cues come a second later at most). A nudge brings Time back but leaves it dark.
+const focus = mountPomodoro($('pomodoro'), (cue) => { if (cue !== 'nudge') night.wake(); nav.go('pomodoro'); });
 const letters = mountTelugu($('telugu'));
 const night = mountNight($('night'), setTrainsAsleep, () => focus.busy() || letters.busy(), () => nav.go('home'));
 const nextPhoto = startPhotos($('photo'));
@@ -98,10 +98,11 @@ function schedule() {
 }
 
 // ---- taps on Home
-// The clock's time: night now. What's running on the Time screen: Time. The rest of the clock tile
-// (the weather): the Weather screen.
+// The clock's time: night now. The power button: the screen off until a tap. What's running on the
+// Time screen: Time. The rest of the clock tile (the weather): the Weather screen.
 $('clock').addEventListener('click', (e) => {
-  if (e.target.closest('.clock-time')) night.now();
+  if (e.target.closest('.clock-power')) night.off();
+  else if (e.target.closest('.clock-time')) night.now();
   else if (e.target.closest('.clock-run')) nav.go('pomodoro');
   else nav.go('weather');
 });

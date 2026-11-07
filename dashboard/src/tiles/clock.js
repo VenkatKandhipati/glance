@@ -2,7 +2,8 @@
 // During a weather warning the pill turns red with a warning sign and the greeting's second line
 // names it ("Heat Advisory."); the Weather screen has the rest. While the Time screen is tracking
 // or timing something, it takes the greeting's place ("GEICO · 22 m left"), so a forgotten timer
-// is hard to miss; a tap there opens Time. Redrawn once a minute.
+// is hard to miss; a tap there opens Time. The power button at the top right turns the screen off
+// until a tap (night.js). Redrawn once a minute.
 import { DAYS, MONTHS, clockParts, esc, greeting } from '../time.js';
 import { weatherLine } from './weather-data.js';
 
@@ -25,6 +26,8 @@ export const ICONS = {
   wind: svg('<path d="M3 9h11a3 3 0 1 0-3-3M3 15h15a3 3 0 1 1-3 3"/>'),
 };
 
+const POWER = svg('<path d="M12 3v8"/><path d="M6.6 6.6a8 8 0 1 0 10.8 0"/>', 20);
+
 export const WARNING = svg('<path d="M12 3l10 18H2z"/><path d="M12 10v4M12 17.5h.01"/>');
 
 // stale: "3 h old" when the forecast couldn't be refreshed, else null.
@@ -46,7 +49,8 @@ export function renderClock(el, now, w, alert, stale, running) {
   const { time, ampm } = clockParts(now);
   el.innerHTML =
     '<div class="clock-chips"><span class="chip"><span class="chip-icon">' + CAL_ICON + '</span>' +
-    DAYS[now.getDay()] + ' · ' + now.getDate() + ' ' + MONTHS[now.getMonth()] + '</span>' + (w ? weatherChip(w, alert, stale) : '') + '</div>' +
+    DAYS[now.getDay()] + ' · ' + now.getDate() + ' ' + MONTHS[now.getMonth()] + '</span><span class="clock-right">' +
+    (w ? weatherChip(w, alert, stale) : '') + '<button class="clock-power" aria-label="Screen off">' + POWER + '</button></span></div>' +
     '<div class="clock-time serif">' + time + '<span class="clock-ampm">' + ampm + '</span></div>' +
     '<div class="clock-greet serif">' + (running
       ? '<b class="clock-run ' + running.k + '"><i></i>' + esc(running.name) + (running.text ? ' · ' + running.text : '') + '</b>'
