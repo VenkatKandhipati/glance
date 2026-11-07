@@ -112,6 +112,22 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   background: radial-gradient(ellipse at 85% 20%, #1f2838 0%, #10141b 55%, #0b0d12 100%);
 }
 .clock-chips { display: flex; justify-content: space-between; }
+.clock-right { display: flex; gap: 12px; }
+/* the power button: a quiet 40 px circle, its touch area 76 px (::before) for the frame's low taps */
+.clock-power {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--chip-line);
+  background: var(--chip);
+  color: var(--mute);
+}
+.clock-power::before { content: ''; position: absolute; top: -18px; right: -18px; bottom: -18px; left: -18px; }
 .chip-icon-wx { background: rgba(203, 180, 124, 0.16); color: var(--gold); }
 /* a weather warning: the alert colours of the Weather screen */
 .chip-alert { background: rgba(191, 13, 62, 0.18); border-color: rgba(242, 167, 184, 0.3); color: #ffd6df; }

@@ -524,7 +524,7 @@ export function mountPomodoro(el, onCue) {
     if (key !== nudgeFor) { nudgeFor = key; nudged = n; return; }
     if (n <= nudged) return;
     nudged = n;
-    if (onCue) onCue();
+    if (onCue) onCue('nudge');
     render();
     cue('nudge');
   }
@@ -551,7 +551,7 @@ export function mountPomodoro(el, onCue) {
     dropped = r.dropped;
     if (r.logged) data.log.push(r.logged);
     save(data);
-    if (r.cue && onCue) onCue();
+    if (r.cue && onCue) onCue(r.cue);
     if (visible || r.cue) render();
     if (r.cue) cue(r.cue);
   }

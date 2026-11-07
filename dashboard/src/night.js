@@ -6,6 +6,9 @@
 // and again after each idle spell, until morning. The choice is kept across a reload and lapses
 // on its own, so the next evening starts as usual. The kiosk app turns the backlight off (GlanceKiosk.setScreenOn); without
 // it, as in a desktop browser, "off" is just black.
+// The power button on Home (off()) turns the screen off at any hour until a tap; night hours and
+// a lapsing choice leave it dark, and only a Pomodoro phase ending (wake()) brings it back on its
+// own. It isn't kept: a reload comes back lit, as usual.
 // onShow(true/false) hears when night comes and goes, so live tiles can stop asking meanwhile.
 // busy() true (the Pomodoro timer running, or the Telugu screen in use) holds night off until
 // it's done.
@@ -60,7 +63,7 @@ function setScreenOn(on) {
 // onAwake() hears "Still working", to go back to Home.
 export function mountNight(el, onShow, busy, onAwake) {
   const cfg = settings.night;
-  let idle = 0, mode = null, forced = false, choice = loadChoice();
+  let idle = 0, mode = null, forced = false, power = false, choice = loadChoice();
 
   el.innerHTML = '<div class="night-inner"><div class="night-time serif"></div><div class="night-date"></div>' +
     '<div class="night-pick"><button class="night-btn" data-pick="awake">Still working</button>' +
@@ -87,6 +90,7 @@ export function mountNight(el, onShow, busy, onAwake) {
     if (!mode) return;
     mode = null;
     forced = false;
+    power = false;
     el.hidden = true;
     setScreenOn(true);
     onShow(false);
@@ -99,7 +103,7 @@ export function mountNight(el, onShow, busy, onAwake) {
     e.stopPropagation();
     idle = 0;
     const pick = e.target.closest('[data-pick]');
-    if (!pick) { hide(); return; }
+    if (!pick) { const wasPower = power; hide(); if (wasPower) onAwake(); return; } // the power button's dark: back to Home
     choice = choose(pick.getAttribute('data-pick'), new Date(), cfg);
     saveChoice(choice);
     if (choice.kind === 'sleep') { forced = true; show('off'); } // dark now, even before 10 p.m.
@@ -111,6 +115,7 @@ export function mountNight(el, onShow, busy, onAwake) {
     const now = new Date();
     // Before network time after a power cut the hour means nothing; stay on the dashboard.
     const want = clockIsSane(now, __BUILT_AT__) ? nightWant(now, cfg, choice) : null;
+    if (power) return; // off by the power button: dark until a tap, whatever the hour
     if (!mode && want && idle >= cfg.idleSeconds && !busy()) show(want);
     else if (mode && want && want !== mode) show(want);       // midnight: clock → off
     else if (mode && !want && !forced) hide();                // morning: back on its own
@@ -138,6 +143,16 @@ export function mountNight(el, onShow, busy, onAwake) {
     now() {
       forced = true;
       show(nightMode(new Date(), cfg) === 'off' ? 'off' : 'clock');
+    },
+    // The power button: the screen off now, until a tap.
+    off() {
+      forced = true;
+      power = true;
+      show('off');
+    },
+    // A Pomodoro phase ended: light a screen the power button turned off, so its prompt shows.
+    wake() {
+      if (power) hide();
     },
   };
 }

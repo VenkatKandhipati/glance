@@ -76,6 +76,9 @@ All in [`dashboard/src/style.css`](../dashboard/src/style.css) as custom propert
 - **Side bar:** 120 px, hidden off the left edge with a faint 5 px handle showing; 100 px tall
   buttons (icon and label), the current screen tinted gold. Order, most used first: Home, Time,
   Week, Telugu, Weather, Transit. It slides in and out (transform only).
+- **Power button:** a quiet 40 px round chip (`--chip`, a muted ⏻) at the clock tile's top right,
+  after the weather pill, its touch area 76 px. It turns the screen off (the backlight in the
+  kiosk, plain black elsewhere) until a tap, which brings back Home.
 - **Night clock:** `--night` red on black, nothing brighter. Under the date, two outlined pill
   buttons (240 × 76 px, red text, a faint red border): *Still working* and *Going to sleep*. They
   drift with the clock.
