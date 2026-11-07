@@ -116,7 +116,7 @@ export function demoPomodoro() {
   log.push({ start: at(0, 8, 5).getTime(), end: at(0, 8, 14).getTime(), cat: 'break', done: false, kind: 'track' });
   log.push({ start: at(0, 8, 14).getTime(), end: at(0, 8, 21).getTime(), cat: 'scrolling', done: false, kind: 'track' });
   // `?demo&work` shows a Pomodoro running, `&ask` one that just ended (asking what's next, for
-  // the 15 seconds before it goes to Ready), `&idle` nothing, `&auto` a tracker that stopped by
+  // the minute before the break starts on its own), `&idle` nothing, `&auto` a tracker that stopped by
   // itself, `&nudge` 21 minutes of doom scrolling; otherwise tracking
   const q = (k) => new RegExp('[?&]' + k + '(&|$)').test(location.search);
   const ended = Date.now() - 3000;

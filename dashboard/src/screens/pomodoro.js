@@ -19,7 +19,8 @@
 // with its break. Tracking doom scrolling or a break chimes and flashes every 10 minutes.
 // The day's goal is hours of focus: a full Pomodoro counts as an hour, its break included. Each Pomodoro phase ends with a chime and a gold
 // pulse, and brings this screen back if you'd left it. When the work ends the screen asks what's
-// next (Start break, Keep working, Done for now) and with no answer in 15 seconds goes to Ready.
+// next for a minute (Keep working, the one to tap; Break now; Done for now), and with no answer
+// the break starts on its own, counted from the work end like a tapped one.
 // The log lives in localStorage and, in the kiosk, in a backup file that adb can pull (both still named for the Pomodoro screen it grew from):
 //   adb pull /sdcard/Android/data/app.glance.kiosk/files/pomodoro.json
 import { time as cfg, settings } from '../content.js';
@@ -142,11 +143,12 @@ function timerTile(data, now, confirming, dropped, next) {
     actions = stop(true);
   } else if (st.phase === 'ask') {
     phase = 'Pomodoro done';
+    // The break is the default, so the button to reach for is Keep working.
     note = last && last.end === st.start
-      ? 'Logged ' + P.minutes(last) + ' m of <b>' + esc(catName(last.cat)) + '</b>. A break, or keep going?'
-      : 'A break, or keep going?';
-    actions = '<button class="pm-btn" data-act="done">Done for now</button><button class="pm-btn" data-act="work">Keep working</button>' +
-      '<button class="pm-btn is-go" data-act="break">Start break</button>';
+      ? 'Logged ' + P.minutes(last) + ' m of <b>' + esc(catName(last.cat)) + '</b>. The break starts on its own.'
+      : 'The break starts on its own.';
+    actions = '<button class="pm-btn" data-act="done">Done for now</button><button class="pm-btn" data-act="break">Break now</button>' +
+      '<button class="pm-btn is-go is-wide" data-act="work">Keep working</button>';
   } else if (st.phase === 'break') {
     phase = 'Break';
     note = last && last.end === st.start
@@ -484,10 +486,10 @@ export function mountPomodoro(el, onCue) {
       until = trusted ? 'since ' + timeText(new Date(st.start)) : '';
       fill = trusted ? (ms % HOUR) / HOUR : 0;
     } else if (st.phase === 'ask') {
-      // The seconds left to answer, the ring emptying with them.
+      // The seconds left to answer, the ring (in the break's teal) filling with them.
       const remaining = st.start + P.ASK_SEC * 1000 - now;
       text = trusted ? mmss(remaining) : '––:––';
-      until = trusted ? 'then Ready' : '';
+      until = trusted ? 'then the break' : '';
       fill = trusted ? 1 - Math.min(1, Math.max(0, remaining) / (P.ASK_SEC * 1000)) : 1;
     } else {
       const end = P.phaseEnd(st, cfg);
