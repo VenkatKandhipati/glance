@@ -39,8 +39,9 @@ keep running for weeks with nobody touching it.
   Himalayas and South Asia among them), Earth from the Space Station and NASA's Astronomy Picture
   of the Day. The frame measures each one first and shows only sharp, well-sized, dark pictures
   that sit with the dashboard's navy. None needs a key.
-- **Metro.** Live WMATA arrivals at your station in both directions, with each line's colour. It
-  stops asking at night.
+- **Metro.** Live WMATA arrivals at your station in both directions, with each line's colour. A
+  red sign under the station's name says when there's an alert on its lines or an elevator or
+  escalator is out ("Delay · Elevator out"). It stops asking at night.
 - **Screens.** A tap on the left edge brings out a side bar: **Week** (the next seven days, every
   calendar), **Transit** (the full board with destinations and cars, line alerts and elevator
   outages) and **Weather** (now, the next 12 hours, the week, sunrise and sunset, and any
@@ -74,7 +75,8 @@ keep running for weeks with nobody touching it.
   writing doesn't send it Home, and moves 4 px once every half hour against burn-in.
 - **Taps on Home.** A day on the month, or *Next up*, opens that day's events (‹ › step through
   days). The weather opens Weather, the Metro banner opens Transit, the photo moves on, and the
-  time brings the night clock now.
+  time brings the night clock now. Whatever a touch lands on lights up at once, so a tap the frame
+  read in the wrong place is plain to see.
 - **Night.** From 10 p.m., two idle minutes turn the screen into a dim red clock on black that
   drifts a few pixels against burn-in. From midnight to 8 a.m. the backlight goes fully off. A
   tap brings the dashboard back either way. Two buttons on the clock: **Still working** goes back

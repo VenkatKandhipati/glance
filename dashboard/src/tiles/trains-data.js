@@ -41,3 +41,16 @@ export function normalizeIncidents(rail, elevators, lines) {
   }));
   return { alerts, outages };
 }
+
+// A few words for the Metro banner on what's wrong, or '' when nothing is: the alert's type
+// ("Delay") or "2 alerts", then "Elevator out", "2 escalators out" or "3 outages".
+export function troubleText(inc) {
+  if (!inc) return '';
+  const a = inc.alerts || [], o = inc.outages || [], parts = [];
+  if (a.length) parts.push(a.length === 1 ? a[0].type : a.length + ' alerts');
+  if (o.length) {
+    const unit = o.every((x) => x.unit === o[0].unit) ? o[0].unit : null;
+    parts.push(o.length === 1 ? unit + ' out' : unit ? o.length + ' ' + unit.toLowerCase() + 's out' : o.length + ' outages');
+  }
+  return parts.join(' · ');
+}

@@ -345,6 +345,23 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .trains-title { flex: none; width: 170px; font-size: 26px; font-weight: 650; line-height: 1.05; }
 .trains-title b { display: block; font-weight: 650; color: var(--gold); }
 .trains-title span { display: block; margin-top: 4px; color: var(--mute); font-size: 15px; }
+/* trouble at the station: the weather warning's reds (.chip-alert) */
+.trains-trouble {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 8px;
+  padding: 4px 10px 4px 7px;
+  border: 1px solid rgba(242, 167, 184, 0.3);
+  border-radius: 10px;
+  background: rgba(191, 13, 62, 0.18);
+  color: #ffd6df;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 650;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.trains-trouble svg { flex: none; width: 15px; height: 15px; margin-right: 6px; color: #f2a7b8; }
 .trains-dir {
   flex: 1;
   min-width: 0;
@@ -555,6 +572,8 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .pm-k6 { --k: #ed5523; --kb: rgba(237, 85, 35, 0.16); }
 .pm-k7 { --k: #7cc6b8; --kb: rgba(124, 198, 184, 0.16); }
 .pm-k8 { --k: #858a95; --kb: rgba(133, 138, 149, 0.16); }
+.pm-now { margin-left: auto; align-self: center; font-size: 46px; line-height: 1; color: var(--ink-2); }
+.pm-now i { margin-left: 6px; font-size: 22px; color: var(--mute); }
 .pm-body { flex: 1; min-height: 0; display: grid; grid-template-columns: 500px 1fr; gap: var(--gap); }
 .pm-timer { display: flex; flex-direction: column; padding: 22px 26px 24px; }
 .pm-timer.is-work { background: var(--tile-blue); }
@@ -959,6 +978,22 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   font-weight: 600;
   color: var(--night);
 }
+
+/* ------------------------------------------------------------------ tap feedback (tap.js) */
+/* laid over whatever a touch lands on, at once, then faded; only its opacity animates */
+.tap {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 40;
+  pointer-events: none;
+  background: rgba(255, 255, 255, 0.16);
+  opacity: 0;
+  transition: opacity 0.15s ease-out;
+  will-change: opacity, transform;
+}
+.tap.is-on { opacity: 1; transition: none; }
+.tap.is-night { background: rgba(143, 36, 24, 0.4); } /* the night clock's red, nothing brighter */
 
 /* ------------------------------------------------------------------ ?diag */
 .diag {

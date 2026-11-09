@@ -64,6 +64,11 @@ All in [`dashboard/src/style.css`](../dashboard/src/style.css) as custom propert
   its line's colour. The next train is ink, the two after it muted; arriving or boarding reads
   "Now" in gold. No destinations or units. WMATA line colours: Orange `#ed8b00`, Silver
   `#919d9d`, Red `#bf0d3e`, Blue `#009cde`, Yellow `#ffd100`, Green `#00b140`.
+- **Trouble at the station:** a small red pill under the station's name in the weather warning's
+  reds (`rgba(191, 13, 62, 0.18)`, `#ffd6df` text, a 15 px warning sign in `#f2a7b8`), 14 px:
+  the alert's type or "2 alerts", then "Elevator out", "2 escalators out" or "3 outages", joined
+  with " · ". It's there only while WMATA's latest answer (every 5 minutes, every 2 on Transit)
+  is under 30 minutes old; with nothing wrong the banner is unchanged.
 - **Weather:** a pill at the clock tile's top right (gold-tinted icon chip, the temperature now)
   and the greeting's second line ("Mostly sunny.", "Rain from 4 pm."). Without a forecast the line
   falls back to "Here's your day."
@@ -93,7 +98,8 @@ All in [`dashboard/src/style.css`](../dashboard/src/style.css) as custom propert
   pictures are shown whole and never enlarged (`object-fit: scale-down`)
   on the tile's dark ground; photos fill the tile. A credit line sits in a dark pill
   (`rgba(8, 10, 14, 0.7)`, 14 px) at the bottom left and fades with the picture.
-- **Time** (grew from the Pomodoro screen): the timer tile on the left (500 px), tinted
+- **Time** (grew from the Pomodoro screen): the time of day at the heading's right (serif, 46 px,
+  `--ink-2`, am/pm in muted italic), then the timer tile on the left (500 px), tinted
   `--tile-blue` while deep work runs: a 240 px ring that empties as a Pomodoro runs out (in the
   category's colour for work, with the phase label; the Break category's teal `#7cc6b8` for the
   break) or, tracking, fills once an hour in the category's colour; the
@@ -131,5 +137,10 @@ All in [`dashboard/src/style.css`](../dashboard/src/style.css) as custom propert
   category's colour. The nudge to stop doom scrolling or a break pulses the timer tile in Doom
   scrolling's red (`#ed5523`, opacity only) and turns the note red.
 - **Touch:** every target is at least 76 px, because the frame reads taps low (docs/frame.md).
+- **Tap feedback:** the moment a finger is down, what it landed on lights up: one overlay
+  (`rgba(255, 255, 255, 0.16)`, the target's own radius) is laid over the button, tile, day or
+  column, held at least 80 ms and faded over 150 ms (opacity only), so a tap read low is plain to
+  see. A tap on nothing, or the start of a swipe, shows nothing. On the night clock it's the
+  clock's red (`rgba(143, 36, 24, 0.4)`); the dark of the power button and the night shows none.
 - **No** shadows, blur, gradients that animate, or motion other than photo crossfades, the side
   bar's slide and the night clock's drift.
