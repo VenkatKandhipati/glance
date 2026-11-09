@@ -109,3 +109,12 @@ test('a tap on the month grid finds its day (Sunday-first October 2026, 7 column
   assert.equal(key(dayAtGrid(now, 280, 275, 31 * 5 + 30)), '10-31');
   assert.equal(dayAtGrid(now, 280, 10, 31 * 6 + 5), null);   // below the last week
 });
+
+test('the tap feedback lights the cell the tap is taken by', async () => {
+  const { cellAtGrid } = await import('../src/tiles/calendar.js');
+  const now = new Date(2026, 9, 19, 12);
+  assert.equal(cellAtGrid(now, 280, 10, 10), -1);           // weekday names
+  assert.equal(cellAtGrid(now, 280, 10, 40), 7);            // the first day, after 7 names
+  assert.equal(cellAtGrid(now, 280, 45, 31 * 4 + 5), 29);   // 19 October: row 4, Monday
+  assert.equal(cellAtGrid(now, 280, 10, 31 * 6 + 5), -1);   // below the last week
+});

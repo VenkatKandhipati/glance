@@ -51,8 +51,8 @@ export function renderClock(el, now, w, alert, stale, running) {
     '<div class="clock-chips"><span class="chip"><span class="chip-icon">' + CAL_ICON + '</span>' +
     DAYS[now.getDay()] + ' · ' + now.getDate() + ' ' + MONTHS[now.getMonth()] + '</span><span class="clock-right">' +
     (w ? weatherChip(w, alert, stale) : '') + '<button class="clock-power" aria-label="Screen off">' + POWER + '</button></span></div>' +
-    '<div class="clock-time serif">' + time + '<span class="clock-ampm">' + ampm + '</span></div>' +
+    '<div class="clock-time serif" data-tap>' + time + '<span class="clock-ampm">' + ampm + '</span></div>' +
     '<div class="clock-greet serif">' + (running
-      ? '<b class="clock-run ' + running.k + '"><i></i>' + esc(running.name) + (running.text ? ' · ' + running.text : '') + '</b>'
+      ? '<b class="clock-run ' + running.k + '" data-tap><i></i>' + esc(running.name) + (running.text ? ' · ' + running.text : '') + '</b>'
       : '<b>' + greeting(now) + '</b>') + secondLine(w, alert) + '</div>';
 }

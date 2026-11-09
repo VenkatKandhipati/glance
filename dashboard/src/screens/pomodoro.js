@@ -25,7 +25,7 @@
 //   adb pull /sdcard/Android/data/app.glance.kiosk/files/pomodoro.json
 import { time as cfg, settings } from '../content.js';
 import { DEMO, demoPomodoro } from '../demo.js';
-import { DAYS, addDays, esc } from '../time.js';
+import { DAYS, addDays, clockParts, esc } from '../time.js';
 import { timeText } from '../tiles/calendar.js';
 import * as P from '../pomodoro-data.js';
 
@@ -452,12 +452,20 @@ export function mountPomodoro(el, onCue) {
     const now = Date.now(), date = new Date(now), view = viewAt(now);
     const days = P.lastDays(view, date, 7, isFocus);
     const next = balance.length ? P.nextFocus(days, balance, RECENT_DAYS) : null;
-    const html = '<header class="screen-head"><h1 class="serif">Time<i>,</i></h1><span>At the desk · Pomodoro ' + cfg.work + ' + ' + cfg.break + ' minutes</span></header>' +
+    const html = '<header class="screen-head pm-head"><h1 class="serif">Time<i>,</i></h1><span>At the desk · Pomodoro ' + cfg.work + ' + ' + cfg.break + ' minutes</span>' +
+      '<b class="pm-now serif"></b></header>' +
       '<div class="pm-body">' + timerTile(data, now, now < confirmUntil, dropped, next) +
       (tl ? '<section class="tile pm-tl' + (tlCol ? ' is-col' : '') + '"></section>' : statsTiles(view, days, date, sel, next, grid)) + '</div>';
     if (el.__html !== html) { el.innerHTML = el.__html = html; offset = -1; }
     if (tl) drawTimeline(view, date);
     tickView(now);
+    drawNow(date);
+  }
+
+  // The time of day at the header's right, patched on its own so the screen isn't drawn again.
+  function drawNow(date) {
+    const n = el.querySelector('.pm-now'), { time, ampm } = clockParts(date), html = time + '<i>' + ampm + '</i>';
+    if (n && n.__html !== html) n.innerHTML = n.__html = html;
   }
 
   // The timeline is drawn into its tile apart from the rest, and patched from then on, so what's
@@ -739,6 +747,7 @@ export function mountPomodoro(el, onCue) {
   setInterval(() => {
     step();
     if (visible && data.state.phase !== 'idle') tickView(Date.now());
+    if (visible) drawNow(new Date());
   }, 1000);
   setTimeout(step, 0); // after main.js has finished wiring, since a cue moves to this screen
 

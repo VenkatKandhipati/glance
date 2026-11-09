@@ -1,5 +1,5 @@
 // ?demo: made-up events, trains and weather, and a public-domain photo, for screenshots that show
-// nothing personal (`?demo&screen=week` opens a screen, `?demo&alert` adds a weather warning, `?demo&stale` shows stale badges; the Time screen takes `&work`, `&idle`, `&auto` and `&nudge`). The clock reads 8:42 am the day after
+// nothing personal (`?demo&screen=week` opens a screen, `?demo&alert` adds a weather warning, `?demo&stale` shows stale badges, `?demo&trouble` an alert and an elevator out at the station; the Time screen takes `&work`, `&idle`, `&auto` and `&nudge`). The clock reads 8:42 am the day after
 // the build (`&at=14:30` for another time), so screenshots always look the same. Imported first by main.js, before anything
 // reads the time.
 export const DEMO = /[?&]demo(&|=|$)/.test(location.search);
@@ -64,7 +64,11 @@ export function demoTrains() {
   ] };
 }
 
-export const demoIncidents = { alerts: [], outages: [] };
+// `?demo&trouble`: a delay on the station's lines and an elevator out, for the Metro banner's sign.
+export const demoIncidents = DEMO && /[?&]trouble(&|$)/.test(location.search) ? {
+  alerts: [{ type: 'Delay', text: 'Orange and Silver line trains are delayed between Ballston and Rosslyn due to a disabled train.', lines: ['OR', 'SV'] }],
+  outages: [{ unit: 'Elevator', where: 'Street to mezzanine' }],
+} : { alerts: [], outages: [] };
 
 // Shaped like weather.gov's /forecast and /forecast/hourly: a cool, clearing autumn day with
 // showers in two days' time.

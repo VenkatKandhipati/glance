@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { minutes, normalize, normalizeIncidents } from '../src/tiles/trains-data.js';
-import { trainsHtml, STALE_MS } from '../src/tiles/trains-view.js';
+import { minutes, normalize, normalizeIncidents, troubleText } from '../src/tiles/trains-data.js';
+import { trainsHtml, STALE_MS, TROUBLE_STALE_MS } from '../src/tiles/trains-view.js';
 
 // Shape of a real GetPrediction/K04 response (2026-10-16), plus the odd rows WMATA sends.
 const wmata = { Trains: [
@@ -71,4 +71,26 @@ test('incidents: only the station\'s lines; elevator outages by unit', () => {
 test('car counts', () => {
   const { trains } = normalize(wmata, 1);
   assert.deepEqual(trains.map((t) => t.cars), [8, 8, 8, 6]);
+});
+
+test('trouble at the station, in a few words', () => {
+  const alert = (type) => ({ type, text: '', lines: ['OR'] });
+  const out = (unit) => ({ unit, where: '' });
+  assert.equal(troubleText(null), '');
+  assert.equal(troubleText({ alerts: [], outages: [] }), '');
+  assert.equal(troubleText({ alerts: [alert('Delay')], outages: [] }), 'Delay');
+  assert.equal(troubleText({ alerts: [alert('Alert'), alert('Delay')], outages: [] }), '2 alerts');
+  assert.equal(troubleText({ alerts: [], outages: [out('Elevator')] }), 'Elevator out');
+  assert.equal(troubleText({ alerts: [], outages: [out('Escalator'), out('Escalator')] }), '2 escalators out');
+  assert.equal(troubleText({ alerts: [], outages: [out('Escalator'), out('Elevator'), out('Elevator')] }), '3 outages');
+  assert.equal(troubleText({ alerts: [alert('Delay')], outages: [out('Elevator')] }), 'Delay · Elevator out');
+});
+
+test('the banner shows trouble only while the answer is recent', () => {
+  const now = 10 * 3600e3, data = normalize(wmata, now);
+  const incidents = { alerts: [{ type: 'Delay', text: 'x', lines: ['OR'] }], outages: [] };
+  assert.match(trainsHtml(metro, { data, lastOk: now, incidents, incidentsAt: now - 60000 }, now), /trains-trouble.*Delay/);
+  assert.doesNotMatch(trainsHtml(metro, { data, lastOk: now, incidents, incidentsAt: now - TROUBLE_STALE_MS - 1 }, now), /trains-trouble/);
+  assert.doesNotMatch(trainsHtml(metro, { data, lastOk: now, incidents: { alerts: [], outages: [] }, incidentsAt: now }, now), /trains-trouble/);
+  assert.doesNotMatch(trainsHtml(metro, { data, lastOk: now }, now), /trains-trouble/);
 });

@@ -8,10 +8,10 @@
 </head>
 <body>
   <main class="board" id="board">
-    <section class="tile clock" id="clock"></section>
-    <section class="tile cal" id="cal"></section>
-    <section class="tile photo" id="photo"></section>
-    <section class="tile trains" id="trains"></section>
+    <section class="tile clock" id="clock" data-tap></section>
+    <section class="tile cal" id="cal" data-tap></section>
+    <section class="tile photo" id="photo" data-tap></section>
+    <section class="tile trains" id="trains" data-tap></section>
   </main>
   <main class="screen" id="week" hidden></main>
   <main class="screen" id="transit" hidden></main>
@@ -23,6 +23,7 @@
   <div class="scrim" id="scrim" hidden></div>
   <nav class="bar" id="bar"></nav>
   <div class="night" id="night" hidden></div>
+  <div class="tap" id="tap"></div>
 
   <script>
     // Wall-display self-healing: if the bundle hasn't started within 10 s (stale page after a

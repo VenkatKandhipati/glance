@@ -110,6 +110,11 @@ export function dayAtGrid(now, width, x, y) {
   return day <= addDays(lastOfMonth, 6 - ((lastOfMonth.getDay() - settings.weekStartsOn + 7) % 7)) ? day : null;
 }
 
+// The same tap's cell, as its index among the grid's children (weekday names first), or -1.
+export function cellAtGrid(now, width, x, y) {
+  return dayAtGrid(now, width, x, y) ? Math.floor(y / ROW) * 7 + Math.floor(x / (width / 7)) : -1;
+}
+
 // Draws the tile; only touches the DOM when something visible changed, so it's cheap to call
 // every minute and whenever the calendars refresh.
 // stale: the calendars' age once they're overdue ("2 h old"), or null.

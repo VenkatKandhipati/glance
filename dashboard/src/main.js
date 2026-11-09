@@ -16,6 +16,7 @@ import { renderWeatherScreen } from './screens/weather.js';
 import { mountPomodoro } from './screens/pomodoro.js';
 import { mountTelugu } from './screens/telugu.js';
 import { startDiag } from './diag.js';
+import { mountTap } from './tap.js';
 import { clockIsSane } from './time.js';
 import { applyShift } from './shift.js';
 import { settings } from './content.js';
@@ -31,13 +32,13 @@ let forecast = null; // { daily, hourly, alerts, at } from weather.gov, refreshe
 let reloadDue = false, lastServerCheck = 0;
 
 const sheet = mountSheet($('sheet'), () => events);
-const transit = mountTransit($('transit'));
-const setTrainsAsleep = mountTrains($('trains'), transit.trains);
+const transit = mountTransit($('transit'), () => banner.refreshIncidents());
+const banner = mountTrains($('trains'), transit.trains);
 // A Pomodoro phase ending brings the Time screen back, lit if the power button had turned it off
 // (declared below; cues come a second later at most). A nudge brings Time back but leaves it dark.
 const focus = mountPomodoro($('pomodoro'), (cue) => { if (cue !== 'nudge') night.wake(); nav.go('pomodoro'); });
 const letters = mountTelugu($('telugu'));
-const night = mountNight($('night'), setTrainsAsleep, () => focus.busy() || letters.busy(), () => nav.go('home'));
+const night = mountNight($('night'), banner.setAsleep, () => focus.busy() || letters.busy(), () => nav.go('home'));
 const nextPhoto = startPhotos($('photo'));
 // The side bar lists the screens in this order, Home first.
 const nav = mountNav($('bar'), $('edge'), $('scrim'), {
@@ -137,3 +138,4 @@ watchWeather((f) => {
 if (DEMO_SCREEN) nav.go(DEMO_SCREEN);
 else if (focus.stay()) nav.go('pomodoro'); // a reload or power cut mid-session: back to the timer
 startDiag();
+mountTap($('tap'));
