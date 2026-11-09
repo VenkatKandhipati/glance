@@ -98,7 +98,7 @@ All in [`dashboard/src/style.css`](../dashboard/src/style.css) as custom propert
   pictures are shown whole and never enlarged (`object-fit: scale-down`)
   on the tile's dark ground; photos fill the tile. A credit line sits in a dark pill
   (`rgba(8, 10, 14, 0.7)`, 14 px) at the bottom left and fades with the picture.
-- **Time** (grew from the Pomodoro screen): the time of day at the heading's right (serif, 46 px,
+- **Time** (grew from the Pomodoro screen): the time of day in the heading, centred over the right-hand column (serif, 46 px,
   `--ink-2`, am/pm in muted italic), then the timer tile on the left (500 px), tinted
   `--tile-blue` while deep work runs: a 240 px ring that empties as a Pomodoro runs out (in the
   category's colour for work, with the phase label; the Break category's teal `#7cc6b8` for the

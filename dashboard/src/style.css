@@ -572,7 +572,22 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .pm-k6 { --k: #ed5523; --kb: rgba(237, 85, 35, 0.16); }
 .pm-k7 { --k: #7cc6b8; --kb: rgba(124, 198, 184, 0.16); }
 .pm-k8 { --k: #858a95; --kb: rgba(133, 138, 149, 0.16); }
-.pm-now { margin-left: auto; align-self: center; font-size: 46px; line-height: 1; color: var(--ink-2); }
+/* the time of day, centred over the right-hand column (the timer tile is 500 px) */
+.pm-head { position: relative; }
+.pm-now {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(500px + var(--gap));
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 46px;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--ink-2);
+}
 .pm-now i { margin-left: 6px; font-size: 22px; color: var(--mute); }
 .pm-body { flex: 1; min-height: 0; display: grid; grid-template-columns: 500px 1fr; gap: var(--gap); }
 .pm-timer { display: flex; flex-direction: column; padding: 22px 26px 24px; }

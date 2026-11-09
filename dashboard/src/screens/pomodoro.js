@@ -452,7 +452,7 @@ export function mountPomodoro(el, onCue) {
     const now = Date.now(), date = new Date(now), view = viewAt(now);
     const days = P.lastDays(view, date, 7, isFocus);
     const next = balance.length ? P.nextFocus(days, balance, RECENT_DAYS) : null;
-    const html = '<header class="screen-head"><h1 class="serif">Time<i>,</i></h1><span>At the desk · Pomodoro ' + cfg.work + ' + ' + cfg.break + ' minutes</span>' +
+    const html = '<header class="screen-head pm-head"><h1 class="serif">Time<i>,</i></h1><span>At the desk · Pomodoro ' + cfg.work + ' + ' + cfg.break + ' minutes</span>' +
       '<b class="pm-now serif"></b></header>' +
       '<div class="pm-body">' + timerTile(data, now, now < confirmUntil, dropped, next) +
       (tl ? '<section class="tile pm-tl' + (tlCol ? ' is-col' : '') + '"></section>' : statsTiles(view, days, date, sel, next, grid)) + '</div>';
