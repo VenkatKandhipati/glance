@@ -1,0 +1,91 @@
+<template>
+  <style>
+    @font-face { font-family: 'Instrument Serif'; font-style: normal; font-weight: 400; src: url('assets/fonts/instrument-serif.woff2') format('woff2'); }
+    @font-face { font-family: 'Instrument Serif'; font-style: italic; font-weight: 400; src: url('assets/fonts/instrument-serif-italic.woff2') format('woff2'); }
+    @font-face { font-family: 'Plus Jakarta Sans Variable'; font-style: normal; font-weight: 200 800; src: url('assets/fonts/plus-jakarta-sans.woff2') format('woff2-variations'); }
+    #root { position: absolute; inset: 0; overflow: hidden; background: #0c0f14; font-family: 'Plus Jakarta Sans Variable', sans-serif; color: #f3f0e9; }
+    .hm-glow {
+      position: absolute; left: 510px; top: 70px; width: 900px; height: 900px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(203, 180, 124, 0.9) 0%, rgba(203, 180, 124, 0) 62%);
+      opacity: 0;
+    }
+    /* the Home clock tile's time and greeting, at frame scale (tile: 132 px and 46 px; here 2.6x) */
+    .hm-hook { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; display: flex; align-items: center; justify-content: center; }
+    .hm-hook-in { display: flex; flex-direction: column; align-items: flex-start; }
+    .hm-time { display: flex; align-items: baseline; font-family: 'Instrument Serif', serif; font-size: 343px; line-height: 0.9; letter-spacing: -0.03em; color: #f3f0e9; opacity: 0; }
+    .hm-time i { margin-left: 26px; font-size: 120px; font-style: italic; color: #cbb47c; }
+    .hm-greet { margin-top: 44px; font-family: 'Instrument Serif', serif; font-size: 104px; line-height: 1.05; letter-spacing: -0.01em; }
+    .hm-greet b { display: block; font-weight: 400; color: #cbb47c; }
+    .hm-greet span { display: block; }
+    .hm-greet .w { display: inline-block; opacity: 0; }
+    /* the caption band at the top (title-safe), then the page at 1:1 inside a bezel */
+    .hm-cap { position: absolute; left: 0; top: 96px; width: 1920px; text-align: center; font-family: 'Instrument Serif', serif; font-size: 50px; line-height: 1.2; color: #f3f0e9; opacity: 0; }
+    .hm-page { position: absolute; left: 320px; top: 180px; width: 1280px; height: 800px; opacity: 0; }
+    .hm-bezel { position: absolute; inset: -8px; border-radius: 38px; border: 1px solid rgba(255, 255, 255, 0.07); background: #000000; }
+    .hm-page .board { position: absolute; left: 0; top: 0; background: #0c0f14; border-radius: 30px; }
+    /* each tile and each Metro time arrives on its own beat (GSAP sets the opacity from 0) */
+    .hm-page .tile, .hm-page .train, .hm-page .trains-trouble { opacity: 0; }
+  </style>
+  <div id="root" data-composition-id="home" data-width="1920" data-height="1080">
+    <div id="hm-glow" class="hm-glow" data-layout-ignore></div>
+    <div id="hm-hook" class="hm-hook" data-layout-allow-overflow>
+      <div class="hm-hook-in">
+        <div id="hm-time" class="hm-time">8:42<i>am</i></div>
+        <div id="hm-greet" class="hm-greet">
+          <b><span class="w">Good</span> <span class="w">morning.</span></b>
+          <span><span class="w">Partly</span> <span class="w">cloudy.</span></span>
+        </div>
+      </div>
+    </div>
+    <div id="hm-cap" class="hm-cap">A calm home dashboard for a cheap Android photo frame.</div>
+    <div id="hm-page" class="hm-page" data-layout-allow-overflow>
+      <div class="hm-bezel"></div>
+      <main class="board" id="board">
+    <section class="tile clock" id="clock" data-tap=""><div class="clock-chips"><span class="chip"><span class="chip-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg></span>Thursday · 19 November</span><span class="clock-right"><span class="chip"><span class="chip-icon chip-icon-wx"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v1.5M3.5 8H5M4.8 4.8l1 1M12.2 4.8l-1 1"></path><path d="M5.6 11.5a3.5 3.5 0 0 1 6-4"></path><path d="M9 20h8a3.2 3.2 0 0 0 .4-6.4 4.4 4.4 0 0 0-8.5 1.2A2.6 2.6 0 0 0 9 20z"></path></svg></span>58°</span><button class="clock-power" aria-label="Screen off"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v8"></path><path d="M6.6 6.6a8 8 0 1 0 10.8 0"></path></svg></button></span></div><div class="clock-time serif" data-tap="">8:42<span class="clock-ampm">am</span></div><div class="clock-greet serif"><b>Good morning.</b>Partly cloudy.</div></section>
+    <section class="tile cal" id="cal" data-tap=""><div class="cal-side"><div class="cal-month serif">November<i>,</i></div><div class="cal-year">2026</div><div class="cal-agenda"><div class="cal-quiet"><div class="cal-label">Book club</div><div class="cal-quiet-title"><b>Tomorrow</b> Chapter 9 discussion</div></div><div class="cal-next"><div class="cal-label">Next up</div><div class="cal-next-title">Coffee with Priya</div><div class="cal-next-when">Today · 10:30 am</div></div></div></div><div class="cal-grid"><span class="cal-dow">SU</span><span class="cal-dow">MO</span><span class="cal-dow">TU</span><span class="cal-dow">WE</span><span class="cal-dow">TH</span><span class="cal-dow">FR</span><span class="cal-dow">SA</span><span class="cal-day">1</span><span class="cal-day">2</span><span class="cal-day">3</span><span class="cal-day">4</span><span class="cal-day">5</span><span class="cal-day">6</span><span class="cal-day">7</span><span class="cal-day">8</span><span class="cal-day">9</span><span class="cal-day">10</span><span class="cal-day">11</span><span class="cal-day">12</span><span class="cal-day">13</span><span class="cal-day">14</span><span class="cal-day">15</span><span class="cal-day">16</span><span class="cal-day">17</span><span class="cal-day">18</span><span class="cal-day is-today is-marked">19</span><span class="cal-day">20</span><span class="cal-day is-marked">21</span><span class="cal-day is-marked">22</span><span class="cal-day is-marked">23</span><span class="cal-day is-marked">24</span><span class="cal-day is-marked">25</span><span class="cal-day">26</span><span class="cal-day">27</span><span class="cal-day is-marked">28</span><span class="cal-day">29</span><span class="cal-day">30</span><span class="cal-day is-out is-marked">1</span><span class="cal-day is-out">2</span><span class="cal-day is-out">3</span><span class="cal-day is-out is-marked">4</span><span class="cal-day is-out">5</span></div></section>
+    <section class="tile photo" id="photo" data-tap=""><img class="photo-img" alt="" crossorigin="anonymous"><img class="photo-img is-on is-contain" alt="" src="assets/img/porter-floral-still-life.jpg"><div class="photo-cap is-on">Floral Still Life, Charles Ethan Porter, 1881 · Detroit Institute of Arts</div></section>
+    <section class="tile trains" id="trains" data-tap=""><div class="trains-title"><b>Ballston</b><em class="trains-trouble"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l10 18H2z"></path><path d="M12 10v4M12 17.5h.01"></path></svg>Delay · Elevator out</em></div><div class="trains-dir"><div class="trains-row"><span class="trains-label">To DC</span><span class="trains-times"><span class="train"><span class="line line-SV"></span><i>Now</i></span><span class="train"><span class="line line-OR"></span>6</span><span class="train"><span class="line line-SV"></span>13</span></span></div></div><div class="trains-dir"><div class="trains-row"><span class="trains-label">To Vienna</span><span class="trains-times"><span class="train"><span class="line line-OR"></span>2</span><span class="train"><span class="line line-SV"></span>9</span><span class="train"><span class="line line-OR"></span>14</span></span></div></div></section>
+  </main>
+    </div>
+  </div>
+  <script>
+    (function () {
+      // Beats of the bed (109.96 BPM): 0.56, 1.09, 1.64, 2.19 … 4.39, 4.91, 5.34, 6.00, 6.56, 7.09, 7.64, 8.19, 8.74 (strong)
+      const tl = gsap.timeline({ paused: true });
+      const blurIn = (sel, at, dur) => tl.fromTo(sel, { opacity: 0, filter: 'blur(8px)' }, { opacity: 1, filter: 'blur(0px)', duration: dur || 0.2, ease: 'power4.out' }, at);
+
+      // The hook: the time as one line, then the greeting word by word from light grey to its colour.
+      blurIn('#hm-time', 0.56, 0.2);
+      const words = gsap.utils.toArray('#hm-greet .w');
+      words.slice(0, 2).forEach((w, i) => tl.fromTo(w, { opacity: 0, color: '#858a95' }, { opacity: 1, color: '#cbb47c', duration: 0.3, ease: 'power2.out' }, 1.64 + i * 0.08));
+      words.slice(2).forEach((w, i) => tl.fromTo(w, { opacity: 0, color: '#858a95' }, { opacity: 1, color: '#f3f0e9', duration: 0.3, ease: 'power2.out' }, 2.19 + i * 0.08));
+
+      // The glow breathes with the music's loudness (per-frame RMS, sampled at build time; see GLOW below).
+      const GLOW = [0.153, 0.153, 0.193, 0.169, 0.158, 0.193, 0.204, 0.19, 0.153, 0.189, 0.169, 0.202, 0.18, 0.19, 0.193, 0.185, 0.171, 0.201, 0.158, 0.152, 0.211, 0.188, 0.168, 0.15, 0.194, 0.165, 0.196, 0.181, 0.192, 0.188, 0.155, 0.187, 0.169, 0.216];
+      tl.fromTo('#hm-glow', { opacity: 0 }, { opacity: GLOW.length ? GLOW[0] : 0.18, duration: 0.6, ease: 'power2.out' }, 0.56);
+      GLOW.forEach((v, i) => { if (i) tl.to('#hm-glow', { opacity: v, duration: 0.1, ease: 'none' }, 1.16 + (i - 1) * 0.1); });
+      tl.to('#hm-glow', { opacity: 0, duration: 0.6, ease: 'power2.inOut' }, 4.39);
+
+      // Carry across: the hook shrinks toward the clock tile and blurs away as the page takes over.
+      tl.to('#hm-hook', { x: -366, y: -155, scale: 0.39, opacity: 0, filter: 'blur(6px)', duration: 0.65, ease: 'power2.inOut' }, 4.39);
+      tl.fromTo('#hm-page', { opacity: 0 }, { opacity: 1, duration: 0.3, ease: 'power2.out' }, 4.6);
+      blurIn('#hm-cap', 4.6, 0.25);
+
+      // Home assembles on the beat grid: clock tile, calendar, photo, Metro banner; then the times, then the trouble sign.
+      blurIn('#clock', 4.91, 0.3);
+      blurIn('#cal', 5.34, 0.3);
+      blurIn('#photo', 6.00, 0.3);
+      blurIn('#trains', 7.09, 0.3);
+      // beat-grid: train 1 at 7.64s, train 2 at 8.19s, train 3 at 8.74s
+      [7.64, 8.19, 8.74].forEach((at, i) => blurIn('.trains-times .train:nth-child(' + (i + 1) + ')', at, 0.25));
+      // beat-locked: 8.74s (strong cue) — the trouble sign, with the soft impact in index.html
+      tl.fromTo('.trains-trouble', { opacity: 0, scale: 0.92, transformOrigin: 'left center' }, { opacity: 1, scale: 1, duration: 0.3, ease: 'power4.out' }, 8.74);
+
+      // Whip out to the left just before the cut (the Time page whips in from the right).
+      tl.to('#hm-page', { x: -420, opacity: 0, filter: 'blur(12px)', duration: 0.2, ease: 'power3.in' }, 9.09);
+      tl.to('#hm-cap', { x: -420, opacity: 0, filter: 'blur(12px)', duration: 0.2, ease: 'power3.in' }, 9.09);
+
+      window.__timelines['home'] = tl;
+    })();
+  </script>
+</template>

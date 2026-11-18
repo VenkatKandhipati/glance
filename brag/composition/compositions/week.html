@@ -1,0 +1,32 @@
+<template>
+  <style>
+    @font-face { font-family: 'Instrument Serif'; font-style: normal; font-weight: 400; src: url('assets/fonts/instrument-serif.woff2') format('woff2'); }
+    @font-face { font-family: 'Plus Jakarta Sans Variable'; font-style: normal; font-weight: 200 800; src: url('assets/fonts/plus-jakarta-sans.woff2') format('woff2-variations'); }
+    #root { position: absolute; inset: 0; overflow: hidden; background: #0c0f14; font-family: 'Plus Jakarta Sans Variable', sans-serif; color: #f3f0e9; }
+    .wk-cap { position: absolute; left: 0; top: 96px; width: 1920px; text-align: center; font-family: 'Instrument Serif', serif; font-size: 50px; line-height: 1.2; color: #f3f0e9; opacity: 0; }
+    .wk-page { position: absolute; left: 320px; top: 180px; width: 1280px; height: 800px; opacity: 0; }
+    .wk-bezel { position: absolute; inset: -8px; border-radius: 38px; border: 1px solid rgba(255, 255, 255, 0.07); background: #000000; }
+    .wk-page .screen { position: absolute; left: 0; top: 0; background: #0c0f14; border-radius: 30px; }
+    .wk-page .wk-day { opacity: 0; }
+  </style>
+  <div id="root" data-composition-id="week" data-width="1920" data-height="1080">
+    <div id="wk-cap" class="wk-cap">The next seven days, every calendar.</div>
+    <div id="wk-page" class="wk-page" data-layout-allow-overflow data-hold>
+      <div class="wk-bezel"></div>
+      <main class="screen" id="week"><header class="screen-head"><h1 class="serif">This week<i>,</i></h1><span>19 – 25 November</span></header><div class="wk-cols"><button class="wk-day is-today" data-day="0"><span class="wk-dow">Today</span><span class="wk-date serif">19</span><span class="wk-list"><div class="wk-ev ev-c0"><span class="wk-time">10:30 am</span><span class="wk-title">Coffee with Priya</span></div><div class="wk-ev ev-c1"><span class="wk-time">7 pm</span><span class="wk-title">Dinner at Rasika</span></div></span></button><button class="wk-day" data-day="1"><span class="wk-dow">Fri</span><span class="wk-date serif">20</span><span class="wk-list"><div class="wk-ev ev-quiet"><span class="wk-time">7:30 pm</span><span class="wk-title">Chapter 9 discussion</span></div></span></button><button class="wk-day" data-day="2"><span class="wk-dow">Sat</span><span class="wk-date serif">21</span><span class="wk-list"><div class="wk-ev ev-c0"><span class="wk-time">9 am</span><span class="wk-title">Dentist</span></div><div class="wk-ev ev-c0"><span class="wk-time">6 pm</span><span class="wk-title">Yoga</span></div></span></button><button class="wk-day" data-day="3"><span class="wk-dow">Sun</span><span class="wk-date serif">22</span><span class="wk-list"><div class="wk-ev ev-c0"><span class="wk-time">5:30 pm</span><span class="wk-title">Pick up dry cleaning</span></div></span></button><button class="wk-day" data-day="4"><span class="wk-dow">Mon</span><span class="wk-date serif">23</span><span class="wk-list"><div class="wk-ev ev-c1 is-allday"><span class="wk-time">to Wed</span><span class="wk-title">Weekend in Shenandoah</span></div></span></button><button class="wk-day" data-day="5"><span class="wk-dow">Tue</span><span class="wk-date serif">24</span><span class="wk-list"><div class="wk-ev ev-c0"><span class="wk-time">9 am</span><span class="wk-title">Farmers market</span></div></span></button><button class="wk-day" data-day="6"><span class="wk-dow">Wed</span><span class="wk-date serif">25</span><span class="wk-list"><span class="wk-free">Free</span></span></button></div></main>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      tl.fromTo('#wk-page', { x: 420, opacity: 0, filter: 'blur(12px)' }, { x: 0, opacity: 1, filter: 'blur(0px)', duration: 0.25, ease: 'expo.out' }, 0);
+      tl.fromTo('#wk-cap', { opacity: 0, filter: 'blur(8px)' }, { opacity: 1, filter: 'blur(0px)', duration: 0.25, ease: 'power4.out' }, 0.4);
+      // The seven days arrive one after another, 60 ms apart, from the day the page landed.
+      gsap.utils.toArray('#wk-page .wk-day').forEach((d, i) => tl.fromTo(d, { opacity: 0, filter: 'blur(6px)' }, { opacity: 1, filter: 'blur(0px)', duration: 0.3, ease: 'power3.out' }, 0.3 + i * 0.06));
+      // Under the flood to night (27.3s in the film, 4.93 here): the page blurs away.
+      tl.to('#wk-page', { opacity: 0, filter: 'blur(10px)', duration: 0.4, ease: 'power2.inOut' }, 4.93);
+      tl.to('#wk-cap', { opacity: 0, filter: 'blur(10px)', duration: 0.3, ease: 'power2.inOut' }, 4.93);
+      window.__timelines['week'] = tl;
+    })();
+  </script>
+</template>

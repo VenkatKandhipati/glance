@@ -17,3 +17,10 @@
 *.apk
 kiosk/build/
 kiosk/assets/
+
+# The brag video's Hyperframes caches and stray renders (brag/composition is source; brag/brag.mp4 is kept).
+brag/composition/.hyperframes/
+brag/composition/.thumbnails/
+brag/composition/.waveform-cache/
+brag/composition/renders/
+brag/composition/node_modules/

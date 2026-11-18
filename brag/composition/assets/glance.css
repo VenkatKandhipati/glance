@@ -1,0 +1,1018 @@
+/* dashboard/src/style.css, as built for the brag video: no @imports, no page sizing, no transitions */
+/* Glance's own fonts, shipped with the composition */
+@font-face { font-family: 'Instrument Serif'; font-style: normal; font-weight: 400; src: url('fonts/instrument-serif.woff2') format('woff2'); }
+@font-face { font-family: 'Instrument Serif'; font-style: italic; font-weight: 400; src: url('fonts/instrument-serif-italic.woff2') format('woff2'); }
+@font-face { font-family: 'Noto Sans Telugu'; font-style: normal; font-weight: 400; src: url('fonts/noto-sans-telugu.woff2') format('woff2'); }
+@font-face { font-family: 'Plus Jakarta Sans Variable'; font-style: normal; font-weight: 200 800; src: url('fonts/plus-jakarta-sans.woff2') format('woff2-variations'); }
+/* Target: Android WebView 106 on a Mali-G31. No nesting, :has(), color-mix(), oklch(), dvh,
+   4/8-digit hex, backdrop-filter, blur or shadows. Colours are #rrggbb or rgba(). */
+/* Telugu letters only (the Telugu screen); Latin falls through to the fonts above */
+
+:root {
+  /* ground + surfaces (taken from the mockup) */
+  --ground: #0c0f14;
+  --tile: #11151c;
+  --tile-blue: #131925;
+  --tile-line: rgba(255, 255, 255, 0.07);
+  --chip: rgba(255, 255, 255, 0.04);
+  --chip-line: rgba(255, 255, 255, 0.09);
+
+  /* ink */
+  --ink: #f3f0e9;
+  --ink-2: #c9ccd3;
+  --mute: #858a95;
+  --faint: #4a4f5a;
+
+  /* accents */
+  --gold: #cbb47c;
+  --gold-fill: #d4b54e;
+  --violet: #b4a6ff;
+  --violet-bg: rgba(140, 120, 255, 0.16);
+  --night: #8f2418;
+
+  /* type */
+  --serif: 'Instrument Serif', serif;
+  --sans: 'Plus Jakarta Sans Variable', sans-serif;
+  --te: 'Noto Sans Telugu', var(--sans);
+  --te-ink: #c4bcac; /* the Telugu letters: --ink warmer and dimmer, easier on the eye in bulk */
+
+  /* shape + space */
+  --r: 30px;
+  --r-chip: 14px;
+  --pad: 26px;
+  --gap: 16px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+/* `hidden` wins over any display a class sets (screens, sheet, bar scrim) */
+[hidden] { display: none !important; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+.serif { font-family: var(--serif); font-weight: 400; letter-spacing: -0.01em; }
+
+/* ------------------------------------------------------------------ board */
+.board {
+  display: grid;
+  grid-template-columns: 509px 1fr;
+  grid-template-rows: 330px 1fr 111px;
+  grid-template-areas: 'clock photo' 'cal photo' 'trains trains';
+  gap: var(--gap);
+  width: 1280px;
+  height: 800px;
+  padding: 20px;
+  /* its own layer, so the burn-in shift (shift.js) moves it without repainting */
+  will-change: transform;
+}
+.tile {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--r);
+  border: 1px solid var(--tile-line);
+  background: var(--tile);
+}
+
+/* pill used for the date and labels */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 40px;
+  padding: 0 16px 0 7px;
+  border-radius: var(--r-chip);
+  background: var(--chip);
+  border: 1px solid var(--chip-line);
+  font-size: 17px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.chip-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--violet-bg);
+  color: var(--violet);
+}
+
+/* ------------------------------------------------------------------ clock */
+.clock {
+  grid-area: clock;
+  padding: var(--pad);
+  /* stands in for the mockup's photo; a pre-darkened image can replace it later */
+  background: radial-gradient(ellipse at 85% 20%, #1f2838 0%, #10141b 55%, #0b0d12 100%);
+}
+.clock-chips { display: flex; justify-content: space-between; }
+.clock-right { display: flex; gap: 12px; }
+/* the power button: a quiet 40 px circle, its touch area 76 px (::before) for the frame's low taps */
+.clock-power {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--chip-line);
+  background: var(--chip);
+  color: var(--mute);
+}
+.clock-power::before { content: ''; position: absolute; top: -18px; right: -18px; bottom: -18px; left: -18px; }
+.chip-icon-wx { background: rgba(203, 180, 124, 0.16); color: var(--gold); }
+/* a weather warning: the alert colours of the Weather screen */
+.chip-alert { background: rgba(191, 13, 62, 0.18); border-color: rgba(242, 167, 184, 0.3); color: #ffd6df; }
+.chip-alert .chip-icon-wx { background: rgba(191, 13, 62, 0.3); color: #f2a7b8; }
+.clock-alert { color: #f2a7b8; }
+/* the forecast couldn't be refreshed: grey icon, its age after the temperature */
+.chip-stale .chip-icon-wx { background: rgba(255, 255, 255, 0.06); color: var(--mute); }
+.chip-age { margin-left: 10px; font-size: 14px; font-weight: 600; color: var(--mute); }
+.clock-time {
+  display: flex;
+  align-items: baseline;
+  margin-top: 16px;
+  font-size: 132px;
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+}
+.clock-ampm {
+  margin-left: 10px;
+  font-size: 46px;
+  font-style: italic;
+  color: var(--gold);
+}
+.clock-greet {
+  position: absolute;
+  left: var(--pad);
+  bottom: 22px;
+  font-size: 44px;
+  line-height: 1;
+}
+.clock-greet b { display: block; font-weight: 400; color: var(--gold); }
+.clock-greet { max-width: 457px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* what the Time screen is running, in the greeting's place: its category's dot, then the time */
+.clock-run i { display: inline-block; width: 16px; height: 16px; margin: 0 14px 6px 2px; border-radius: 50%; background: var(--k); vertical-align: middle; }
+
+/* ------------------------------------------------------------------ calendar */
+.cal {
+  grid-area: cal;
+  display: flex;
+  gap: 18px;
+  padding: 22px var(--pad);
+  background: var(--tile-blue);
+}
+.cal-side {
+  display: flex;
+  flex-direction: column;
+  width: 160px;
+  flex: none;
+}
+.cal-month { font-size: 40px; line-height: 1; }
+.cal-month i { color: var(--gold); }
+.cal-year { margin-top: 4px; font-size: 15px; font-weight: 600; color: var(--mute); }
+/* a feed that couldn't be refreshed: its age, small and quiet (calendar, Weather screen) */
+.stale {
+  display: inline-block;
+  margin-left: 10px;
+  padding: 2px 9px;
+  border: 1px solid var(--chip-line);
+  border-radius: 999px;
+  background: var(--chip);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-2);
+  vertical-align: 1px;
+}
+/* Duckville's line, then "Next up", pinned to the bottom of the column */
+.cal-agenda { margin-top: auto; }
+.cal-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mute);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cal-quiet { margin-bottom: 16px; }
+.cal-quiet-title b { font-weight: 600; color: var(--gold); }
+.cal-quiet-title {
+  margin-top: 4px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cal-next-title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  margin-top: 6px;
+  font-size: 19px;
+  font-weight: 650;
+  line-height: 1.2;
+}
+.cal-next-when { margin-top: 4px; font-size: 15px; font-weight: 500; color: var(--gold); }
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-auto-rows: 31px;
+  flex: 1;
+  align-content: start;
+  text-align: center;
+}
+.cal-dow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 24px;
+  color: var(--mute);
+}
+.cal-day {
+  position: relative;
+  justify-self: center;
+  width: 31px;
+  height: 31px;
+  border-radius: 50%;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 31px;
+  color: var(--ink-2);
+}
+.cal-day.is-out { color: var(--faint); }
+.cal-day.is-today { background: var(--gold-fill); color: #15171c; }
+.cal-day.is-marked::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 1px;
+  width: 4px;
+  height: 4px;
+  margin-left: -2px;
+  border-radius: 50%;
+  background: var(--gold);
+}
+.cal-day.is-today.is-marked::after { background: #15171c; }
+
+/* ------------------------------------------------------------------ photo */
+.photo { grid-area: photo; background: #0a0c10; }
+.photo-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+}
+.photo-img.is-on { opacity: 1; }
+/* paintings and astronomy pictures are shown whole, on the tile's dark ground, and never enlarged
+   (the Met's web images are about 520 px; stretched, they blur) */
+.photo-img.is-contain { object-fit: scale-down; }
+/* the credit line for a picture from a public source */
+.photo-cap {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  max-width: calc(100% - 32px);
+  padding: 8px 14px;
+  border-radius: 12px;
+  background: rgba(8, 10, 14, 0.7);
+  color: var(--ink-2);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0;
+}
+.photo-cap.is-on { opacity: 1; }
+.photo-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 64px;
+  background: radial-gradient(ellipse at 30% 30%, #1a2130 0%, #0d1016 70%);
+}
+.photo-empty h2 { font-size: 48px; line-height: 1.05; }
+.photo-empty h2 i { color: var(--gold); }
+.photo-empty p { margin-top: 16px; font-size: 17px; line-height: 1.5; color: var(--mute); }
+.photo-empty code {
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: var(--chip);
+  border: 1px solid var(--chip-line);
+  color: var(--ink-2);
+  font-size: 15px;
+}
+
+/* ------------------------------------------------------------------ metro */
+/* WMATA line colours as small dots before each time. */
+.trains {
+  grid-area: trains;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  padding: 0 var(--pad) 0 30px;
+}
+/* the two lines that serve the station, as a stripe down the left edge */
+.trains::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 6px;
+  background: linear-gradient(#ed8b00 50%, #919d9d 50%);
+}
+.trains-title { flex: none; width: 170px; font-size: 26px; font-weight: 650; line-height: 1.05; }
+.trains-title b { display: block; font-weight: 650; color: var(--gold); }
+.trains-title span { display: block; margin-top: 4px; color: var(--mute); font-size: 15px; }
+/* trouble at the station: the weather warning's reds (.chip-alert) */
+.trains-trouble {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 8px;
+  padding: 4px 10px 4px 7px;
+  border: 1px solid rgba(242, 167, 184, 0.3);
+  border-radius: 10px;
+  background: rgba(191, 13, 62, 0.18);
+  color: #ffd6df;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 650;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.trains-trouble svg { flex: none; width: 15px; height: 15px; margin-right: 6px; color: #f2a7b8; }
+.trains-dir {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding-left: 32px;
+  border-left: 1px solid var(--tile-line);
+}
+/* name and times share a baseline, so they read as one line of text. The row is centred as a box,
+   and its 40 px times push that baseline 5 px below "Ballston"; lift it back onto the same line. */
+.trains-row { position: relative; top: -5px; display: flex; align-items: baseline; gap: 28px; }
+.trains-label { flex: none; width: 138px; font-size: 26px; font-weight: 650; }
+/* bold sans with equal-width digits, like WMATA's Helvetica station signs */
+.trains-times {
+  display: flex;
+  align-items: baseline;
+  gap: 24px;
+  font-size: 40px;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+/* the digits carry the baseline */
+.train { display: flex; align-items: baseline; gap: 10px; color: var(--mute); }
+.train:first-child { color: var(--ink); }
+.train i { font-style: normal; color: var(--gold); }
+.trains-note { font-size: 17px; font-weight: 600; color: var(--mute); }
+/* The dot sits on the shared baseline (an empty box aligns its bottom edge there), lifted 4 px so
+   its centre meets the middle of the 26 px direction name: 19 px tall, so 9.5 px up. */
+.line { flex: none; align-self: baseline; position: relative; top: -4px; width: 12px; height: 12px; border-radius: 50%; background: var(--mute); }
+.line-OR { background: #ed8b00; }
+.line-SV { background: #919d9d; }
+.line-RD { background: #bf0d3e; }
+.line-BL { background: #009cde; }
+.line-YL { background: #ffd100; }
+.line-GR { background: #00b140; }
+
+/* ------------------------------------------------------------------ calendar colours */
+/* By calendar, in content.js order; quiet calendars muted. --ev for text and bars, --ev-bg fills. */
+.ev-c0 { --ev: #cbb47c; --ev-bg: rgba(203, 180, 124, 0.14); }
+.ev-c1 { --ev: #b4a6ff; --ev-bg: rgba(180, 166, 255, 0.14); }
+.ev-c2 { --ev: #7cc6b8; --ev-bg: rgba(124, 198, 184, 0.14); }
+.ev-c3 { --ev: #e69a9a; --ev-bg: rgba(230, 154, 154, 0.14); }
+.ev-quiet { --ev: #858a95; --ev-bg: rgba(133, 138, 149, 0.14); }
+
+/* ------------------------------------------------------------------ screens */
+.screen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  width: 1280px;
+  height: 800px;
+  padding: 20px;
+}
+.screen-head { display: flex; align-items: baseline; gap: 18px; height: 56px; flex: none; padding-left: 6px; }
+.screen-head h1 { font-size: 54px; font-weight: 400; line-height: 1; }
+.screen-head h1 i { color: var(--gold); }
+.screen-head > span { font-size: 18px; font-weight: 600; color: var(--mute); }
+.screen-head .line { top: 0; align-self: auto; display: inline-block; width: 14px; height: 14px; margin-right: 8px; }
+.screen h2 {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+.tr-quiet { font-size: 18px; font-weight: 600; color: var(--mute); }
+
+/* ---- week */
+.wk-cols { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px; }
+.wk-day {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  padding: 16px 14px;
+  border-radius: 24px;
+  border: 1px solid var(--tile-line);
+  background: var(--tile);
+  text-align: left;
+}
+.wk-day.is-today { background: var(--tile-blue); border-color: rgba(203, 180, 124, 0.35); }
+.wk-dow { font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mute); }
+.wk-day.is-today .wk-dow { color: var(--gold); }
+.wk-date { margin: 2px 0 14px; font-size: 46px; line-height: 1; }
+.wk-list { display: flex; flex-direction: column; gap: 10px; width: 100%; min-height: 0; }
+.wk-ev { padding-left: 9px; border-left: 3px solid var(--ev); }
+.wk-ev.is-allday { padding: 6px 9px; border-left: 0; border-radius: 9px; background: var(--ev-bg); }
+.wk-time { display: block; font-size: 12px; font-weight: 650; color: var(--ev); }
+.wk-title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.wk-ev.is-allday .wk-title { color: var(--ev); }
+.wk-free, .wk-more { font-size: 14px; font-weight: 600; color: var(--faint); }
+.wk-more { color: var(--mute); }
+
+/* ---- transit */
+.tr-boards { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; gap: var(--gap); }
+.tr-board { padding: 22px 30px; }
+.tr-board ul, .tr-service, .wx-hours ul, .wx-days ul, .wx-alerts, .sh-list { list-style: none; }
+.tr-row { display: flex; align-items: center; gap: 18px; height: 112px; border-bottom: 1px solid var(--tile-line); }
+.tr-row:last-child { border-bottom: 0; }
+.tr-row .line { top: 0; align-self: auto; width: 18px; height: 18px; }
+.tr-dest { flex: 1; min-width: 0; font-size: 30px; font-weight: 650; line-height: 1.15; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tr-dest small { display: block; font-size: 15px; font-weight: 600; color: var(--mute); }
+.tr-row.is-next .tr-dest { color: var(--ink); }
+.tr-min {
+  width: 190px;
+  text-align: right;
+  font-size: 56px;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-2);
+}
+.tr-row.is-next .tr-min { color: var(--ink); }
+.tr-min small { margin-left: 6px; font-size: 18px; font-weight: 600; letter-spacing: 0; color: var(--mute); }
+.tr-min i { font-style: normal; font-size: 32px; color: var(--gold); }
+.tr-empty { padding-top: 16px; font-size: 18px; font-weight: 600; color: var(--mute); }
+.tr-status { flex: none; max-height: 230px; padding: 20px 30px 22px; }
+.tr-service { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 40px; margin-top: 10px; }
+.tr-alert {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  overflow: hidden;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--ink-2);
+}
+.tr-alert b { display: block; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); }
+.tr-ok { font-size: 17px; font-weight: 600; color: var(--mute); }
+
+/* ---- weather */
+.wx-alerts { display: flex; gap: 12px; flex: none; }
+.wx-alerts li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  border-radius: 16px;
+  background: rgba(191, 13, 62, 0.18);
+  color: #f2a7b8;
+  font-size: 17px;
+  font-weight: 600;
+}
+.wx-alerts b { color: #ffd6df; font-weight: 700; }
+.wx-top { display: flex; gap: var(--gap); flex: none; height: 330px; }
+.wx-now {
+  flex: none;
+  width: 470px;
+  padding: 24px 30px;
+  background: radial-gradient(ellipse at 85% 20%, #1f2838 0%, #10141b 55%, #0b0d12 100%);
+}
+.wx-big { display: flex; align-items: center; gap: 20px; }
+.wx-big .wx-i svg { width: 76px; height: 76px; color: var(--gold); }
+.wx-temp { font-size: 132px; line-height: 0.95; letter-spacing: -0.03em; }
+.wx-words-now { margin-top: 4px; font-size: 42px; line-height: 1; color: var(--gold); }
+.wx-facts { margin-top: 18px; font-size: 16px; font-weight: 500; color: var(--ink-2); }
+.wx-facts b { display: block; margin-bottom: 4px; font-size: 19px; font-weight: 650; color: var(--ink); }
+.wx-sun { margin-top: 6px; font-size: 15px; font-weight: 600; color: var(--mute); }
+.wx-hours { display: flex; flex-direction: column; flex: 1; min-width: 0; padding: 22px 24px; }
+.wx-hours ul { display: grid; grid-template-columns: repeat(12, 1fr); flex: 1; margin-top: 14px; }
+.wx-hours li { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; }
+.wx-hours li:first-child { border-radius: 16px; background: rgba(203, 180, 124, 0.1); }
+.wx-hours li:first-child .wx-h { color: var(--gold); }
+.wx-h { font-size: 14px; font-weight: 650; color: var(--mute); white-space: nowrap; }
+.wx-i svg { width: 32px; height: 32px; color: var(--ink-2); }
+.wx-hours b { font-size: 24px; font-weight: 700; }
+.wx-pop { height: 16px; font-size: 13px; font-weight: 650; color: #78b9e6; white-space: nowrap; }
+.wx-days { flex: 1; min-height: 0; padding: 14px 24px; }
+.wx-days ul { display: grid; grid-template-columns: repeat(7, 1fr); height: 100%; }
+.wx-days li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-left: 1px solid var(--tile-line);
+}
+.wx-days li:first-child { border-left: 0; }
+.wx-dname { font-size: 15px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); }
+.wx-days li:first-child .wx-dname { color: var(--gold); }
+.wx-days .wx-i svg { width: 44px; height: 44px; }
+.wx-words { height: 36px; padding: 0 8px; font-size: 14px; font-weight: 550; line-height: 1.3; text-align: center; color: var(--mute); }
+.wx-hl { font-size: 20px; font-weight: 600; color: var(--mute); }
+.wx-hl b { margin-right: 8px; font-size: 26px; font-weight: 700; color: var(--ink); }
+
+/* ---- pomodoro */
+/* categories, in content.js order. Picked so every pair stays apart (CIEDE2000 >= 20, >= 10 with
+   red-green colour blindness simulated) and none is near --gold. Doom scrolling is the one hot red;
+   Break is the break phase's teal. */
+.pm-k0 { --k: #bba5fc; --kb: rgba(187, 165, 252, 0.16); }
+.pm-k1 { --k: #4678ff; --kb: rgba(70, 120, 255, 0.16); }
+.pm-k2 { --k: #ee6ec3; --kb: rgba(238, 110, 195, 0.16); }
+.pm-k3 { --k: #bde753; --kb: rgba(189, 231, 83, 0.16); }
+.pm-k4 { --k: #c18988; --kb: rgba(193, 137, 136, 0.16); }
+.pm-k5 { --k: #a7deff; --kb: rgba(167, 222, 255, 0.16); }
+.pm-k6 { --k: #ed5523; --kb: rgba(237, 85, 35, 0.16); }
+.pm-k7 { --k: #7cc6b8; --kb: rgba(124, 198, 184, 0.16); }
+.pm-k8 { --k: #858a95; --kb: rgba(133, 138, 149, 0.16); }
+/* the time of day, centred over the right-hand column (the timer tile is 500 px) */
+.pm-head { position: relative; }
+.pm-now {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(500px + var(--gap));
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 46px;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--ink-2);
+}
+.pm-now i { margin-left: 6px; font-size: 22px; color: var(--mute); }
+.pm-body { flex: 1; min-height: 0; display: grid; grid-template-columns: 500px 1fr; gap: var(--gap); }
+.pm-timer { display: flex; flex-direction: column; padding: 22px 26px 24px; }
+.pm-timer.is-work { background: var(--tile-blue); }
+.pm-phase { color: var(--mute); }
+.pm-timer.is-work .pm-phase { color: var(--k); }
+.pm-timer.is-break .pm-phase { color: #7cc6b8; } /* .pm-k7, the Break category */
+.pm-timer.is-ask .pm-phase { color: var(--gold); }
+.pm-timer.is-track .pm-phase { color: var(--ink-2); }
+.pm-ring { position: relative; align-self: center; width: 240px; height: 240px; margin-top: 6px; }
+.pm-ring svg { width: 240px; height: 240px; }
+.pm-track { fill: none; stroke: rgba(255, 255, 255, 0.06); stroke-width: 10; }
+.pm-arc { fill: none; stroke: var(--gold); stroke-width: 10; stroke-linecap: round; }
+.pm-timer.is-break .pm-arc, .pm-timer.is-ask .pm-arc { stroke: #7cc6b8; } /* the ask counts down to the break */
+/* a Pomodoro, and tracking (the ring fills once an hour), in the category's colour */
+.pm-timer.is-work .pm-arc, .pm-timer.is-track .pm-arc { stroke: var(--k); }
+.pm-timer.is-idle .pm-arc { display: none; } /* a round cap on an empty arc would still draw a dot */
+.pm-clock { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.pm-left { font-size: 84px; line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.pm-timer.is-idle .pm-left { color: var(--ink-2); }
+.pm-left.is-long { font-size: 62px; } /* 1:02:10 */
+.pm-until { height: 20px; margin-top: 6px; font-size: 16px; font-weight: 600; color: var(--mute); }
+.pm-note { height: 44px; margin-top: 10px; font-size: 16px; font-weight: 500; line-height: 1.35; color: var(--mute); text-align: center; }
+.pm-note b { font-weight: 650; color: var(--ink); }
+.pm-cats { display: grid; grid-template-columns: repeat(3, 1fr); grid-auto-rows: 64px; gap: 10px; margin-top: 10px; }
+.pm-cat {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 0 14px;
+  border-radius: 18px;
+  border: 1px solid var(--chip-line);
+  background: var(--chip);
+  color: var(--ink-2);
+  font-size: 16px;
+  font-weight: 650;
+  text-align: left;
+  line-height: 1.2;
+}
+.pm-cat i { flex: none; width: 12px; height: 12px; border-radius: 50%; background: var(--k); }
+.pm-cat.is-on { border-color: var(--k); background: var(--kb); color: var(--ink); }
+.pm-actions { display: flex; gap: 12px; margin-top: auto; }
+.pm-btn {
+  flex: 1;
+  height: 76px;
+  border-radius: 22px;
+  border: 1px solid var(--chip-line);
+  background: var(--chip);
+  color: var(--ink-2);
+  font-size: 20px;
+  font-weight: 700;
+}
+.pm-btn.is-go { border-color: var(--gold-fill); background: var(--gold-fill); color: #15171c; }
+.pm-btn.is-confirm { border-color: rgba(242, 167, 184, 0.3); background: rgba(191, 13, 62, 0.22); color: #ffd6df; }
+.pm-btn[disabled] { opacity: 0.4; }
+.pm-actions.is-three { gap: 10px; }
+.pm-actions.is-three .pm-btn { font-size: 17px; } /* three to a row: Done, Break, Keep working */
+.pm-actions.is-three .pm-btn.is-wide { flex: 1.5; font-size: 19px; } /* Keep working, the one to tap */
+/* a phase ending: the tile pulses gold a few times (opacity only) */
+.pm-flash { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(212, 181, 78, 0.16); opacity: 0; pointer-events: none; }
+.pm-flash.is-on { }
+/* the nudge to stop doom scrolling or a break: Doom scrolling's red, not gold */
+.pm-flash.is-nudge { background: rgba(237, 85, 35, 0.24); }
+.pm-note b.pm-nudge { color: #ed5523; } /* .pm-k6, Doom scrolling */
+@keyframes pm-pulse { 50% { opacity: 1; } }
+
+.pm-stats { display: flex; flex-direction: column; gap: var(--gap); min-width: 0; }
+.pm-top { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--gap); flex: none; height: 176px; }
+.pm-stat { display: flex; flex-direction: column; padding: 20px 24px; }
+.pm-stat b { margin-top: 8px; font-size: 64px; line-height: 1; }
+.pm-stat b i { margin-left: 6px; font-size: 26px; color: var(--gold); }
+.pm-stat span { margin-top: auto; font-size: 15px; font-weight: 600; color: var(--mute); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pm-dots { display: flex; gap: 6px; margin-top: 12px; }
+.pm-dots i { width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgba(203, 180, 124, 0.4); }
+.pm-dots i.is-done { border-color: var(--gold-fill); background: var(--gold-fill); }
+.pm-dots i.is-half { border-color: var(--gold-fill); background: linear-gradient(90deg, var(--gold-fill) 50%, transparent 50%); }
+.pm-dots + span { margin-top: auto; }
+
+.pm-week { display: flex; flex-direction: column; flex: 1; min-height: 0; padding: 20px 0 16px; overflow: hidden; touch-action: none; }
+/* two views side by side, the stacked bars and the grid; a swipe slides between them */
+.pm-wk-track { flex: 1; min-height: 0; display: flex; width: 200%; }
+.pm-week.is-grid .pm-wk-track { transform: translateX(-50%); }
+.pm-wk-pane { display: flex; flex-direction: column; width: 50%; min-height: 0; padding: 0 24px; }
+.pm-week h2 .pm-pg { display: inline-block; width: 7px; height: 7px; margin-left: 6px; border-radius: 50%; background: var(--faint); vertical-align: 1px; }
+.pm-week h2 .pm-pg:first-of-type { margin-left: 12px; }
+.pm-week h2 .pm-pg.is-on { background: var(--ink-2); }
+.pm-week h2 span b { color: var(--ink); }
+.pm-week h2 .pm-next { font-size: 16px; font-weight: 600; }
+/* a row per focus category, a column per day: the column is the tap target */
+.pm-wk { flex: 1; min-height: 0; display: grid; grid-template-columns: 140px repeat(7, 1fr); margin-top: 8px; list-style: none; }
+.pm-wk li { display: flex; flex-direction: column; gap: 4px; padding: 0 4px; border: 2px solid transparent; border-radius: 12px; }
+.pm-wk li > * { flex: none; display: flex; align-items: center; justify-content: center; height: 22px; }
+.pm-wk .pm-wd { height: 18px; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mute); }
+.pm-wk li.is-today .pm-wd { color: var(--gold); }
+.pm-wk li.is-sel { border-color: var(--gold); }
+.pm-wk li.is-sel .pm-wd { color: var(--ink); }
+.pm-wk .pm-c { border-radius: 7px; background: rgba(255, 255, 255, 0.035); font-size: 14px; font-weight: 700; color: #15171c; }
+.pm-wk .pm-c.is-on { background: var(--k); }
+.pm-wk .pm-wf { height: 24px; font-size: 16px; font-weight: 700; color: var(--mute); }
+.pm-wk .pm-wf.is-met { color: var(--gold); }
+.pm-wk li.pm-wk-names { padding-left: 0; }
+.pm-wk-names > span { justify-content: flex-start; gap: 8px; font-size: 15px; font-weight: 600; color: var(--ink-2); white-space: nowrap; }
+.pm-wk-names > span i { flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--k); }
+.pm-wk-names > span.is-next { color: var(--gold); }
+.pm-wk-names > .pm-wf { font-size: 14px; font-weight: 600; }
+/* the other view: stacked bars by category, focus at the bottom, each day's focus hours above */
+.pm-bars { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(7, 1fr); margin-top: 10px; list-style: none; }
+.pm-bars li { display: flex; flex-direction: column; align-items: center; min-height: 0; }
+.pm-n { height: 22px; font-size: 16px; font-weight: 700; color: var(--ink-2); }
+.pm-bar {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column-reverse;
+  width: 46px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.035);
+}
+.pm-bar i { flex: none; background: var(--k); border-top: 2px solid var(--tile); }
+/* the daily goal, as a faint line across every bar */
+.pm-bar::after { content: ''; position: absolute; left: 0; right: 0; bottom: var(--goal); border-top: 2px dashed rgba(243, 240, 233, 0.22); }
+.pm-d { margin-top: 8px; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mute); }
+.pm-bars li.is-today .pm-d { color: var(--gold); }
+.pm-bars li.is-sel .pm-bar { outline: 2px solid var(--gold); outline-offset: 2px; }
+.pm-bars li.is-sel .pm-d { color: var(--ink); }
+
+.pm-bottom { display: grid; grid-template-columns: 330px 1fr; gap: var(--gap); flex: none; height: 232px; }
+.pm-today, .pm-split { padding: 20px 24px; }
+.pm-split h2 span, .pm-today h2 span, .pm-week h2 span { float: right; letter-spacing: 0.04em; text-transform: none; color: var(--gold); }
+/* today's timeline: blocks by category on a strip of the hours, today by category under it */
+.pm-strip { position: relative; height: 34px; margin-top: 16px; border-radius: 8px; background: rgba(255, 255, 255, 0.05); overflow: hidden; }
+.pm-strip i { position: absolute; top: 0; bottom: 0; min-width: 2px; background: var(--k); border-right: 1px solid var(--tile); }
+.pm-strip i.is-live { opacity: 0.75; }
+.pm-ticks { position: relative; height: 18px; margin-top: 6px; }
+.pm-ticks span { position: absolute; top: 0; font-size: 12px; font-weight: 700; color: var(--mute); white-space: nowrap; transform: translateX(-50%); }
+.pm-ticks span:first-child { transform: none; }
+.pm-ticks span:last-child { transform: translateX(-100%); }
+.pm-tlist { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; list-style: none; }
+.pm-tlist li { display: flex; align-items: center; justify-content: space-between; height: 22px; }
+.pm-tlist b { font-size: 15px; font-weight: 700; }
+.pm-today .pm-empty { margin-top: 18px; font-size: 16px; font-weight: 600; color: var(--mute); }
+.pm-split ul { display: flex; flex-direction: column; gap: 6px; margin-top: 14px; list-style: none; }
+.pm-split li { display: flex; align-items: center; gap: 14px; height: 22px; }
+.pm-cname { display: flex; align-items: center; gap: 8px; flex: none; width: 130px; font-size: 15px; font-weight: 600; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pm-cname i { flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--k); }
+.pm-track-h { flex: 1; height: 8px; border-radius: 4px; background: rgba(255, 255, 255, 0.05); overflow: hidden; }
+.pm-track-h i { display: block; height: 100%; border-radius: 4px; background: var(--k); }
+.pm-split b { flex: none; width: 70px; font-size: 15px; font-weight: 700; text-align: right; }
+/* a tapped day: its hours by category, and how that compares with usual */
+.pm-split li.is-rest { opacity: 0.5; }
+.pm-split .pm-day .pm-cname { flex: 1; width: auto; }
+.pm-split .pm-day b { width: 80px; }
+.pm-split .pm-vs { flex: none; width: 90px; font-size: 14px; font-weight: 600; color: var(--mute); text-align: right; }
+.pm-cat.is-next { border: 2px solid var(--gold-fill); }
+.pm-split .pm-empty { font-size: 16px; font-weight: 600; color: var(--mute); }
+
+/* today's timeline, in place of the stats. A gap is an outlined hole in rose, with no fill
+   pattern; what's running (or the gap growing to now) is dimmed a little, as on the strip. */
+.pm-tl { display: flex; flex-direction: column; padding: 20px 0 16px; overflow: hidden; touch-action: none; --gap-line: rgba(242, 167, 184, 0.6); --gap-ink: #ffd6df; }
+.pm-tl > h2, .pm-tl-cov { padding: 0 24px; }
+.pm-tl h2 .pm-pg { display: inline-block; width: 7px; height: 7px; margin-left: 6px; border-radius: 50%; background: var(--faint); vertical-align: 1px; }
+.pm-tl h2 .pm-pg.is-a { margin-left: 12px; background: var(--ink-2); }
+.pm-tl.is-col h2 .pm-pg.is-a { background: var(--faint); }
+.pm-tl.is-col h2 .pm-pg.is-b { background: var(--ink-2); }
+.pm-tl h2 span { float: right; letter-spacing: 0.04em; text-transform: none; color: var(--mute); }
+.pm-tl-cov { display: flex; align-items: baseline; gap: 14px; margin-top: 8px; }
+.pm-tl-cov b { font-size: 54px; line-height: 1; }
+.pm-tl-cov b i { margin-left: 3px; font-size: 24px; font-style: normal; color: var(--mute); }
+.pm-tl-cov span { font-size: 17px; font-weight: 600; color: var(--ink-2); }
+.pm-tl-cov em { font-style: normal; font-weight: 700; color: var(--gap-ink); }
+.pm-tl-cov em.is-none { color: var(--gold); }
+.pm-tl .pm-empty { margin: 18px 24px 0; font-size: 16px; font-weight: 600; color: var(--mute); }
+/* what a gap was: the timer's category buttons, taller, and Cancel under them */
+.pm-tl .pm-fill { grid-auto-rows: 76px; gap: 12px; margin: 28px 24px 0; }
+.pm-tl .pm-fill .pm-cat { font-size: 18px; }
+.pm-fill-x { flex: none; align-self: flex-start; width: 228px; margin: 24px 24px 0; }
+.pm-tl .pm-fill.is-off { opacity: 0.4; }
+/* a long gap's hours, picked (outlined like a gap) or dropped; the categories shorter beside them */
+.pm-hrs { display: grid; grid-template-columns: repeat(6, 1fr); grid-auto-rows: 56px; gap: 10px; margin: 24px 24px 0; }
+.pm-hr { border-radius: 16px; border: 2px dashed var(--chip-line); background: none; color: var(--mute); font-size: 17px; font-weight: 700; }
+.pm-hr.is-on { border: 2px solid var(--gap-line); background: rgba(242, 167, 184, 0.12); color: var(--gap-ink); }
+.pm-tl .pm-hrs + .pm-fill { grid-auto-rows: 64px; gap: 10px; margin-top: 22px; }
+.pm-tl-track { flex: 1; min-height: 0; display: flex; width: 200%; margin-top: 16px; }
+.pm-tl.is-col .pm-tl-track { transform: translateX(-50%); }
+.pm-tl-pane { display: flex; flex-direction: column; width: 50%; min-height: 0; padding: 0 24px; }
+.pm-tl i.is-gap { background: rgba(242, 167, 184, 0.06); border: 2px solid var(--gap-line); border-radius: 6px; }
+.pm-tl i.is-live { opacity: 0.75; }
+.pm-tl i > span { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; padding: 0 8px; overflow: hidden; white-space: nowrap; font-size: 14px; font-style: normal; font-weight: 700; color: #15171c; }
+.pm-tl i.is-gap > span { color: var(--gap-ink); }
+
+.pm-tl-bar { position: relative; flex: none; height: 64px; border-radius: 10px; background: rgba(255, 255, 255, 0.04); overflow: hidden; }
+.pm-tl-bar i { position: absolute; top: 0; bottom: 0; min-width: 2px; background: var(--k); border-right: 1px solid var(--tile); }
+.pm-tl-bar i.is-gap { min-width: 0; }
+.pm-tl .pm-ticks { flex: none; }
+.pm-tl-list { flex: none; height: 310px; columns: 2; column-gap: 20px; margin-top: 12px; list-style: none; }
+.pm-tl-list li { display: flex; align-items: center; gap: 10px; height: 27px; margin-bottom: 4px; padding: 0 8px; border-radius: 6px; font-size: 15px; font-weight: 600; color: var(--ink-2); break-inside: avoid; }
+.pm-tl-list li i { flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--k); }
+.pm-tl-list li b { flex: none; color: var(--ink); }
+.pm-tl-list li.is-gap { border: 2px solid var(--gap-line); color: var(--gap-ink); }
+.pm-tl-list li.is-gap b { color: var(--gap-ink); }
+.pm-tl-list li.is-live { opacity: 1; }
+.pm-tl-list li.is-live .pm-tl-t { color: var(--ink-2); }
+.pm-tl-t { flex: none; width: 92px; font-size: 13px; font-weight: 700; color: var(--mute); }
+.pm-tl-n { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.pm-tl-list li.pm-tl-more { font-size: 13px; color: var(--mute); }
+.pm-tl-cats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px 18px; margin-top: auto; list-style: none; }
+.pm-tl-cats li { display: flex; align-items: center; justify-content: space-between; height: 22px; }
+.pm-tl-cats .pm-cname { width: auto; }
+.pm-tl-cats b { font-size: 15px; font-weight: 700; }
+.pm-tl-cats li.is-gap .pm-cname i { border-radius: 2px; background: none; border: 2px solid var(--gap-line); }
+.pm-tl-cats li.is-gap b { color: var(--gap-ink); }
+
+.pm-tl-cal { display: flex; gap: 24px; flex: 1; min-height: 0; padding-top: 8px; }
+.pm-tl-col { position: relative; flex: none; width: 380px; }
+.pm-tl-hr { position: absolute; left: 0; right: 0; height: 0; border-top: 1px solid rgba(255, 255, 255, 0.06); }
+.pm-tl-hr { font-size: 12px; font-weight: 700; color: var(--mute); line-height: 0; }
+.pm-tl-col i { position: absolute; left: 58px; right: 0; min-height: 2px; border-radius: 6px; background: var(--k); border-bottom: 1px solid var(--tile); }
+.pm-tl-col i > span { font-size: 13px; }
+.pm-tl-side { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.pm-tl-side h3 { margin-top: 4px; font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mute); }
+.pm-tl-side h3 + ul { margin-top: 10px; margin-bottom: 22px; }
+.pm-tl-gaps { list-style: none; font-size: 17px; font-weight: 600; line-height: 1.6; color: var(--ink-2); }
+.pm-tl-gaps b { color: var(--gap-ink); }
+.pm-tl-side .pm-tl-cats { grid-template-columns: 1fr; margin-top: 10px; }
+
+/* ------------------------------------------------------------------ day sheet */
+.sheet {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1280px;
+  height: 800px;
+  background: rgba(5, 7, 10, 0.72);
+}
+.sh-panel {
+  display: flex;
+  flex-direction: column;
+  width: 780px;
+  max-height: 700px;
+  padding: 24px 30px 18px;
+  border-radius: var(--r);
+  border: 1px solid var(--tile-line);
+  background: var(--tile-blue);
+}
+.sh-head { display: flex; align-items: center; gap: 16px; margin-bottom: 18px; }
+.sh-step {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  border: 1px solid var(--chip-line);
+  background: var(--chip);
+  color: var(--ink-2);
+}
+.sh-day { flex: 1; text-align: center; }
+.sh-day b { display: block; font-size: 50px; font-weight: 400; line-height: 1; }
+.sh-day i { color: var(--gold); }
+.sh-day span { display: block; margin-top: 6px; font-size: 16px; font-weight: 600; color: var(--mute); }
+.sh-list { overflow-y: auto; min-height: 0; }
+.sh-ev { display: flex; gap: 22px; margin-bottom: 10px; padding: 12px 0 12px 16px; border-left: 3px solid var(--ev); }
+.sh-when { flex: none; width: 200px; font-size: 17px; font-weight: 650; color: var(--ev); }
+.sh-title { font-size: 20px; font-weight: 600; line-height: 1.3; }
+.sh-title small { display: block; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mute); }
+.sh-free { padding: 36px 0 44px; text-align: center; font-size: 19px; font-weight: 600; color: var(--mute); }
+
+/* ------------------------------------------------------------------ telugu */
+/* its own layer, so the burn-in shift moves it without repainting; swipes are ours, not a pan */
+.screen.te { will-change: transform; touch-action: none; }
+.te-page { display: flex; flex-direction: column; gap: var(--gap); flex: 1; min-height: 0; }
+.screen-head .te-word { font-family: var(--te); font-size: 26px; font-weight: 400; color: var(--mute); }
+.te-tabs { display: flex; gap: 10px; margin-left: auto; align-self: center; }
+.te-tab {
+  height: 52px;
+  padding: 0 24px;
+  border-radius: var(--r-chip);
+  border: 1px solid var(--chip-line);
+  background: var(--chip);
+  font-size: 17px;
+  font-weight: 650;
+  color: var(--mute);
+}
+.te-tab.is-on { border-color: rgba(203, 180, 124, 0.35); background: rgba(203, 180, 124, 0.14); color: var(--gold); }
+.te-grid { display: flex; flex-direction: column; gap: 10px; flex: 1; min-height: 0; }
+.te-row { display: flex; gap: 10px; flex: 1; min-height: 0; }
+.te-cell {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  border-radius: 22px;
+  border: 1px solid var(--tile-line);
+  background: var(--tile);
+}
+/* the letter and its romanization; beside it, on the second consonant page, a word */
+.te-main { display: flex; flex: 1; flex-direction: column; min-width: 0; }
+/* the space the letter is centred in (screens/telugu.js moves each one so its ink is centred) */
+.te-box { display: flex; flex: 1; align-items: center; justify-content: center; min-height: 0; }
+.te-g { font-family: var(--te); font-size: 116px; line-height: 1; color: var(--te-ink); }
+.te-r { flex: none; height: 46px; font-size: 24px; font-weight: 650; letter-spacing: 0.02em; text-align: center; color: var(--gold); }
+/* the consonants keep five columns on both pages, so every cell is the same size */
+.te-cons .te-cell { flex: none; width: calc((100% - 40px) / 5); }
+.te-cons .te-g { font-size: 100px; }
+.te-cons .te-r { height: 40px; font-size: 21px; }
+/* first consonant page: five to a row, so only the word's romanization, beside a narrower letter column */
+.te-c1 .has-ex { align-items: center; }
+.te-c1 .has-ex .te-main { flex: none; align-self: stretch; width: 122px; }
+.te-c1 .te-ex { height: 44px; padding-left: 10px; }
+.te-c1 .te-ex-r { font-size: 16px; }
+/* second consonant page: four to a row; with a word, the letter keeps a fixed column beside it */
+.te-words .te-cell { width: calc((100% - 30px) / 4); align-items: center; }
+.te-words .te-main { align-self: stretch; }
+.te-words .has-ex .te-main { flex: none; width: 150px; }
+.te-ex {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+  height: 96px;
+  padding-left: 18px;
+  border-left: 1px solid var(--tile-line);
+}
+.te-ex-w { font-family: var(--te); font-size: 30px; line-height: 1.25; color: var(--te-ink); }
+.te-ex-r { font-size: 17px; font-weight: 600; color: var(--mute); }
+.te-ex-r b { font-weight: 700; color: var(--gold); }
+.te-ex-m { font-size: 15px; font-weight: 500; color: var(--mute); }
+.bar-te { font-family: var(--te); font-size: 30px; line-height: 30px; height: 30px; }
+
+/* ------------------------------------------------------------------ side bar */
+/* Hidden until a tap on the left edge; the faint handle there says it exists. */
+.edge { position: fixed; top: 0; left: 0; z-index: 5; display: flex; align-items: center; width: 36px; height: 800px; }
+.edge span { width: 5px; height: 64px; margin-left: 7px; border-radius: 3px; background: rgba(255, 255, 255, 0.16); }
+.scrim { position: fixed; top: 0; left: 0; z-index: 6; width: 1280px; height: 800px; }
+.bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 7;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 14px;
+  width: 120px;
+  height: 800px;
+  padding: 0 14px;
+  border-right: 1px solid var(--tile-line);
+  background: #0f131a;
+  transform: translateX(-121px);
+}
+.bar.is-open { transform: translateX(0); }
+.bar-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 100px;
+  border-radius: 22px;
+  color: var(--mute);
+  font-size: 14px;
+  font-weight: 650;
+}
+.bar-btn.is-on { background: rgba(203, 180, 124, 0.14); color: var(--gold); }
+
+/* ------------------------------------------------------------------ night clock */
+.night {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 1280px;
+  height: 800px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000000;
+  color: var(--night);
+  z-index: 30;
+}
+.night[hidden] { display: none; }
+.night.is-off .night-inner { display: none; }
+.night-inner { text-align: center; }
+.night-time { font-size: 260px; line-height: 1; letter-spacing: -0.03em; }
+.night-time i { font-size: 72px; margin-left: 12px; }
+.night-date { margin-top: 8px; font-size: 26px; font-weight: 600; opacity: 0.75; }
+.night-pick { display: flex; justify-content: center; margin-top: 64px; }
+.night-btn {
+  width: 240px;
+  height: 76px;
+  margin: 0 14px;
+  border: 2px solid rgba(143, 36, 24, 0.55);
+  border-radius: 38px;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--night);
+}
+
+/* ------------------------------------------------------------------ tap feedback (tap.js) */
+/* laid over whatever a touch lands on, at once, then faded; only its opacity animates */
+.tap {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 40;
+  pointer-events: none;
+  background: rgba(255, 255, 255, 0.16);
+  opacity: 0;
+  will-change: opacity, transform;
+}
+.tap.is-on { opacity: 1; }
+.tap.is-night { background: rgba(143, 36, 24, 0.4); } /* the night clock's red, nothing brighter */
+
+/* ------------------------------------------------------------------ ?diag */
+.diag {
+  position: fixed;
+  right: 8px;
+  bottom: 8px;
+  z-index: 10;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #7cff9b;
+  font: 12px/1.4 monospace;
+  white-space: pre;
+  pointer-events: none;
+}
+
+/* for the video only: next month's days lifted from --faint to the nearest WCAG AA grey (check's suggestion) */
+.cal-day.is-out { color: #7d8189; }
+/* for the video only: the Week page's "Free" lifted to the nearest WCAG AA grey (check's suggestion) */
+.wk-free { color: #7b7f87; }

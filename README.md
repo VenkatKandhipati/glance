@@ -19,6 +19,8 @@ train board or the forecast.
 <sub>Screenshots from the frame in demo mode (`?demo`): made-up events and trains, and a
 public-domain photo of the Tidal Basin by the National Park Service.</sub>
 
+A short video of it, and the composition that renders it: [brag/](brag/README.md).
+
 Glance runs on a 10.1" photo frame bought for its screen: a budget quad-core chip, 1 GB of RAM
 and Android 8.1, which shipped with a 2017 browser engine (Chromium 61) and now runs Chromium 106. The whole dashboard is one static web page,
 about 21 KB of gzipped JavaScript and CSS plus fonts, built to stay smooth on that hardware and to

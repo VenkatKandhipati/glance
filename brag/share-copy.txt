@@ -1,0 +1,1 @@
+Introducing Glance: a calm home dashboard for a cheap Android photo frame. The time, the weather, your calendar, your photos and the next Metro trains, readable from across the room. About 21 KB of JavaScript and CSS, on 1 GB of RAM.

@@ -1,0 +1,34 @@
+<template>
+  <style>
+    @font-face { font-family: 'Instrument Serif'; font-style: normal; font-weight: 400; src: url('assets/fonts/instrument-serif.woff2') format('woff2'); }
+    @font-face { font-family: 'Plus Jakarta Sans Variable'; font-style: normal; font-weight: 200 800; src: url('assets/fonts/plus-jakarta-sans.woff2') format('woff2-variations'); }
+    #root { position: absolute; inset: 0; overflow: hidden; }
+    .ot-ground { position: absolute; inset: 0; background: #0c0f14; opacity: 0; }
+    .ot-in { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+    .ot-name { font-family: 'Instrument Serif', serif; font-size: 220px; line-height: 0.95; letter-spacing: -0.02em; color: #cbb47c; opacity: 0; }
+    .ot-claim { margin-top: 28px; font-family: 'Instrument Serif', serif; font-size: 72px; line-height: 1.1; color: #f3f0e9; opacity: 0; }
+    .ot-spec { margin-top: 36px; font-family: 'Plus Jakarta Sans Variable', sans-serif; font-size: 30px; font-weight: 600; letter-spacing: 0.02em; color: #858a95; opacity: 0; }
+  </style>
+  <div id="root" data-composition-id="outro" data-width="1920" data-height="1080">
+    <div id="ot-ground" class="ot-ground" data-layout-ignore></div>
+    <div class="ot-in">
+      <div id="ot-name" class="ot-name">Glance.</div>
+      <div id="ot-claim" class="ot-claim">About 21 KB of JavaScript and CSS.</div>
+      <div id="ot-spec" class="ot-spec">Android 8.1 · 1 GB of RAM · 1280 × 800</div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      const blurIn = (sel, at, dur) => tl.fromTo(sel, { opacity: 0, filter: 'blur(8px)' }, { opacity: 1, filter: 'blur(0px)', duration: dur, ease: 'power4.out' }, at);
+      // The ground floods back from the night's black.
+      tl.fromTo('#ot-ground', { opacity: 0 }, { opacity: 1, duration: 0.4, ease: 'power2.inOut' }, 0);
+      // 31.67s (a beat) — the name, with the bell in index.html
+      blurIn('#ot-name', 0.08, 0.25);
+      // beat-locked: 32.74s (strong cue) — the claim; then the spec line
+      blurIn('#ot-claim', 1.07, 0.25);
+      blurIn('#ot-spec', 1.62, 0.25);
+      window.__timelines['outro'] = tl;
+    })();
+  </script>
+</template>
